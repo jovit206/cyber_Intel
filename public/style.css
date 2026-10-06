@@ -1008,3 +1008,15 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* Cross-Source Analysis */
+.cs-status{margin:0 0 16px;opacity:.8;font-size:13px}
+.cs-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+.cs-card{padding:14px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)}
+.cs-card b{display:block;font-size:24px}
+.cs-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+.cs-table th,.cs-table td{text-align:left;padding:8px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;word-break:break-word}
+.cs-pager{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px}
+.cs-pair{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.cs-src{margin:12px 0;padding:12px;border-radius:10px;background:rgba(255,255,255,.04)}
+.cs-strong{color:#4ade80}

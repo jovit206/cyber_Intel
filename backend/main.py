@@ -19,6 +19,8 @@ from backend.collectors.reports import sync_reports
 from backend.config import settings
 from backend.database import close_database, connect_database
 from backend.routes.api import router as api_router
+from backend.routes.cross_source import router as cross_source_router
+from backend.services.cross_source import rebuild as rebuild_cross_source
 from backend.routes.api import sample_cache_metrics
 
 logging.basicConfig(
@@ -104,7 +106,12 @@ def _ensure_indexes(database) -> None:
 
 def _run_misp_feed(database, feed_name: str, feed_url: str) -> None:
     try:
-        sync_feed(database, feed_name, feed_url, max_events=settings.sync_startup_max_events)
+        result = sync_feed(database, feed_name, feed_url, max_events=settings.sync_startup_max_events)
+        if result and result.get("fetched_events"):  # new/changed events only
+            try:
+                rebuild_cross_source(database)
+            except Exception:
+                logger.exception("[%s] Cross-source refresh failed", feed_name)
     except Exception as error:
         database["cti_sync_state"].update_one(
             {"_id": feed_name},
@@ -222,6 +229,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(api_router)
+app.include_router(cross_source_router)
 
 
 @app.get("/health")
