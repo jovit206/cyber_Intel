@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('cs-rows').addEventListener('click', e => {
     const b = e.target.closest('[data-i]'); if (!b) return;
     const [t, k] = JSON.parse($('cs-rows').dataset.items)[+b.dataset.i];
-    showEvidence(t, k).catch(err => alert(err.message));
+    showEvidence(t, k).catch(err => { $('cs-status').textContent = err.message; });
   });
   $('cs-refresh').addEventListener('click', async () => {
     const b = $('cs-refresh'); b.disabled = true; b.textContent = 'Analyzing...';
