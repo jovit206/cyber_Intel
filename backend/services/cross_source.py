@@ -177,11 +177,17 @@ def _rebuild(database: Database) -> dict[str, Any]:
                              "URL host lowercased; domain trailing dot removed",
             "analyzed_at": now, "algorithm_version": ALGORITHM_VERSION,
         })
-    matches = database[MATCHES]
-    matches.delete_many({})
+    # build in a staging collection, then swap so readers never see a half-built result
+    staging = database[MATCHES + "_tmp"]
+    staging.drop()
     for i in range(0, len(docs), 1000):
-        matches.insert_many(docs[i:i + 1000], ordered=False)
-    _ensure_indexes(database)
+        staging.insert_many(docs[i:i + 1000], ordered=False)
+    _ensure_indexes(database, staging)
+    if docs:
+        staging.rename(MATCHES, dropTarget=True)
+    else:
+        staging.drop()
+        database[MATCHES].delete_many({})
 
     per_source = {row["_id"]: row["n"] for row in database["events"].aggregate([
         {"$match": {"source_feed": {"$type": "string"}}},
@@ -203,12 +209,22 @@ def _rebuild(database: Database) -> dict[str, Any]:
     return meta
 
 
-def _ensure_indexes(database: Database) -> None:
-    m = database[MATCHES]
-    m.create_index([("category", 1), ("source_count", -1), ("record_count", -1)])
-    m.create_index([("type", 1), ("key", 1)])
-    m.create_index([("sources", 1)])
-    m.create_index([("key", 1)])
-    # source/feed lookups used by the aggregation and evidence view
-    database["attributes"].create_index([("is_current", 1), ("indicator_type", 1), ("normalized_indicator", 1)])
-    database["events"].create_index([("source_feed", 1), ("misp_uuid", 1)], name="cross_source_feed_uuid")
+def _ensure_indexes(database: Database, matches=None) -> None:
+    m = matches if matches is not None else database[MATCHES]
+    try:
+        m.create_index([("category", 1), ("source_count", -1), ("record_count", -1)])
+        m.create_index([("type", 1), ("key", 1)])
+        m.create_index([("sources", 1)])
+        m.create_index([("key", 1)])
+        # speeds up the attribute aggregation; failure here must never break the analysis
+        database["attributes"].create_index(
+            [("is_current", 1), ("indicator_type", 1), ("normalized_indicator", 1)],
+            name="cross_source_attr_lookup")
+    except Exception:
+        logger.exception("Cross-source index creation failed (analysis continues)")
+
+
+def ensure_built(database: Database) -> None:
+    """Build once on startup if no analysis exists yet."""
+    if database[META].find_one({"_id": "latest"}) is None:
+        rebuild(database)

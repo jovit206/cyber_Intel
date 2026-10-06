@@ -101,8 +101,17 @@ def refresh() -> dict[str, Any]:
     return serialize(meta)
 
 
+@router.get("/evidence")
+def evidence_query(type: str, key: str, source: str = "") -> dict[str, Any]:
+    return _evidence(type, key, source)
+
+
 @router.get("/{kind}/{value:path}")
 def evidence(kind: str, value: str, source: str = "") -> dict[str, Any]:
+    return _evidence(kind, value, source)
+
+
+def _evidence(kind: str, value: str, source: str) -> dict[str, Any]:
     db = get_database()
     doc = db[cs.MATCHES].find_one({"_id": f"{kind}:{value}"})
     if not doc:

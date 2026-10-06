@@ -9,8 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const state = { cat: 'all', min: 2, src: '', q: '', sort: 'source_count', page: 1, pages: 1, loaded: false };
   let names = {};
 
-  const get = async path => {
-    const r = await fetch(api(path));
+  const get = async (path, opts) => {
+    const r = await fetch(api(path), opts);
     const body = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(body.detail || `HTTP ${r.status}`);
     return body;
@@ -37,10 +37,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const badges = s => s.map(x => `<span class="tag-badge cyan">✓ ${esc(x.name)}</span>`).join(' ');
 
+  let rowsReq = 0;
   async function loadRows() {
+    const req = ++rowsReq;
     const qs = new URLSearchParams({ category: state.cat, min_sources: state.min, sources: state.src, q: state.q, sort: state.sort, page: state.page, page_size: 25 });
     try {
       const d = await get(`/common?${qs}`);
+      if (req !== rowsReq) return;
       state.pages = Math.max(1, Math.ceil(d.total / d.page_size));
       $('cs-common-title').textContent = `Common data (${d.total.toLocaleString()})`;
       $('cs-rows').innerHTML = d.items.map((r, i) => `<tr><td>${esc(r.type)}</td><td>${esc(r.value)}</td><td>${badges(r.sources)}</td>
@@ -52,13 +55,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function showEvidence(type, key) {
-    const e = await get(`/${encodeURIComponent(type)}/${key.split('/').map(encodeURIComponent).join('/')}`);
+    const e = await get(`/evidence?type=${encodeURIComponent(type)}&key=${encodeURIComponent(key)}`);
     $('drawer-content').innerHTML = `<h2>${esc(e.value)}</h2><p class="cs-strong">Common across ${e.source_count} sources · ${e.record_count} records</p>
       ${e.sources.map((s, n) => `<div class="cs-src"><b>SOURCE ${n + 1}: ${esc(s.name)}</b><br>Records: ${s.record_count}
-        <ul>${s.records.slice(0, 15).map(r => `<li>${esc(r.title)}<br><small>${esc(r.date || '')} · UUID ${esc(r.misp_uuid)}${r.reference && /^https?:\/\//.test(r.reference) ? ` · <a href="${esc(r.reference)}" target="_blank" rel="noopener noreferrer">open</a>` : ''}</small></li>`).join('')}</ul>
-        ${s.record_count > 15 ? `<small>Showing 15 of ${s.record_count}.</small>` : ''}</div>`).join('')}
+        <ul>${s.records.map((r, ri) => `<li${ri >= 15 ? ' hidden data-more' : ''}>${esc(r.title)}<br><small>${esc(r.date || '')} · UUID ${esc(r.misp_uuid)}${r.reference && /^https?:\/\//.test(r.reference) ? ` · <a href="${esc(r.reference)}" target="_blank" rel="noopener noreferrer">open</a>` : ''}</small></li>`).join('')}</ul>
+        ${s.records.length > 15 ? `<button class="pill" data-more-btn>Show all ${s.records.length}${s.record_count > s.records.length ? ` of ${s.record_count}` : ''} records</button>` : ''}</div>`).join('')}
       <h3>Why is this common?</h3><p>${esc(e.why)} This does not mean the records are duplicates.</p>
       <details><summary>Technical details</summary><pre>${esc(JSON.stringify({ sources: e.sources.map(s => ({ source_feed: s.url, records: s.records.map(r => ({ misp_uuid: r.misp_uuid, record_id: r.record_id, field: r.field })) })), ...e.technical }, null, 2))}</pre></details>`;
+    $('drawer-content').querySelectorAll('[data-more-btn]').forEach(b => b.addEventListener('click', () => {
+      b.parentElement.querySelectorAll('[data-more]').forEach(li => { li.hidden = false; }); b.remove();
+    }));
     $('drawer-backdrop').classList.remove('hidden');
   }
 
@@ -100,7 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   $('cs-refresh').addEventListener('click', async () => {
     const b = $('cs-refresh'); b.disabled = true; b.textContent = 'Analyzing...';
-    try { await fetch(api('/refresh'), { method: 'POST' }); await init(true); }
+    try { await get('/refresh', { method: 'POST' }); await init(true); }
+    catch (e) { $('cs-status').textContent = e.message; }
     finally { b.disabled = false; b.textContent = 'Refresh Analysis'; }
   });
 

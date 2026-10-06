@@ -20,6 +20,7 @@ from backend.config import settings
 from backend.database import close_database, connect_database
 from backend.routes.api import router as api_router
 from backend.routes.cross_source import router as cross_source_router
+from backend.services.cross_source import ensure_built as ensure_cross_source
 from backend.services.cross_source import rebuild as rebuild_cross_source
 from backend.routes.api import sample_cache_metrics
 
@@ -161,6 +162,14 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         next_run_time=None,
         max_instances=1,
         coalesce=True,
+    )
+    scheduler.add_job(
+        ensure_cross_source,
+        args=[database],
+        id="cross-source-initial-build",
+        replace_existing=True,
+        next_run_time=datetime.now(timezone.utc),
+        max_instances=1,
     )
     scheduler.add_job(
     _run_galaxy_sync,
