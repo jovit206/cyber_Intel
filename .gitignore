@@ -1,0 +1,92 @@
+# ==============================
+# Python
+# ==============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# ==============================
+# Environment / Secrets
+# ==============================
+.env
+.env.local
+.env.*.local
+*.env
+
+# ==============================
+# Node.js
+# ==============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==============================
+# Build / Distribution
+# ==============================
+dist/
+build/
+.next/
+out/
+coverage/
+
+# ==============================
+# IDE / Editor
+# ==============================
+.vscode/
+.idea/
+*.code-workspace
+
+# ==============================
+# OS generated files
+# ==============================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==============================
+# Logs
+# ==============================
+*.log
+logs/
+
+# ==============================
+# Temporary files
+# ==============================
+*.tmp
+*.temp
+tmp/
+temp/
+
+# ==============================
+# Database / Local data
+# ==============================
+*.db
+*.sqlite
+*.sqlite3
+
+# MongoDB local dumps/backups
+backups/
+dump/
+
+# ==============================
+# Python tools
+# ==============================
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.ipynb_checkpoints/
+
+# ==============================
+# Project specific
+# ==============================
+legacy-node/

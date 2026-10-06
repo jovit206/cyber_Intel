@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Threat Intelligence Platform | Operations</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="aegis-app">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-crest">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h2>Threat Intelligence Platform</h2>
+        </div>
+      </div>
+
+      <div class="nav-section-title">INTELLIGENCE OPERATIONS</div>
+      <nav class="sidebar-nav">
+        <button class="nav-link active" data-view="feed">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+          <span>Live Threat Stream</span>
+        </button>
+        <button class="nav-link" data-view="threats">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+          <span>Top Threats</span>
+        </button>
+        <button class="nav-link" data-view="reports">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+          <span>Report Corpus</span>
+        </button>
+        <button class="nav-link" data-view="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <span>Search &amp; Enrich</span>
+        </button>
+      </nav>
+
+      <div class="nav-section-title" style="margin-top: 24px;">SYSTEM MONITORING</div>
+      <nav class="sidebar-nav">
+        <button class="nav-link highlight" data-view="cache">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <span>Lab 7.2: Working Set</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- MAIN COMMAND CANVAS -->
+    <div class="main-canvas">
+      <!-- VIEW PANELS CONTAINER -->
+      <div class="content-body">
+
+        <!-- VIEW 1: THREAT STREAM -->
+        <section id="view-feed" class="content-view active">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">INTELLIGENCE OPERATIONS / LIVE</span>
+              <h1>Live Threat Stream</h1>
+              <p>Normalized indicators and threat activity from trusted intelligence feeds.</p>
+            </div>
+            <div class="feed-status">
+              <span class="live-indicator"><span class="live-dot"></span>Live intelligence</span>
+              <span id="last-sync-status" class="feed-sync-status" aria-live="polite">Feed sync status loading...</span>
+            </div>
+          </header>
+          <div class="filter-strip">
+            <div class="filter-pills">
+              <button class="pill active" data-source="">All Feeds</button>
+              <button class="pill" data-source="misp">All MISP</button>
+              <button class="pill" data-source="circl">CIRCL</button>
+              <button class="pill" data-source="botvrij">Botvrij</button>
+              <button class="pill" data-source="threatfox">ThreatFox</button>
+              <button class="pill" data-source="virustotal">VirusTotal</button>
+            </div>
+            <div class="filter-counter" id="feed-counter" aria-live="polite">Loading event count...</div>
+          </div>
+          <div class="cards-stream" id="events-stream">
+            <!-- Dynamic Event Cards -->
+            <div class="loading-state">Streaming intelligence records...</div>
+          </div>
+          <nav class="pagination" id="feed-pagination" aria-label="Threat stream pages" hidden>
+            <button class="pagination-button" id="feed-previous" type="button">Previous</button>
+            <span class="pagination-status" id="feed-page-status" aria-live="polite"></span>
+            <button class="pagination-button" id="feed-next" type="button">Next</button>
+          </nav>
+        </section>
+
+        <!-- VIEW 2: TOP THREATS -->
+        <section id="view-threats" class="content-view">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">INTELLIGENCE OPERATIONS</span>
+              <h1>Top Threats</h1>
+              <p>Most recent threat indicators received from configured intelligence sources.</p>
+            </div>
+            <span class="tag-badge cyan">Live sources</span>
+          </header>
+          <div class="matrix-grid" id="threats-matrix">
+            <!-- Dynamic Threat Cards -->
+          </div>
+        </section>
+
+        <!-- VIEW 3: REPORT CORPUS -->
+        <section id="view-reports" class="content-view">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">INTELLIGENCE OPERATIONS</span>
+              <h1>Report Corpus</h1>
+              <p>Research reports and source provenance for the intelligence feed.</p>
+            </div>
+          </header>
+          <div class="corpus-grid">
+            <div class="glass-panel">
+              <div class="panel-header">
+                <h3>Annual Security Reports</h3>
+                <span class="tag-badge">awesome-annual-security-reports</span>
+              </div>
+              <div class="table-container">
+                <table id="corpus-table">
+                  <thead>
+                    <tr>
+                      <th>Document</th>
+                      <th>Vendor</th>
+                      <th>Year</th>
+                      <th>Passages</th>
+                      <th>Threats Cited</th>
+                      <th>PDF Link</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="glass-panel" style="margin-top: 24px;">
+              <div class="panel-header">
+                <h3>Intelligence Feed Ingestion Sources</h3>
+                <span class="tag-badge green">Provenance Rated</span>
+              </div>
+              <div class="table-container">
+                <table id="sources-table">
+                  <thead>
+                    <tr>
+                      <th>Source</th>
+                      <th>Records</th>
+                      <th>Indicators</th>
+                      <th>Latest record</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 4: SEARCH & ENRICH -->
+        <section id="view-search" class="content-view">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">INTELLIGENCE OPERATIONS</span>
+              <h1>Search &amp; Enrich</h1>
+              <p>Search ingested events, indicators and report passages, or enrich an indicator against VirusTotal.</p>
+            </div>
+          </header>
+
+          <div class="glass-panel">
+            <div class="panel-header"><h3>Search the corpus</h3></div>
+            <div class="search-row">
+              <input id="search-input" type="text" placeholder="Search threats, indicators, passages..." aria-label="Search">
+              <button id="search-btn" class="btn-glow" type="button">Search</button>
+            </div>
+            <div id="search-results"></div>
+          </div>
+
+          <div class="glass-panel" style="margin-top: 20px;">
+            <div class="panel-header"><h3>VirusTotal enrichment</h3></div>
+            <div class="search-row">
+              <input id="vt-input" type="text" placeholder="IP, domain, URL or file hash" aria-label="VirusTotal indicator">
+              <select id="vt-type" aria-label="Indicator type">
+                <option value="">Auto-detect</option>
+                <option value="ip">IP</option>
+                <option value="domain">Domain</option>
+                <option value="url">URL</option>
+                <option value="md5">MD5</option>
+                <option value="sha1">SHA1</option>
+                <option value="sha256">SHA256</option>
+              </select>
+              <button id="vt-btn" class="btn-glow" type="button">Lookup</button>
+            </div>
+            <div id="vt-result"></div>
+          </div>
+        </section>
+
+        <!-- LAB 7.2: WORKING SET & WIREDTIGER CACHE -->
+        <section id="view-cache" class="content-view">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">LAB 7.2 / STORAGE ENGINE ANALYSIS</span>
+              <h1>Working Set &amp; WiredTiger Cache Analysis</h1>
+              <p>Measure a real-record-derived working set, monitor live cache behavior, and benchmark random point reads.</p>
+            </div>
+          </header>
+
+          <div class="glass-panel lab-objective">
+            <div>
+              <span class="eyebrow">OBJECTIVE</span>
+              <p>Evaluate how working-set size affects WiredTiger cache residency, random-read latency, and disk page reads.</p>
+            </div>
+            <span class="tag-badge cyan">100,000 derived benchmark documents</span>
+          </div>
+
+          <!-- Live collection and cache measurements -->
+          <div class="stats-row">
+            <div class="stat-card prime">
+              <div class="card-icon">📦</div>
+              <div class="stat-data">
+                <span class="label">Threat Reports</span>
+                <span class="big-val" id="ws-document-count">Loading...</span>
+                <span class="hint" id="ws-document-size">Collection measurements loading</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="card-icon">💾</div>
+              <div class="stat-data">
+                <span class="label">Working Set Footprint</span>
+                <span class="big-val" id="ws-footprint">Loading...</span>
+                <span class="hint">BSON data plus collection indexes</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="card-icon">🧠</div>
+              <div class="stat-data">
+                <span class="label">WiredTiger Cache In Use</span>
+                <span class="big-val" id="wt-bytes-cache">Waiting...</span>
+                <span class="hint" id="wt-cache-pct">Waiting for telemetry...</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="card-icon">📈</div>
+              <div class="stat-data">
+                <span class="label">Cache Hit Ratio (10s)</span>
+                <span class="big-val" id="wt-hit-ratio">Waiting...</span>
+                <span class="hint">1 − (pages read ÷ pages requested)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-panel cache-capacity-panel">
+            <div class="panel-header">
+              <div>
+                <h3>Cache Capacity &amp; Eviction Activity</h3>
+                <p class="panel-sub">Values come from live MongoDB serverStatus. Reference run: 1,024 MB cache; this instance uses its configured capacity.</p>
+              </div>
+              <span class="tag-badge" id="wt-cache-capacity">Cache limit: loading...</span>
+            </div>
+            <div class="cache-detail-grid">
+              <div><span class="label">Dirty bytes</span><strong id="wt-dirty">Waiting...</strong></div>
+              <div><span class="label">Application-thread evictions</span><strong id="wt-evictions">Waiting...</strong></div>
+              <div><span class="label">Pages read into cache</span><strong id="wt-pages-read">Waiting...</strong></div>
+            </div>
+            <div class="cache-progress" role="progressbar" aria-label="WiredTiger cache utilization" aria-valuemin="0" aria-valuemax="100">
+              <div id="wt-cache-progress"></div>
+            </div>
+          </div>
+
+          <!-- Live cache utilization chart -->
+          <div class="glass-panel" style="margin-top: 20px;">
+            <div class="panel-header">
+              <div>
+                <h3>WiredTiger Cache Utilization</h3>
+                <p class="panel-sub">Cache bytes in use versus the configured maximum, sampled every 10 seconds.</p>
+              </div>
+              <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span>Live 10s Sampling</span>
+              </div>
+            </div>
+            <div class="chart-viewport">
+              <canvas id="wt-cache-chart" role="img" aria-label="WiredTiger cache utilization over time"></canvas>
+            </div>
+          </div>
+
+          <div class="glass-panel random-read-panel">
+            <div class="panel-header">
+              <div>
+                <h3>Random Point-Read Experiment</h3>
+                <p class="panel-sub">Run 500 random indexed lookups by <code>_id</code> and measure elapsed time and cache page-read deltas.</p>
+              </div>
+              <button id="btn-run-random-reads" class="btn-glow" type="button">Run 500 Random Reads</button>
+            </div>
+            <div class="benchmark-results-box">
+              <div class="bench-metric-card">
+                <div class="metric-title">Average Read Latency</div>
+                <div class="metric-number speed" id="ws-read-latency">—</div>
+                <div class="metric-details" id="ws-read-count">No experiment run yet</div>
+              </div>
+              <div class="bench-metric-card">
+                <div class="metric-title">Cache Page Reads / Evictions</div>
+                <div class="metric-number" id="ws-read-pages">—</div>
+                <div class="metric-details" id="ws-read-pages-detail">Measured during the last workload</div>
+              </div>
+            </div>
+            <p class="experiment-note" id="ws-experiment-status" aria-live="polite">Run the experiment to record measurements from this database instance.</p>
+          </div>
+
+        </section>
+
+      </div>
+    </div>
+
+    <!-- DETAIL SLIDE-OVER DRAWER -->
+    <div id="drawer-backdrop" class="drawer-backdrop hidden">
+      <div class="drawer-panel">
+        <div class="drawer-header">
+          <div class="drawer-title-group">
+            <span class="tag-badge cyan" id="drawer-type">THREAT PROFILE</span>
+            <h2 id="drawer-title">Adversary Name</h2>
+          </div>
+          <button id="drawer-close" class="drawer-close-btn">&times;</button>
+        </div>
+        <div class="drawer-body" id="drawer-content">
+          <!-- Dynamic details content -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <script src="/config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
