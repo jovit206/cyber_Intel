@@ -5,7 +5,7 @@ import re
 import time
 
 import httpx
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -499,6 +499,7 @@ def _write_vt_cache(
     result: str,
     payload: dict[str, Any] | None = None,
 ) -> None:
+    checked_at = datetime.now(timezone.utc)
     cache_doc: dict[str, Any] = {
         "_id": cache_id,
         "source": "virustotal",
@@ -506,9 +507,21 @@ def _write_vt_cache(
         "indicator": indicator,
         "normalized_indicator": normalized,
         "result": result,
-        "checked_at": datetime.now(timezone.utc),
+        "checked_at": checked_at,
+        "expires_at": checked_at + timedelta(hours=24),
     }
     if payload is not None:
+        data = payload.get("data") if isinstance(payload, dict) else None
+        if isinstance(data, dict):
+            attributes = data.get("attributes") if isinstance(data.get("attributes"), dict) else {}
+            stats = attributes.get("last_analysis_stats") if isinstance(attributes.get("last_analysis_stats"), dict) else {}
+            cache_doc["report_id"] = str(data.get("id") or cache_id)
+            cache_doc["country"] = attributes.get("country") or attributes.get("country_name") or "Unknown"
+            cache_doc["owner"] = attributes.get("as_owner") or attributes.get("owner") or attributes.get("network") or "Unknown"
+            cache_doc["verdict"] = _vt_verdict_from_stats(stats)
+            cache_doc["severity"] = _vt_severity_from_stats(stats)
+            cache_doc["virustotal_url"] = _vt_gui_url(indicator, indicator_type)
+            cache_doc["engine_results"] = attributes.get("last_analysis_results") if isinstance(attributes.get("last_analysis_results"), dict) else {}
         cache_doc["response"] = payload
     database["virustotal_cache"].update_one(
         {"_id": cache_id},
@@ -520,6 +533,34 @@ def _write_vt_cache(
     )
 
 
+def _vt_verdict_from_stats(stats: dict[str, Any] | None) -> str:
+    if not isinstance(stats, dict):
+        return "clean"
+    malicious = stats.get("malicious")
+    suspicious = stats.get("suspicious")
+    if isinstance(malicious, int) and malicious > 0:
+        return "malicious"
+    if isinstance(suspicious, int) and suspicious > 0:
+        return "suspicious"
+    return "clean"
+
+
+def _vt_severity_from_stats(stats: dict[str, Any] | None) -> str:
+    return "High" if _vt_verdict_from_stats(stats) == "malicious" else "Low"
+
+
+def _vt_gui_url(indicator: str, indicator_type: str | None = None) -> str:
+    target = str(indicator or "").strip()
+    kind = (indicator_type or "").lower()
+    if kind in {"sha256", "sha1", "md5"}:
+        return f"https://www.virustotal.com/gui/file/{target}"
+    if kind in {"ip", "ip-src", "ip-dst", "ipv4", "ipv6"}:
+        return f"https://www.virustotal.com/gui/search/{target}"
+    if kind in {"domain", "hostname"}:
+        return f"https://www.virustotal.com/gui/domain/{target}"
+    return f"https://www.virustotal.com/gui/search/{target}"
+
+
 def _vt_cache_response(doc: dict[str, Any]) -> dict[str, Any]:
     payload = doc.get("response")
     record = (
@@ -527,41 +568,42 @@ def _vt_cache_response(doc: dict[str, Any]) -> dict[str, Any]:
         if isinstance(payload, dict)
         else None
     )
-    view: dict[str, Any] = dict(doc)
+    if not record:
+        return {"error": "No real VirusTotal result available."}
+    view: dict[str, Any] = dict(record)
     view["cached"] = True
-    if record:
-        for key in (
-            "malicious_count", "suspicious_count", "harmless_count",
-            "undetected_count", "reputation", "timestamp", "last_analysis_date",
-            "tags", "categories", "source_reference", "threat_type",
-        ):
-            if record.get(key) is not None:
-                view[key] = record[key]
+    view["report_id"] = record.get("report_id") or doc.get("report_id") or doc.get("_id")
+    view["verdict"] = record.get("verdict") or _vt_verdict_from_stats(record.get("analysis_stats"))
+    view["severity"] = record.get("severity") or _vt_severity_from_stats(record.get("analysis_stats"))
+    view["country"] = record.get("country") or doc.get("country") or "Unknown"
+    view["owner"] = record.get("owner") or doc.get("owner") or "Unknown"
+    view["engine_results"] = record.get("engine_results") or doc.get("engine_results") or {}
+    view["virustotal_url"] = record.get("virustotal_url") or _vt_gui_url(str(doc.get("indicator", "")), doc.get("indicator_type"))
     return serialize(view)
 
 
-@router.get("/virustotal/lookup")
-def virustotal_lookup(
-    indicator: str = Query(..., min_length=1),
+def _scan_virustotal_indicator(
+    indicator: str,
     indicator_type: str | None = None,
 ) -> dict[str, Any]:
     indicator = indicator.strip()
     kind = _detect_indicator_type(indicator, indicator_type)
-    database = get_database()
     if kind is None:
         return {
-            "error": "Could not determine the indicator type; "
-                     "pass indicator_type=ip|domain|url|md5|sha1|sha256."
+            "error": "Could not determine the indicator type; pass an IP, domain, URL, MD5, SHA-1 or SHA-256."
         }
+    database = get_database()
     normalized = normalize_indicator(kind, indicator) or indicator
     cache_id = _vt_cache_id(kind, normalized)
     cached = database["virustotal_cache"].find_one({"_id": cache_id})
     if cached:
-        return _vt_cache_response(cached)
+        expires_at = cached.get("expires_at")
+        if expires_at is None or expires_at > datetime.now(timezone.utc):
+            return _vt_cache_response(cached)
     if not settings.virustotal_api_key:
         return {
             "configured": False,
-            "message": "VirusTotal API key not configured. Set VIRUSTOTAL_API_KEY in .env.",
+            "error": "VirusTotal API key not configured. Set VIRUSTOTAL_API_KEY in .env.",
         }
     endpoint = virustotal_endpoint(kind, indicator)
     if not endpoint:
@@ -582,15 +624,71 @@ def virustotal_lookup(
                 "result": "not_found",
                 "indicator": indicator,
                 "indicator_type": kind,
-                "message": "Indicator not found on VirusTotal (cached).",
+                "message": "No real VirusTotal result available.",
             }
         if error.status_code == 401:
             return {"error": "VirusTotal API key rejected (401). Check VIRUSTOTAL_API_KEY in .env."}
         if error.status_code == 429:
             return {"error": "VirusTotal rate limit/quota reached; cached results remain available."}
-        return {"error": f"VirusTotal request failed: {error}"}
+        return {"error": f"VirusTotal scan failed: {error}"}
+
     record = normalize_virustotal_report(payload, {"indicator_type": kind, "indicator": indicator})
     if not record:
-        return {"error": "VirusTotal returned no usable report object."}
+        return {"error": "No real VirusTotal result available."}
     _write_vt_cache(database, cache_id, kind, indicator, normalized, "found", payload)
     return serialize({**record, "cached": False})
+
+
+@router.get("/virustotal/lookup")
+def virustotal_lookup(
+    indicator: str = Query(..., min_length=1),
+    indicator_type: str | None = None,
+) -> dict[str, Any]:
+    return _scan_virustotal_indicator(indicator, indicator_type)
+
+
+@router.post("/virustotal/scan")
+def virustotal_scan(payload: dict[str, Any]) -> dict[str, Any]:
+    target = str(payload.get("target", "")).strip()
+    if not target:
+        raise HTTPException(status_code=400, detail="Target is required.")
+    return _scan_virustotal_indicator(target)
+
+
+@router.get("/virustotal/recent")
+def virustotal_recent(limit: int = Query(8, ge=1, le=50)) -> dict[str, Any]:
+    database = get_database()
+    now = datetime.now(timezone.utc)
+    docs = list(database["virustotal_cache"].find({"result": "found"}).sort("checked_at", -1).limit(limit))
+    items: list[dict[str, Any]] = []
+    for doc in docs:
+        expires_at = doc.get("expires_at")
+        if expires_at is not None and expires_at < now:
+            continue
+        report = _vt_cache_response(doc)
+        if report.get("error"):
+            continue
+        items.append({
+            "indicator": report.get("indicator"),
+            "indicator_type": report.get("indicator_type"),
+            "verdict": report.get("verdict") or "clean",
+            "country": report.get("country") or "Unknown",
+            "owner": report.get("owner") or "Unknown",
+            "scanned_at": report.get("last_analysis_date") or doc.get("checked_at"),
+            "report_id": report.get("report_id") or doc.get("_id"),
+            "malicious_count": report.get("malicious_count") or 0,
+            "virustotal_url": report.get("virustotal_url"),
+            "engine_results": report.get("engine_results") or {},
+        })
+    return {"items": items, "count": len(items), "message": "No real VirusTotal scans yet." if not items else None}
+
+
+@router.get("/virustotal/report")
+def virustotal_report(
+    indicator: str = Query(..., min_length=1),
+    indicator_type: str | None = None,
+) -> dict[str, Any]:
+    report = _scan_virustotal_indicator(indicator, indicator_type)
+    if report.get("error"):
+        return {"error": report["error"], "result": None}
+    return {"report": report, "engine_results": report.get("engine_results") or {}}

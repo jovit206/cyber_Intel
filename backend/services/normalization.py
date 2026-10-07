@@ -270,6 +270,19 @@ def normalize_virustotal_report(payload: Any, candidate: dict[str, Any]) -> dict
         return None
     last_analysis = normalize_timestamp(attributes.get("last_analysis_date"))
     links = data.get("links") if isinstance(data.get("links"), dict) else {}
+    malicious = stats.get("malicious") if isinstance(stats.get("malicious"), int) else 0
+    suspicious = stats.get("suspicious") if isinstance(stats.get("suspicious"), int) else 0
+    verdict = "malicious" if malicious > 0 else "suspicious" if suspicious > 0 else "clean"
+    severity = "High" if verdict == "malicious" else "Low"
+    last_results = attributes.get("last_analysis_results")
+    report_id = as_string(data.get("id")) or as_string(candidate.get("normalized_indicator"))
+    country = as_string(attributes.get("country")) or as_string(attributes.get("country_name"))
+    owner = (
+        as_string(attributes.get("as_owner"))
+        or as_string(attributes.get("owner"))
+        or as_string(attributes.get("network"))
+        or as_string(attributes.get("network_name"))
+    )
     counts = {
         f"{key}_count": stats.get(key) if isinstance(stats.get(key), int) else None
         for key in ("malicious", "suspicious", "harmless", "undetected")
@@ -277,6 +290,7 @@ def normalize_virustotal_report(payload: Any, candidate: dict[str, Any]) -> dict
     return {
         "source": "virustotal",
         "source_id": source_id,
+        "report_id": report_id,
         "info": as_string(attributes.get("meaningful_name")),
         "publisher": None,
         "event_id": None,
@@ -292,10 +306,17 @@ def normalize_virustotal_report(payload: Any, candidate: dict[str, Any]) -> dict
         "analysis_timestamp": last_analysis,
         "last_analysis_date": last_analysis,
         "reputation": attributes.get("reputation") if isinstance(attributes.get("reputation"), int) else None,
+        "country": country,
+        "owner": owner,
+        "asn": as_string(attributes.get("asn")) or as_string(attributes.get("asn_number")),
+        "verdict": verdict,
+        "severity": severity,
+        "virustotal_url": f"https://www.virustotal.com/gui/search/{indicator}",
+        "analysis_stats": stats,
+        "engine_results": last_results if isinstance(last_results, dict) else {},
         **counts,
         "categories": attributes.get("categories"),
         "threat_type": None,
-        "severity": None,
         "confidence": None,
         "description": None,
         "threat_level": None,

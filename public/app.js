@@ -560,86 +560,225 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 60000);
 
-  // ==================== SEARCH & ENRICH ====================
-  const searchInput = document.getElementById('search-input');
-  const searchBtn = document.getElementById('search-btn');
-  const searchResults = document.getElementById('search-results');
+  // ==================== SEARCH & ENRICH: VIRUSTOTAL SCAN ====================
+  const vtScanInput = document.getElementById('vt-scan-input');
+  const vtScanButton = document.getElementById('vt-scan-button');
+  const vtScanResult = document.getElementById('vt-scan-result');
+  const vtRecentBody = document.getElementById('vt-recent-body');
+  const vtCacheCount = document.getElementById('vt-cache-count');
+  const vtRefreshButton = document.getElementById('vt-refresh');
+  const vtModalBackdrop = document.getElementById('vt-modal-backdrop');
+  const vtModalClose = document.getElementById('vt-modal-close');
+  const vtModalContent = document.getElementById('vt-modal-content');
+  const vtModalTitle = document.getElementById('vt-modal-title');
 
-  function renderSearchResults(data) {
-    const threats = data.threats || [];
-    const iocs = data.iocs || [];
-    const passages = data.passages || [];
-    const threatsHtml = threats.map(e => `
-      <div class="event-card">
-        <div class="event-card-title">${escapeHtml(e.info || e.indicator || 'event')}</div>
-        ${e.indicator ? `<div class="event-card-indicator">${escapeHtml(e.indicator)}</div>` : ''}
-        ${e.timestamp ? `<div class="event-card-meta"><span>${escapeHtml(e.timestamp)}</span></div>` : ''}
-      </div>`).join('');
-    const iocsHtml = iocs.map(a => `
-      <div class="event-card">
-        <div class="event-card-indicator">${escapeHtml(a.value || '')}</div>
-        <div class="event-card-meta"><span>${escapeHtml(a.indicator_type || '')}${a.category ? ' · ' + escapeHtml(a.category) : ''}</span></div>
-        ${a.comment ? `<p class="event-card-description">${escapeHtml(a.comment)}</p>` : ''}
-      </div>`).join('');
-    const passagesHtml = passages.map(p => `
-      <div class="event-card">
-        <p class="event-card-description">${escapeHtml((p.text || '').slice(0, 400))}…</p>
-        <div class="event-card-meta"><span>Source: ${escapeHtml(p.source_pdf || '')}</span></div>
-      </div>`).join('');
-    searchResults.innerHTML =
-      `<h4 style="margin:4px 0 8px;">Threat events (${threats.length})</h4>${threatsHtml || '<div class="empty-prompt">No matching events.</div>'}` +
-      `<h4 style="margin:14px 0 8px;">Indicators (${iocs.length})</h4>${iocsHtml || '<div class="empty-prompt">No matching indicators.</div>'}` +
-      `<h4 style="margin:14px 0 8px;">Report passages (${passages.length})</h4>${passagesHtml || '<div class="empty-prompt">No matching passages.</div>'}`;
+  function formatRelativeTime(value) {
+    if (!value) return 'Just now';
+    try {
+      const stamp = new Date(value);
+      if (Number.isNaN(stamp.getTime())) return value;
+      const diffMs = Date.now() - stamp.getTime();
+      const minutes = Math.max(1, Math.round(diffMs / 60000));
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.round(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.round(hours / 24);
+      return `${days}d ago`;
+    } catch {
+      return value;
+    }
   }
 
-  function runSearch() {
-    const q = searchInput.value.trim();
-    if (!q) { searchResults.innerHTML = '<div class="empty-prompt">Enter a query to search events, indicators and passages.</div>'; return; }
-    searchResults.innerHTML = '<div class="loading-state">Searching...</div>';
-    fetch(apiUrl(`/api/search?q=${encodeURIComponent(q)}`))
-      .then(r => r.json())
-      .then(renderSearchResults)
-      .catch(err => { searchResults.innerHTML = `<div class="empty-prompt">${escapeHtml(err.message)}</div>`; });
+  function verdictFromResult(result) {
+    const malicious = Number(result?.malicious_count || 0);
+    const suspicious = Number(result?.suspicious_count || 0);
+    if (malicious > 0) return 'Malicious';
+    if (suspicious > 0) return 'Suspicious';
+    return 'Clean';
   }
-  searchBtn.addEventListener('click', runSearch);
-  searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
 
-  const vtInput = document.getElementById('vt-input');
-  const vtType = document.getElementById('vt-type');
-  const vtBtn = document.getElementById('vt-btn');
-  const vtResult = document.getElementById('vt-result');
+  function verdictClassFor(value) {
+    const verdict = String(value || 'Clean').toLowerCase();
+    if (verdict.includes('mal')) return 'danger';
+    if (verdict.includes('susp')) return 'warn';
+    return 'success';
+  }
 
-  function runVt() {
-    const indicator = vtInput.value.trim();
-    if (!indicator) { vtResult.innerHTML = '<div class="empty-prompt">Enter an IP, domain, URL or file hash.</div>'; return; }
-    vtResult.innerHTML = '<div class="loading-state">Querying VirusTotal...</div>';
-    const params = new URLSearchParams({ indicator });
-    if (vtType.value) params.set('indicator_type', vtType.value);
-    fetch(apiUrl(`/api/virustotal/lookup?${params.toString()}`))
-      .then(r => r.json())
-      .then(data => {
-        if (data.error) { vtResult.innerHTML = `<div class="empty-prompt">${escapeHtml(data.error)}</div>`; return; }
-        if (data.message) { vtResult.innerHTML = `<div class="empty-prompt">${escapeHtml(data.message)}</div>`; return; }
-        const counts = [];
-        if (Number.isFinite(data.malicious_count)) counts.push(`Malicious: ${data.malicious_count}`);
-        if (Number.isFinite(data.suspicious_count)) counts.push(`Suspicious: ${data.suspicious_count}`);
-        if (Number.isFinite(data.harmless_count)) counts.push(`Harmless: ${data.harmless_count}`);
-        if (Number.isFinite(data.undetected_count)) counts.push(`Undetected: ${data.undetected_count}`);
-        if (Number.isFinite(data.reputation)) counts.push(`Reputation: ${data.reputation}`);
-        vtResult.innerHTML = `
-          <div class="event-card">
-            <div class="event-card-title">${escapeHtml(data.indicator || indicator)}</div>
-            <div class="event-card-meta"><span>Type: ${escapeHtml(data.indicator_type || '')} · ${data.cached ? 'cached' : 'live'}</span></div>
-            ${counts.length ? `<div class="event-card-tags">${counts.map(c => `<span class="ioc-counter-tag">${escapeHtml(c)}</span>`).join('')}</div>` : ''}
-            ${data.result ? `<div class="event-card-meta"><span>Result: ${escapeHtml(data.result)}</span></div>` : ''}
-            ${data.last_analysis_date ? `<div class="event-card-meta"><span>Last analysis: ${escapeHtml(data.last_analysis_date)}</span></div>` : ''}
-            ${data.source_reference ? `<a class="event-card-reference" href="${escapeHtml(safeHttpUrl(data.source_reference) || '#')}" target="_blank" rel="noopener noreferrer">VT record</a>` : ''}
+  function setVtButtonLoading(loading) {
+    vtScanButton.disabled = loading;
+    vtScanButton.classList.toggle('loading', loading);
+    vtScanButton.innerHTML = loading
+      ? '<span class="vt-spinner" aria-hidden="true"></span>Scanning...'
+      : 'Scan';
+  }
+
+  function openVtModal(report) {
+    if (!report) return;
+    const engineResults = report.engine_results || report.raw_source?.attributes?.last_analysis_results || {};
+    const entries = Object.entries(engineResults)
+      .map(([name, details]) => {
+        if (!details || typeof details !== 'object') return null;
+        const category = details.category || details.result || 'unknown';
+        const result = details.result || 'No result';
+        const method = details.method || details.engine_update || 'n/a';
+        return `
+          <div class="vt-engine-item">
+            <div class="vt-engine-name">${escapeHtml(name)}</div>
+            <div class="vt-engine-type">${escapeHtml(category)}</div>
+            <div class="vt-engine-result">${escapeHtml(result)}</div>
+            <div class="vt-engine-method">${escapeHtml(method)}</div>
           </div>`;
       })
-      .catch(err => { vtResult.innerHTML = `<div class="empty-prompt">${escapeHtml(err.message)}</div>`; });
+      .filter(Boolean)
+      .join('');
+
+    vtModalTitle.textContent = `${report.indicator || 'Target'} full report`;
+    vtModalContent.innerHTML = entries
+      ? `<div class="vt-engine-list">${entries}</div>`
+      : '<div class="empty-prompt">No real VirusTotal engine results are available for this target.</div>';
+    vtModalBackdrop.classList.remove('hidden');
+    vtModalBackdrop.setAttribute('aria-hidden', 'false');
   }
-  vtBtn.addEventListener('click', runVt);
-  vtInput.addEventListener('keydown', e => { if (e.key === 'Enter') runVt(); });
+
+  function closeVtModal() {
+    vtModalBackdrop.classList.add('hidden');
+    vtModalBackdrop.setAttribute('aria-hidden', 'true');
+  }
+
+  function renderRecentScans(items) {
+    if (!Array.isArray(items) || !items.length) {
+      vtRecentBody.innerHTML = '<tr><td colspan="6" class="vt-empty-row">No real VirusTotal scans yet.</td></tr>';
+      vtCacheCount.textContent = '0 cached';
+      return;
+    }
+
+    vtCacheCount.textContent = `${items.length} cached`;
+    vtRecentBody.innerHTML = items.map(item => {
+      const verdict = verdictFromResult(item);
+      const className = verdictClassFor(verdict);
+      const indicator = item.indicator || 'Unknown';
+      const type = String(item.indicator_type || 'HASH').toUpperCase();
+      return `
+        <tr class="vt-row" data-vt-indicator="${escapeHtml(indicator)}" data-vt-type="${escapeHtml(item.indicator_type || '')}">
+          <td><span class="vt-row-indicator">${escapeHtml(indicator)}</span></td>
+          <td><span class="vt-type-pill">${escapeHtml(type)}</span></td>
+          <td><span class="vt-verdict-tag ${className}">${escapeHtml(verdict)}</span></td>
+          <td>${escapeHtml(item.country || 'Unknown')}</td>
+          <td>${escapeHtml(item.owner || 'Unknown')}</td>
+          <td>${escapeHtml(formatRelativeTime(item.scanned_at || item.last_analysis_date))}</td>
+        </tr>`;
+    }).join('');
+
+    vtRecentBody.querySelectorAll('.vt-row').forEach(row => {
+      row.addEventListener('click', async () => {
+        const indicator = row.dataset.vtIndicator;
+        const type = row.dataset.vtType;
+        try {
+          const response = await fetch(apiUrl(`/api/virustotal/report?indicator=${encodeURIComponent(indicator)}${type ? `&indicator_type=${encodeURIComponent(type)}` : ''}`));
+          const data = await response.json();
+          if (!response.ok || data.error || !data.report) {
+            throw new Error(data.error || 'The full report is unavailable.');
+          }
+          openVtModal(data.report);
+        } catch (error) {
+          openVtModal({
+            indicator,
+            engine_results: {},
+            error: error.message,
+          });
+        }
+      });
+    });
+  }
+
+  async function refreshRecentScans() {
+    try {
+      const response = await fetch(apiUrl('/api/virustotal/recent'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Recent VirusTotal scans could not be loaded.');
+      renderRecentScans(data.items || []);
+    } catch (error) {
+      vtRecentBody.innerHTML = `<tr><td colspan="6" class="vt-empty-row">${escapeHtml(error.message)}</td></tr>`;
+      vtCacheCount.textContent = '0 cached';
+    }
+  }
+
+  async function runVtScan() {
+    const target = vtScanInput.value.trim();
+    if (!target) {
+      vtScanResult.innerHTML = '<div class="empty-prompt">Enter an IP address, domain, URL or file hash.</div>';
+      return;
+    }
+
+    setVtButtonLoading(true);
+    vtScanResult.innerHTML = '<div class="loading-state">Scanning VirusTotal...</div>';
+
+    try {
+      const response = await fetch(apiUrl('/api/virustotal/scan'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target }),
+      });
+      const data = await response.json();
+      if (!response.ok || data.error) {
+        throw new Error(data.error || data.detail || 'VirusTotal scan failed');
+      }
+      if (data.message && !data.indicator) {
+        vtScanResult.innerHTML = `<div class="empty-prompt">${escapeHtml(data.message)}</div>`;
+        return;
+      }
+      const malicious = Number(data.malicious_count || 0);
+      const suspicious = Number(data.suspicious_count || 0);
+      const verdict = verdictFromResult(data);
+      const badgeClass = verdictClassFor(verdict);
+      const severity = malicious > 0 ? 'High' : 'Low';
+      const reportId = (data.report_id || data.source_id || '').toString();
+      const safeTarget = data.indicator || target;
+      const url = data.virustotal_url || `https://www.virustotal.com/gui/search/${encodeURIComponent(safeTarget)}`;
+
+      vtScanResult.innerHTML = `
+        <div class="vt-result-card">
+          <div class="vt-result-row">
+            <div class="vt-result-target">Target Scanned: ${escapeHtml(safeTarget)}</div>
+            <span class="vt-verdict-pill ${badgeClass}">Detections: ${malicious} malicious engines</span>
+          </div>
+          <div class="vt-meta-row">
+            <span>Saved in MongoDB Atlas (Report ID: ${escapeHtml(reportId ? `VT-${reportId.slice(-6)}` : 'VT-unknown')}), Severity: ${severity}.</span>
+          </div>
+          <div class="vt-actions">
+            <button class="vt-report-btn" type="button" data-vt-report="${escapeHtml(JSON.stringify(data))}">🔍 View Full Report</button>
+            <a class="vt-official-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Official VT GUI ↗</a>
+          </div>
+        </div>`;
+
+      const reportButton = vtScanResult.querySelector('[data-vt-report]');
+      if (reportButton) {
+        reportButton.addEventListener('click', () => openVtModal(data));
+      }
+
+      await refreshRecentScans();
+    } catch (error) {
+      vtScanResult.innerHTML = `<div class="empty-prompt">${escapeHtml(error.message)}</div>`;
+    } finally {
+      setVtButtonLoading(false);
+    }
+  }
+
+  vtScanButton.addEventListener('click', runVtScan);
+  vtScanInput.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      runVtScan();
+    }
+  });
+
+  vtRefreshButton.addEventListener('click', refreshRecentScans);
+  vtModalClose.addEventListener('click', closeVtModal);
+  vtModalBackdrop.addEventListener('click', event => {
+    if (event.target === vtModalBackdrop) closeVtModal();
+  });
+
+  refreshRecentScans();
 
   // Initial Load
   loadThreatStream();
