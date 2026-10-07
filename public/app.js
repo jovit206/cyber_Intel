@@ -4,7 +4,9 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  const configuredApiUrl = window.AEGIS_API_BASE_URL || '';
+  const configuredApiUrl = window.AEGIS_API_BASE_URL || (
+    window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : ''
+  );
   const apiUrl = path => `${configuredApiUrl.replace(/\/+$/, '')}${path}`;
 
   // Navigation Links
