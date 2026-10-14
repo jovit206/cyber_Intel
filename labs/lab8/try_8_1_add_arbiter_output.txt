@@ -1,0 +1,25 @@
+ACTIVITY 8.1 (TRY IT YOURSELF) - ADD AN ARBITER
+
+Before: 3 voting members, majority needed = 2, failures tolerated = 1
+
+Adding mongo-arbiter:27017 as an arbiter (same as rs.addArb) ...
+  rejected: Reconfig attempted to install a config that would change the implicit default write concern. Use the setDefaultRWConcern command to set a cluster-wide write concern and try the reconfig again.
+
+Setting an explicit cluster-wide default write concern, then retrying ...
+  defaultWriteConcern = {'w': 'majority', 'wtimeout': 0}
+  replSetReconfig -> ok
+
+Waiting for the new member to report ARBITER ... done
+
+  member                state      health  arbiterOnly  priority  votes
+  mongo1:27017          PRIMARY    1       False        1.0       1
+  mongo2:27017          SECONDARY  1       False        1.0       1
+  mongo3:27017          SECONDARY  1       False        1.0       1
+  mongo-arbiter:27017   ARBITER    1       True         0.0       1
+
+After:  4 voting members, majority needed = 3, failures tolerated = 1
+
+The arbiter itself reports: arbiterOnly=True, isWritablePrimary=False, secondary=False
+It votes in elections, but it stores no data and can never become primary.
+
+MongoDB commands and replies saved to try_8_1_add_arbiter.json

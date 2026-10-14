@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import logging
+import re
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -9,17 +11,19 @@ from typing import AsyncIterator
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from backend.collectors.cti import start_collectors
 from backend.collectors.galaxies import sync_galaxies
 from backend.collectors.misp_feeds import FEEDS, sync_feed
 from backend.collectors.reports import sync_reports
-from backend.config import settings
+from backend.config import settings, startup_report
 from backend.database import close_database, connect_database
 from backend.routes.api import router as api_router
 from backend.routes.cross_source import router as cross_source_router
+from backend.routes.lab8 import router as lab8_router
+from backend.routes.lab9 import router as lab9_router
 from backend.services.cross_source import ensure_built as ensure_cross_source
 from backend.services.cross_source import rebuild as rebuild_cross_source
 from backend.routes.api import sample_cache_metrics
@@ -145,6 +149,8 @@ def _run_report_sync(database) -> None:
 
 @asynccontextmanager
 async def lifespan(application: FastAPI) -> AsyncIterator[None]:
+    for level, message in startup_report():
+        getattr(logger, level)("[config] %s", message)
     database = connect_database()
     _ensure_indexes(database)
     application.state.database = database
@@ -159,7 +165,7 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         args=[database],
         id="wiredtiger-cache-sampler",
         replace_existing=True,
-        next_run_time=None,
+        next_run_time=datetime.now(timezone.utc),
         max_instances=1,
         coalesce=True,
     )
@@ -239,6 +245,8 @@ app.add_middleware(
 )
 app.include_router(api_router)
 app.include_router(cross_source_router)
+app.include_router(lab8_router)
+app.include_router(lab9_router)
 
 
 @app.get("/health")
@@ -267,4 +275,39 @@ async def handle_not_found(request: Request, error) -> JSONResponse:
     return JSONResponse(status_code=404, content={"detail": "Not found"})
 
 
-app.mount("/", StaticFiles(directory=PUBLIC_DIR, html=True), name="frontend")
+# Local assets referenced by index.html. Their URLs get a content hash appended so that a browser can
+# never combine a new page with an older cached script or stylesheet.
+_VERSIONED_ASSETS = ("style.css", "app.js", "cross-source.js", "reliability.js")
+_ASSET_REFERENCE = re.compile(r'(?P<attr>href|src)="(?P<name>' + "|".join(re.escape(n) for n in _VERSIONED_ASSETS) + r')"')
+
+
+def _asset_version() -> str:
+    digest = hashlib.sha1()
+    for name in _VERSIONED_ASSETS:
+        try:
+            digest.update((PUBLIC_DIR / name).read_bytes())
+        except OSError:
+            digest.update(name.encode())
+    return digest.hexdigest()[:10]
+
+
+@app.get("/", include_in_schema=False)
+@app.get("/index.html", include_in_schema=False)
+def index_page() -> HTMLResponse:
+    html = (PUBLIC_DIR / "index.html").read_text(encoding="utf-8")
+    version = _asset_version()
+    html = _ASSET_REFERENCE.sub(lambda m: f'{m["attr"]}="{m["name"]}?v={version}"', html)
+    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
+
+
+class RevalidatingStaticFiles(StaticFiles):
+    """Serve the frontend with Cache-Control: no-cache so browsers revalidate (ETag) on every
+    load instead of heuristically reusing an older script after a deploy."""
+
+    def file_response(self, *args, **kwargs):
+        response = super().file_response(*args, **kwargs)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
+app.mount("/", RevalidatingStaticFiles(directory=PUBLIC_DIR, html=True), name="frontend")

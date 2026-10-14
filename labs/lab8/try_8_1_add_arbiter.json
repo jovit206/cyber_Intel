@@ -1,0 +1,781 @@
+{
+  "activity": "Activity 8.1 (Try it yourself) - Add an arbiter",
+  "script": "try_8_1_add_arbiter.py",
+  "steps": [
+    {
+      "step": "Configuration before",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:13.951Z"
+      },
+      "command": {
+        "replSetGetConfig": 1
+      },
+      "result": {
+        "_id": "rs0",
+        "version": 1,
+        "term": 1,
+        "members": [
+          {
+            "_id": 0,
+            "host": "mongo1:27017",
+            "arbiterOnly": false,
+            "buildIndexes": true,
+            "hidden": false,
+            "priority": 1.0,
+            "tags": {},
+            "secondaryDelaySecs": 0,
+            "votes": 1
+          },
+          {
+            "_id": 1,
+            "host": "mongo2:27017",
+            "arbiterOnly": false,
+            "buildIndexes": true,
+            "hidden": false,
+            "priority": 1.0,
+            "tags": {},
+            "secondaryDelaySecs": 0,
+            "votes": 1
+          },
+          {
+            "_id": 2,
+            "host": "mongo3:27017",
+            "arbiterOnly": false,
+            "buildIndexes": true,
+            "hidden": false,
+            "priority": 1.0,
+            "tags": {},
+            "secondaryDelaySecs": 0,
+            "votes": 1
+          }
+        ],
+        "protocolVersion": 1,
+        "writeConcernMajorityJournalDefault": true,
+        "settings": {
+          "chainingAllowed": true,
+          "heartbeatIntervalMillis": 2000,
+          "heartbeatTimeoutSecs": 10,
+          "electionTimeoutMillis": 10000,
+          "catchUpTimeoutMillis": -1,
+          "catchUpTakeoverDelayMillis": 30000,
+          "getLastErrorModes": {},
+          "getLastErrorDefaults": {
+            "w": 1,
+            "wtimeout": 0
+          },
+          "replicaSetId": {
+            "$oid": "6ac7c50060b751f79909e954"
+          }
+        }
+      }
+    },
+    {
+      "step": "First attempt to add the arbiter",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:13.952Z"
+      },
+      "command": {
+        "replSetReconfig": {
+          "_id": "rs0",
+          "version": 2,
+          "term": 1,
+          "members": [
+            {
+              "_id": 0,
+              "host": "mongo1:27017",
+              "arbiterOnly": false,
+              "buildIndexes": true,
+              "hidden": false,
+              "priority": 1.0,
+              "tags": {},
+              "secondaryDelaySecs": 0,
+              "votes": 1
+            },
+            {
+              "_id": 1,
+              "host": "mongo2:27017",
+              "arbiterOnly": false,
+              "buildIndexes": true,
+              "hidden": false,
+              "priority": 1.0,
+              "tags": {},
+              "secondaryDelaySecs": 0,
+              "votes": 1
+            },
+            {
+              "_id": 2,
+              "host": "mongo3:27017",
+              "arbiterOnly": false,
+              "buildIndexes": true,
+              "hidden": false,
+              "priority": 1.0,
+              "tags": {},
+              "secondaryDelaySecs": 0,
+              "votes": 1
+            },
+            {
+              "_id": 3,
+              "host": "mongo-arbiter:27017",
+              "arbiterOnly": true
+            }
+          ],
+          "protocolVersion": 1,
+          "writeConcernMajorityJournalDefault": true,
+          "settings": {
+            "chainingAllowed": true,
+            "heartbeatIntervalMillis": 2000,
+            "heartbeatTimeoutSecs": 10,
+            "electionTimeoutMillis": 10000,
+            "catchUpTimeoutMillis": -1,
+            "catchUpTakeoverDelayMillis": 30000,
+            "getLastErrorModes": {},
+            "getLastErrorDefaults": {
+              "w": 1,
+              "wtimeout": 0
+            },
+            "replicaSetId": {
+              "$oid": "6ac7c50060b751f79909e954"
+            }
+          }
+        }
+      },
+      "result": {
+        "ok": 0.0,
+        "errmsg": "Reconfig attempted to install a config that would change the implicit default write concern. Use the setDefaultRWConcern command to set a cluster-wide write concern and try the reconfig again.",
+        "code": 103,
+        "codeName": "NewReplicaSetConfigurationIncompatible",
+        "$clusterTime": {
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1791477004,
+              "i": 8
+            }
+          },
+          "signature": {
+            "hash": {
+              "$binary": {
+                "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "subType": "00"
+              }
+            },
+            "keyId": 0
+          }
+        },
+        "operationTime": {
+          "$timestamp": {
+            "t": 1791477004,
+            "i": 8
+          }
+        }
+      }
+    },
+    {
+      "step": "Set the default write concern",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:14.012Z"
+      },
+      "command": {
+        "setDefaultRWConcern": 1,
+        "defaultWriteConcern": {
+          "w": "majority"
+        }
+      },
+      "result": {
+        "defaultReadConcern": {
+          "level": "local"
+        },
+        "defaultWriteConcern": {
+          "w": "majority",
+          "wtimeout": 0
+        },
+        "updateOpTime": {
+          "$timestamp": {
+            "t": 1791477004,
+            "i": 8
+          }
+        },
+        "updateWallClockTime": {
+          "$date": "2026-10-08T16:30:13.952Z"
+        },
+        "defaultWriteConcernSource": "global",
+        "defaultReadConcernSource": "implicit",
+        "localUpdateWallClockTime": {
+          "$date": "2026-10-08T16:30:13.973Z"
+        },
+        "ok": 1.0,
+        "$clusterTime": {
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1791477013,
+              "i": 2
+            }
+          },
+          "signature": {
+            "hash": {
+              "$binary": {
+                "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "subType": "00"
+              }
+            },
+            "keyId": 0
+          }
+        },
+        "operationTime": {
+          "$timestamp": {
+            "t": 1791477013,
+            "i": 2
+          }
+        }
+      }
+    },
+    {
+      "step": "Second attempt to add the arbiter",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:14.026Z"
+      },
+      "command": {
+        "replSetReconfig": {
+          "_id": "rs0",
+          "version": 2,
+          "term": 1,
+          "members": [
+            {
+              "_id": 0,
+              "host": "mongo1:27017",
+              "arbiterOnly": false,
+              "buildIndexes": true,
+              "hidden": false,
+              "priority": 1.0,
+              "tags": {},
+              "secondaryDelaySecs": 0,
+              "votes": 1
+            },
+            {
+              "_id": 1,
+              "host": "mongo2:27017",
+              "arbiterOnly": false,
+              "buildIndexes": true,
+              "hidden": false,
+              "priority": 1.0,
+              "tags": {},
+              "secondaryDelaySecs": 0,
+              "votes": 1
+            },
+            {
+              "_id": 2,
+              "host": "mongo3:27017",
+              "arbiterOnly": false,
+              "buildIndexes": true,
+              "hidden": false,
+              "priority": 1.0,
+              "tags": {},
+              "secondaryDelaySecs": 0,
+              "votes": 1
+            },
+            {
+              "_id": 3,
+              "host": "mongo-arbiter:27017",
+              "arbiterOnly": true
+            }
+          ],
+          "protocolVersion": 1,
+          "writeConcernMajorityJournalDefault": true,
+          "settings": {
+            "chainingAllowed": true,
+            "heartbeatIntervalMillis": 2000,
+            "heartbeatTimeoutSecs": 10,
+            "electionTimeoutMillis": 10000,
+            "catchUpTimeoutMillis": -1,
+            "catchUpTakeoverDelayMillis": 30000,
+            "getLastErrorModes": {},
+            "getLastErrorDefaults": {
+              "w": 1,
+              "wtimeout": 0
+            },
+            "replicaSetId": {
+              "$oid": "6ac7c50060b751f79909e954"
+            }
+          }
+        }
+      },
+      "result": {
+        "ok": 1.0,
+        "$clusterTime": {
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1791477014,
+              "i": 1
+            }
+          },
+          "signature": {
+            "hash": {
+              "$binary": {
+                "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "subType": "00"
+              }
+            },
+            "keyId": 0
+          }
+        },
+        "operationTime": {
+          "$timestamp": {
+            "t": 1791477014,
+            "i": 1
+          }
+        }
+      }
+    },
+    {
+      "step": "rs.status() after adding the arbiter",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:15.028Z"
+      },
+      "command": {
+        "replSetGetStatus": 1
+      },
+      "result": {
+        "set": "rs0",
+        "date": {
+          "$date": "2026-10-08T16:30:15.028Z"
+        },
+        "myState": 1,
+        "term": 1,
+        "syncSourceHost": "",
+        "syncSourceId": -1,
+        "heartbeatIntervalMillis": 2000,
+        "majorityVoteCount": 3,
+        "writeMajorityCount": 3,
+        "votingMembersCount": 4,
+        "writableVotingMembersCount": 3,
+        "optimes": {
+          "lastCommittedOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477014,
+                "i": 1
+              }
+            },
+            "t": 1
+          },
+          "lastCommittedWallTime": {
+            "$date": "2026-10-08T16:30:14.016Z"
+          },
+          "readConcernMajorityOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477014,
+                "i": 1
+              }
+            },
+            "t": 1
+          },
+          "appliedOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477014,
+                "i": 1
+              }
+            },
+            "t": 1
+          },
+          "durableOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477014,
+                "i": 1
+              }
+            },
+            "t": 1
+          },
+          "lastAppliedWallTime": {
+            "$date": "2026-10-08T16:30:14.016Z"
+          },
+          "lastDurableWallTime": {
+            "$date": "2026-10-08T16:30:14.016Z"
+          }
+        },
+        "lastStableRecoveryTimestamp": {
+          "$timestamp": {
+            "t": 1791476992,
+            "i": 1
+          }
+        },
+        "electionCandidateMetrics": {
+          "lastElectionReason": "electionTimeout",
+          "lastElectionDate": {
+            "$date": "2026-10-08T16:30:03.791Z"
+          },
+          "electionTerm": 1,
+          "lastCommittedOpTimeAtElection": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791476992,
+                "i": 1
+              }
+            },
+            "t": -1
+          },
+          "lastSeenOpTimeAtElection": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791476992,
+                "i": 1
+              }
+            },
+            "t": -1
+          },
+          "numVotesNeeded": 2,
+          "priorityAtElection": 1.0,
+          "electionTimeoutMillis": 10000,
+          "numCatchUpOps": 0,
+          "newTermStartDate": {
+            "$date": "2026-10-08T16:30:03.848Z"
+          },
+          "wMajorityWriteAvailabilityDate": {
+            "$date": "2026-10-08T16:30:04.385Z"
+          }
+        },
+        "members": [
+          {
+            "_id": 0,
+            "name": "mongo1:27017",
+            "health": 1.0,
+            "state": 1,
+            "stateStr": "PRIMARY",
+            "uptime": 32,
+            "optime": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791477014,
+                  "i": 1
+                }
+              },
+              "t": 1
+            },
+            "optimeDate": {
+              "$date": "2026-10-08T16:30:14Z"
+            },
+            "lastAppliedWallTime": {
+              "$date": "2026-10-08T16:30:14.016Z"
+            },
+            "lastDurableWallTime": {
+              "$date": "2026-10-08T16:30:14.016Z"
+            },
+            "syncSourceHost": "",
+            "syncSourceId": -1,
+            "infoMessage": "Could not find member to sync from",
+            "electionTime": {
+              "$timestamp": {
+                "t": 1791477003,
+                "i": 1
+              }
+            },
+            "electionDate": {
+              "$date": "2026-10-08T16:30:03Z"
+            },
+            "configVersion": 2,
+            "configTerm": 1,
+            "self": true,
+            "lastHeartbeatMessage": ""
+          },
+          {
+            "_id": 1,
+            "name": "mongo2:27017",
+            "health": 1.0,
+            "state": 2,
+            "stateStr": "SECONDARY",
+            "uptime": 22,
+            "optime": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791477014,
+                  "i": 1
+                }
+              },
+              "t": 1
+            },
+            "optimeDurable": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791477014,
+                  "i": 1
+                }
+              },
+              "t": 1
+            },
+            "optimeDate": {
+              "$date": "2026-10-08T16:30:14Z"
+            },
+            "optimeDurableDate": {
+              "$date": "2026-10-08T16:30:14Z"
+            },
+            "lastAppliedWallTime": {
+              "$date": "2026-10-08T16:30:14.016Z"
+            },
+            "lastDurableWallTime": {
+              "$date": "2026-10-08T16:30:14.016Z"
+            },
+            "lastHeartbeat": {
+              "$date": "2026-10-08T16:30:14.026Z"
+            },
+            "lastHeartbeatRecv": {
+              "$date": "2026-10-08T16:30:14.026Z"
+            },
+            "pingMs": 0,
+            "lastHeartbeatMessage": "",
+            "syncSourceHost": "mongo1:27017",
+            "syncSourceId": 0,
+            "infoMessage": "",
+            "configVersion": 2,
+            "configTerm": 1
+          },
+          {
+            "_id": 2,
+            "name": "mongo3:27017",
+            "health": 1.0,
+            "state": 2,
+            "stateStr": "SECONDARY",
+            "uptime": 22,
+            "optime": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791477014,
+                  "i": 1
+                }
+              },
+              "t": 1
+            },
+            "optimeDurable": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791477014,
+                  "i": 1
+                }
+              },
+              "t": 1
+            },
+            "optimeDate": {
+              "$date": "2026-10-08T16:30:14Z"
+            },
+            "optimeDurableDate": {
+              "$date": "2026-10-08T16:30:14Z"
+            },
+            "lastAppliedWallTime": {
+              "$date": "2026-10-08T16:30:14.016Z"
+            },
+            "lastDurableWallTime": {
+              "$date": "2026-10-08T16:30:14.016Z"
+            },
+            "lastHeartbeat": {
+              "$date": "2026-10-08T16:30:14.025Z"
+            },
+            "lastHeartbeatRecv": {
+              "$date": "2026-10-08T16:30:14.024Z"
+            },
+            "pingMs": 0,
+            "lastHeartbeatMessage": "",
+            "syncSourceHost": "mongo1:27017",
+            "syncSourceId": 0,
+            "infoMessage": "",
+            "configVersion": 2,
+            "configTerm": 1
+          },
+          {
+            "_id": 3,
+            "name": "mongo-arbiter:27017",
+            "health": 1.0,
+            "state": 7,
+            "stateStr": "ARBITER",
+            "uptime": 1,
+            "lastHeartbeat": {
+              "$date": "2026-10-08T16:30:14.058Z"
+            },
+            "lastHeartbeatRecv": {
+              "$date": "2026-10-08T16:30:14.057Z"
+            },
+            "pingMs": 0,
+            "lastHeartbeatMessage": "",
+            "syncSourceHost": "",
+            "syncSourceId": -1,
+            "infoMessage": "",
+            "configVersion": 2,
+            "configTerm": 1
+          }
+        ],
+        "ok": 1.0,
+        "$clusterTime": {
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1791477014,
+              "i": 1
+            }
+          },
+          "signature": {
+            "hash": {
+              "$binary": {
+                "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "subType": "00"
+              }
+            },
+            "keyId": 0
+          }
+        },
+        "operationTime": {
+          "$timestamp": {
+            "t": 1791477014,
+            "i": 1
+          }
+        }
+      }
+    },
+    {
+      "step": "Configuration after",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:15.029Z"
+      },
+      "command": {
+        "replSetGetConfig": 1
+      },
+      "result": {
+        "_id": "rs0",
+        "version": 2,
+        "term": 1,
+        "members": [
+          {
+            "_id": 0,
+            "host": "mongo1:27017",
+            "arbiterOnly": false,
+            "buildIndexes": true,
+            "hidden": false,
+            "priority": 1.0,
+            "tags": {},
+            "secondaryDelaySecs": 0,
+            "votes": 1
+          },
+          {
+            "_id": 1,
+            "host": "mongo2:27017",
+            "arbiterOnly": false,
+            "buildIndexes": true,
+            "hidden": false,
+            "priority": 1.0,
+            "tags": {},
+            "secondaryDelaySecs": 0,
+            "votes": 1
+          },
+          {
+            "_id": 2,
+            "host": "mongo3:27017",
+            "arbiterOnly": false,
+            "buildIndexes": true,
+            "hidden": false,
+            "priority": 1.0,
+            "tags": {},
+            "secondaryDelaySecs": 0,
+            "votes": 1
+          },
+          {
+            "_id": 3,
+            "host": "mongo-arbiter:27017",
+            "arbiterOnly": true,
+            "buildIndexes": true,
+            "hidden": false,
+            "priority": 0.0,
+            "tags": {},
+            "secondaryDelaySecs": 0,
+            "votes": 1
+          }
+        ],
+        "protocolVersion": 1,
+        "writeConcernMajorityJournalDefault": true,
+        "settings": {
+          "chainingAllowed": true,
+          "heartbeatIntervalMillis": 2000,
+          "heartbeatTimeoutSecs": 10,
+          "electionTimeoutMillis": 10000,
+          "catchUpTimeoutMillis": -1,
+          "catchUpTakeoverDelayMillis": 30000,
+          "getLastErrorModes": {},
+          "getLastErrorDefaults": {
+            "w": 1,
+            "wtimeout": 0
+          },
+          "replicaSetId": {
+            "$oid": "6ac7c50060b751f79909e954"
+          }
+        }
+      }
+    },
+    {
+      "step": "hello on mongo-arbiter:27017",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:15.034Z"
+      },
+      "command": {
+        "hello": 1,
+        "directConnection": "mongo-arbiter:27017"
+      },
+      "result": {
+        "topologyVersion": {
+          "processId": {
+            "$oid": "6ac7c50fd923639595e8937e"
+          },
+          "counter": 1
+        },
+        "hosts": [
+          "mongo1:27017",
+          "mongo2:27017",
+          "mongo3:27017"
+        ],
+        "arbiters": [
+          "mongo-arbiter:27017"
+        ],
+        "setName": "rs0",
+        "setVersion": 2,
+        "isWritablePrimary": false,
+        "secondary": false,
+        "primary": "mongo1:27017",
+        "arbiterOnly": true,
+        "me": "mongo-arbiter:27017",
+        "lastWrite": {
+          "opTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477014,
+                "i": 1
+              }
+            },
+            "t": 1
+          },
+          "lastWriteDate": {
+            "$date": "2026-10-08T16:30:14Z"
+          },
+          "majorityOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477014,
+                "i": 1
+              }
+            },
+            "t": 1
+          },
+          "majorityWriteDate": {
+            "$date": "2026-10-08T16:30:14Z"
+          }
+        },
+        "maxBsonObjectSize": 16777216,
+        "maxMessageSizeBytes": 48000000,
+        "maxWriteBatchSize": 100000,
+        "localTime": {
+          "$date": "2026-10-08T16:30:15.034Z"
+        },
+        "logicalSessionTimeoutMinutes": 30,
+        "connectionId": 16,
+        "minWireVersion": 0,
+        "maxWireVersion": 21,
+        "readOnly": false,
+        "ok": 1.0
+      }
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 import logging
 import re
 import time
@@ -7,11 +8,13 @@ import time
 import httpx
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from pymongo.database import Database
+from pymongo.errors import PyMongoError
 
-from backend.config import settings
+from backend.config import settings, virustotal_key_diagnosis, virustotal_key_status
 from backend.collectors.cti import SourceApiError, _request_json
 from backend.database import get_database
 from backend.services import status as source_status
@@ -31,6 +34,20 @@ metrics_history: list[dict[str, Any]] = []
 previous_cache_sample: dict[str, Any] | None = None
 
 
+EVICTION_STAT_NAMES = (
+    "pages evicted by application threads",
+    "eviction pages evicted by application threads",
+)
+
+
+def _cache_stat(cache: dict[str, Any], *names: str) -> Any:
+    """First WiredTiger statistic that exists under any of the given names, else None."""
+    for name in names:
+        if name in cache:
+            return cache[name]
+    return None
+
+
 def sample_cache_metrics(database: Database) -> dict[str, Any] | None:
     global previous_cache_sample
     status = database.client.admin.command({"serverStatus": 1})
@@ -43,7 +60,7 @@ def sample_cache_metrics(database: Database) -> dict[str, Any] | None:
         "bytes_in_cache": cache.get("bytes currently in the cache", 0),
         "dirty_bytes": cache.get("tracked dirty bytes in the cache", 0),
         "pages_read": cache.get("pages read into cache", 0),
-        "pages_evicted": cache.get("eviction pages evicted by application threads", 0),
+        "pages_evicted": _cache_stat(cache, *EVICTION_STAT_NAMES),
         "pages_requested": cache.get("pages requested from the cache", 0),
     }
     hit_ratio = 1.0
@@ -320,7 +337,10 @@ def search(q: str = "") -> dict[str, Any]:
 @router.get("/metrics")
 def get_metrics(request: Request) -> dict[str, Any]:
     database = request.app.state.database
-    server_status = database.client.admin.command({"serverStatus": 1})
+    try:
+        server_status = database.client.admin.command({"serverStatus": 1})
+    except PyMongoError as error:
+        raise HTTPException(status_code=503, detail=f"MongoDB serverStatus failed: {error}") from error
     cache = (server_status.get("wiredTiger") or {}).get("cache")
     if not cache:
         return {"available": False, "reason": "WiredTiger statistics not exposed."}
@@ -331,10 +351,11 @@ def get_metrics(request: Request) -> dict[str, Any]:
         "bytes_in_cache": cache.get("bytes currently in the cache"),
         "dirty_bytes": cache.get("tracked dirty bytes in the cache"),
         "pages_read": cache.get("pages read into cache"),
-        "pages_evicted": cache.get("eviction pages evicted by application threads"),
+        "pages_evicted": _cache_stat(cache, *EVICTION_STAT_NAMES),
         "pages_requested": cache.get("pages requested from the cache"),
-        "timestamp": latest.get("timestamp", datetime.now(timezone.utc).isoformat()),
-        "hit_ratio_interval": latest.get("hit_ratio_interval", 1.0),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "hit_ratio_interval": latest.get("hit_ratio_interval"),
+        "sampling_interval_seconds": 10,
         "history": [
             {
                 "timestamp": point["timestamp"],
@@ -342,7 +363,7 @@ def get_metrics(request: Request) -> dict[str, Any]:
                 "bytes_in_cache": point["bytes_in_cache"],
                 "max_bytes": point["max_bytes"],
             }
-            for point in metrics_history[-20:]
+            for point in list(metrics_history)
         ],
     }
 
@@ -397,7 +418,10 @@ def simulate_random_reads(request: Request) -> dict[str, Any]:
     if not total_docs:
         raise HTTPException(
             status_code=409,
-            detail=f"No documents found in {WORKING_SET_COLLECTION}; seed the Lab 7.2 dataset first.",
+            detail=(
+                f"The benchmark collection '{WORKING_SET_COLLECTION}' is empty, so there is nothing to read. "
+                "Build the working-set workload first: docker exec lab7-backend python -m backend.lab_7_2_working_set"
+            ),
         )
     count = min(500, total_docs)
     documents = list(collection.aggregate([
@@ -405,7 +429,10 @@ def simulate_random_reads(request: Request) -> dict[str, Any]:
         {"$sample": {"size": count}},
         {"$project": {"_id": 1}},
     ]))
-    before_status = database.client.admin.command({"serverStatus": 1})
+    try:
+        before_status = database.client.admin.command({"serverStatus": 1})
+    except PyMongoError as error:
+        raise HTTPException(status_code=503, detail=f"MongoDB serverStatus failed: {error}") from error
     cache_before = (before_status.get("wiredTiger") or {}).get("cache")
     if not cache_before:
         raise HTTPException(
@@ -419,9 +446,12 @@ def simulate_random_reads(request: Request) -> dict[str, Any]:
     after_status = database.client.admin.command({"serverStatus": 1})
     cache_after = (after_status.get("wiredTiger") or {}).get("cache", {})
     page_reads = cache_after.get("pages read into cache", 0) - cache_before.get("pages read into cache", 0)
+    evicted_before = _cache_stat(cache_before, *EVICTION_STAT_NAMES)
+    evicted_after = _cache_stat(cache_after, *EVICTION_STAT_NAMES)
     evictions = (
-        cache_after.get("eviction pages evicted by application threads", 0)
-        - cache_before.get("eviction pages evicted by application threads", 0)
+        evicted_after - evicted_before
+        if evicted_before is not None and evicted_after is not None
+        else None
     )
     sample_cache_metrics(request.app.state.database)
     return {
@@ -462,25 +492,62 @@ def get_data_source_status(request: Request) -> dict[str, Any]:
         "misp_feeds": serialize_document(feed_syncs),
         "virustotal": snapshot["virustotal"],
         "virustotal_configured": bool(settings.virustotal_api_key),
+        "virustotal_key_status": virustotal_key_status(),
+        "virustotal_key_hint": {
+            key: value
+            for key, value in virustotal_key_diagnosis().items()
+            if key != "status"
+        },
     }
+
+
+VT_KINDS = {"sha256", "sha1", "md5", "ip", "ip-src", "ip-dst", "ipv4", "ipv6", "domain", "hostname", "url"}
+_HASH_LENGTHS = {"md5": 32, "sha1": 40, "sha256": 64}
+_DOMAIN_RE = re.compile(r"^(?=.{1,253}$)(?:[a-z0-9_](?:[a-z0-9_-]{0,61}[a-z0-9_])?\.)+[a-z0-9-]{2,63}$", re.IGNORECASE)
+MAX_INDICATOR_LENGTH = 2048
+
+
+def _is_ip(text: str) -> bool:
+    try:
+        ipaddress.ip_address(text)
+        return True
+    except ValueError:
+        return False
 
 
 def _detect_indicator_type(value: str, provided: str | None) -> str | None:
     if provided:
         return provided.strip().lower()
     text = value.strip().lower()
-    if re.fullmatch(r"[0-9a-f]{64}", text):
-        return "sha256"
-    if re.fullmatch(r"[0-9a-f]{40}", text):
-        return "sha1"
-    if re.fullmatch(r"[0-9a-f]{32}", text):
-        return "md5"
-    if re.fullmatch(r"(\d{1,3}\.){3}\d{1,3}", text):
+    for kind, length in (("sha256", 64), ("sha1", 40), ("md5", 32)):
+        if re.fullmatch(rf"[0-9a-f]{{{length}}}", text):
+            return kind
+    if _is_ip(text) or re.fullmatch(r"(\d{1,3}\.){3}\d{1,3}", text):
         return "ip"
     if text.startswith(("http://", "https://")):
         return "url"
-    if "." in text and " " not in text:
+    if "." in text and not re.search(r"\s", text):
         return "domain"
+    return None
+
+
+def _validate_indicator(kind: str, value: str) -> str | None:
+    """Return a human-readable problem with the indicator, or None if it is acceptable."""
+    if kind not in VT_KINDS:
+        return f"Unsupported indicator type '{kind}'. Use an IP address, domain, URL, MD5, SHA-1 or SHA-256."
+    if kind in _HASH_LENGTHS:
+        if not re.fullmatch(rf"[0-9a-fA-F]{{{_HASH_LENGTHS[kind]}}}", value):
+            return f"'{value[:40]}' is not a valid {kind.upper()} hash ({_HASH_LENGTHS[kind]} hexadecimal characters)."
+    elif kind in {"ip", "ip-src", "ip-dst", "ipv4", "ipv6"}:
+        if not _is_ip(value):
+            return f"'{value[:60]}' is not a valid IP address."
+    elif kind in {"domain", "hostname"}:
+        if not _DOMAIN_RE.fullmatch(value.rstrip(".")):
+            return f"'{value[:80]}' is not a valid domain name."
+    elif kind == "url":
+        parsed = urlparse(value)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            return "A URL must start with http:// or https:// and include a host."
     return None
 
 
@@ -582,32 +649,93 @@ def _vt_cache_response(doc: dict[str, Any]) -> dict[str, Any]:
     return serialize(view)
 
 
+def _as_utc(value: Any) -> datetime | None:
+    """MongoDB returns naive UTC datetimes; make them comparable with timezone-aware ones."""
+    if not isinstance(value, datetime):
+        return None
+    return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
+
+
+def _vt_failure(code: str, message: str, **extra: Any) -> dict[str, Any]:
+    """Uniform error payload. Never includes credentials or request headers."""
+    return {"error": message, "error_code": code, **extra}
+
+
+def _vt_not_found(indicator: str, kind: str, cached: bool) -> dict[str, Any]:
+    return {
+        "found": False,
+        "result": "not_found",
+        "indicator": indicator,
+        "indicator_type": kind,
+        "cached": cached,
+        "message": (
+            "VirusTotal has no existing report for this indicator. A lookup does not submit it "
+            "for analysis, so there is no verdict to show."
+        ),
+    }
+
+
+def _vt_auth_message() -> str:
+    message = (
+        "VirusTotal rejected the API key (HTTP 401). The key configured for the backend is invalid, "
+        "revoked or malformed. Update VIRUSTOTAL_API_KEY in the backend .env file and restart the backend."
+    )
+    diagnosis = virustotal_key_diagnosis()
+    if diagnosis["status"] == "unexpected_format":
+        message += (
+            " The configured value does not look like a VirusTotal key: expected exactly 64 hexadecimal "
+            f"characters, found {diagnosis['length']}."
+        )
+        if diagnosis["contains_64_hex"]:
+            message += (
+                f" It contains a 64-character hexadecimal sequence plus {diagnosis['extra_before']} extra "
+                f"character(s) before it and {diagnosis['extra_after']} after it. Copy the key again exactly "
+                "as VirusTotal shows it, with no prefix, suffix, quotes or spaces."
+            )
+        elif diagnosis["has_whitespace"] or diagnosis["has_quotes"]:
+            message += " It contains whitespace or quotation marks that should be removed."
+    return message
+
+
 def _scan_virustotal_indicator(
     indicator: str,
     indicator_type: str | None = None,
 ) -> dict[str, Any]:
     indicator = indicator.strip()
+    if not indicator:
+        return _vt_failure("invalid_indicator", "Enter an IP address, domain, URL or file hash.")
+    if len(indicator) > MAX_INDICATOR_LENGTH:
+        return _vt_failure("invalid_indicator", f"The indicator is longer than {MAX_INDICATOR_LENGTH} characters.")
     kind = _detect_indicator_type(indicator, indicator_type)
     if kind is None:
-        return {
-            "error": "Could not determine the indicator type; pass an IP, domain, URL, MD5, SHA-1 or SHA-256."
-        }
+        return _vt_failure(
+            "invalid_indicator",
+            "Could not determine the indicator type. Enter an IP address, domain, URL, MD5, SHA-1 or SHA-256.",
+        )
+    problem = _validate_indicator(kind, indicator)
+    if problem:
+        return _vt_failure("invalid_indicator", problem)
+
     database = get_database()
     normalized = normalize_indicator(kind, indicator) or indicator
     cache_id = _vt_cache_id(kind, normalized)
     cached = database["virustotal_cache"].find_one({"_id": cache_id})
     if cached:
-        expires_at = cached.get("expires_at")
+        expires_at = _as_utc(cached.get("expires_at"))
         if expires_at is None or expires_at > datetime.now(timezone.utc):
+            if cached.get("result") == "not_found":
+                return _vt_not_found(indicator, kind, cached=True)
             return _vt_cache_response(cached)
-    if not settings.virustotal_api_key:
-        return {
-            "configured": False,
-            "error": "VirusTotal API key not configured. Set VIRUSTOTAL_API_KEY in .env.",
-        }
+
+    if virustotal_key_status() == "missing":
+        return _vt_failure(
+            "not_configured",
+            "VirusTotal is not configured. Set VIRUSTOTAL_API_KEY in the backend .env file and restart the backend.",
+            configured=False,
+        )
     endpoint = virustotal_endpoint(kind, indicator)
     if not endpoint:
-        return {"error": f"Unsupported indicator type: {kind}"}
+        return _vt_failure("invalid_indicator", f"Unsupported indicator type: {kind}")
     try:
         with httpx.Client(timeout=15) as client:
             payload = _request_json(
@@ -617,24 +745,30 @@ def _scan_virustotal_indicator(
                 headers={"x-apikey": settings.virustotal_api_key, "Accept": "application/json"},
             )
     except SourceApiError as error:
-        if error.status_code == 404:
+        status = error.status_code
+        if status == 404:
             _write_vt_cache(database, cache_id, kind, indicator, normalized, "not_found")
-            return {
-                "found": False,
-                "result": "not_found",
-                "indicator": indicator,
-                "indicator_type": kind,
-                "message": "No real VirusTotal result available.",
-            }
-        if error.status_code == 401:
-            return {"error": "VirusTotal API key rejected (401). Check VIRUSTOTAL_API_KEY in .env."}
-        if error.status_code == 429:
-            return {"error": "VirusTotal rate limit/quota reached; cached results remain available."}
-        return {"error": f"VirusTotal scan failed: {error}"}
+            return _vt_not_found(indicator, kind, cached=False)
+        if status == 401:
+            return _vt_failure("auth_failed", _vt_auth_message())
+        if status == 403:
+            return _vt_failure(
+                "forbidden",
+                "VirusTotal refused the request (HTTP 403). The key may lack permission for this lookup or the quota is exhausted.",
+            )
+        if status == 400:
+            return _vt_failure("bad_request", "VirusTotal could not process this indicator (HTTP 400).")
+        if status == 429:
+            return _vt_failure("rate_limited", "VirusTotal rate limit or quota reached. Cached results remain available; try again later.")
+        if status is None and "timed out" in str(error):
+            return _vt_failure("timeout", "VirusTotal did not respond within 15 seconds. Try again.")
+        if status is None:
+            return _vt_failure("unavailable", "Could not reach VirusTotal from the backend. Check its network access and try again.")
+        return _vt_failure("upstream_error", f"VirusTotal returned an unexpected response (HTTP {status}).")
 
     record = normalize_virustotal_report(payload, {"indicator_type": kind, "indicator": indicator})
     if not record:
-        return {"error": "No real VirusTotal result available."}
+        return _vt_failure("unexpected_response", "VirusTotal returned a response without a usable report.")
     _write_vt_cache(database, cache_id, kind, indicator, normalized, "found", payload)
     return serialize({**record, "cached": False})
 
@@ -662,7 +796,7 @@ def virustotal_recent(limit: int = Query(8, ge=1, le=50)) -> dict[str, Any]:
     docs = list(database["virustotal_cache"].find({"result": "found"}).sort("checked_at", -1).limit(limit))
     items: list[dict[str, Any]] = []
     for doc in docs:
-        expires_at = doc.get("expires_at")
+        expires_at = _as_utc(doc.get("expires_at"))
         if expires_at is not None and expires_at < now:
             continue
         report = _vt_cache_response(doc)

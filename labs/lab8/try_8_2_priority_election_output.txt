@@ -1,0 +1,29 @@
+ACTIVITY 8.2 (TRY IT YOURSELF) - PRIORITIES AND PREDICTION
+Members are shown as name=STATE(priority).
+
+1. Make every member eligible (replSetFreeze 0 clears a leftover stepDown freeze)
+   before: mongo1=SECONDARY(1)  mongo2=SECONDARY(1)  mongo3=PRIMARY(1)  mongo-arbiter=ARBITER(0)
+
+2. Set priorities with replSetReconfig: mongo1=3, mongo2=2, mongo3=1
+   waiting for the highest-priority member (mongo1:27017) to take over ...
+   mongo1:27017 is PRIMARY after 11s, without any stepDown (priority takeover)
+   now:    mongo1=PRIMARY(3)  mongo2=SECONDARY(2)  mongo3=SECONDARY(1)  mongo-arbiter=ARBITER(0)
+
+3. PREDICTION (made before running stepDown)
+   current primary: mongo1:27017 (priority 3); it cannot stand again for 60s
+   candidates:      mongo2:27017 (priority 2), mongo3:27017 (priority 1); an arbiter votes but cannot be elected
+   predicted new primary: mongo2:27017, the highest-priority candidate
+
+4. rs.stepDown() on mongo1:27017
+   16:30:55  mongo1=PRIMARY(3)  mongo2=SECONDARY(2)  mongo3=SECONDARY(1)  mongo-arbiter=ARBITER(0)
+   16:30:56  mongo1=SECONDARY(3)  mongo2=PRIMARY(2)  mongo3=SECONDARY(1)  mongo-arbiter=ARBITER(0)
+   16:30:57  mongo1=SECONDARY(3)  mongo2=PRIMARY(2)  mongo3=SECONDARY(1)  mongo-arbiter=ARBITER(0)
+
+5. VERIFY
+   elected: mongo2:27017    predicted: mongo2:27017    ->  prediction CORRECT
+
+6. Follow-up: does mongo1:27017 take the role back when its 60s freeze ends?
+   yes, mongo1:27017 is PRIMARY again 69s after the election
+   final:  mongo1=PRIMARY(3)  mongo2=SECONDARY(2)  mongo3=SECONDARY(1)  mongo-arbiter=ARBITER(0)
+
+MongoDB commands and replies saved to try_8_2_priority_election.json

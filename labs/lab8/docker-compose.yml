@@ -1,0 +1,85 @@
+# 3-node MongoDB replica set "rs0" for the Chapter 8 labs.
+# The same file is used by all four activities; run the commands from this folder.
+#
+#   docker compose up -d                      start mongo1, mongo2, mongo3
+#   docker compose --profile arbiter up -d    also start the arbiter (Activity 8.1 Try it yourself)
+#   docker compose run --rm python <script>   run the Python script in this folder
+#   docker compose down                       stop (add -v to also wipe the data)
+
+name: mongodb-lab
+
+services:
+  mongo1:
+    image: mongo:7.0
+    container_name: mongo1
+    hostname: mongo1
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo1-data:/data/db
+    networks:
+      - mongo-net
+
+  mongo2:
+    image: mongo:7.0
+    container_name: mongo2
+    hostname: mongo2
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27018:27017"
+    volumes:
+      - mongo2-data:/data/db
+    networks:
+      - mongo-net
+
+  mongo3:
+    image: mongo:7.0
+    container_name: mongo3
+    hostname: mongo3
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27019:27017"
+    volumes:
+      - mongo3-data:/data/db
+    networks:
+      - mongo-net
+
+  # Activity 8.1: votes in elections but stores no data.
+  mongo-arbiter:
+    image: mongo:7.0
+    container_name: mongo-arbiter
+    hostname: mongo-arbiter
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    profiles: ["arbiter"]
+    volumes:
+      - arbiter-data:/data/db
+    networks:
+      - mongo-net
+
+  # Runs the Python script inside the Docker network, where the member
+  # names mongo1 / mongo2 / mongo3 resolve.
+  python:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.10-slim
+        RUN pip install --no-cache-dir pymongo==4.10.1
+        ENTRYPOINT ["python", "-u"]
+    image: mongodb-lab-python
+    profiles: ["tools"]
+    working_dir: /work
+    volumes:
+      - .:/work
+    networks:
+      - mongo-net
+
+volumes:
+  mongo1-data:
+  mongo2-data:
+  mongo3-data:
+  arbiter-data:
+
+networks:
+  mongo-net:
+    name: mongo-net

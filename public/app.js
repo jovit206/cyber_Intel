@@ -30,8 +30,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (viewId === 'cache') {
         loadWorkingSetAnalysis();
         loadWiredTigerTelemetry();
+        startTelemetryPolling();
         if (cacheChart) cacheChart.resize();
+      } else {
+        stopTelemetryPolling();
       }
+      // latency / partition views are loaded by reliability.js (its own nav listeners).
     });
   });
 
@@ -392,6 +396,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const virusTotal = data.virustotal || {};
         if (!data.virustotal_configured) {
           message += ' · VirusTotal key not configured';
+        } else if (data.virustotal_key_status === 'unexpected_format') {
+          message += ' · VirusTotal API key has an unexpected format; check the backend configuration';
+        } else if (virusTotal.last_error && /\b401\b/.test(virusTotal.last_error)) {
+          message += ' · VirusTotal rejected the API key (401); check the backend configuration';
         } else if (virusTotal.last_error && /429|quota|limit/i.test(virusTotal.last_error)) {
           message += ' · VirusTotal free-tier limit reached; cached results are still available';
         }
@@ -413,80 +421,116 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let cacheChart = null;
 
-  function loadWorkingSetAnalysis() {
-    fetch(apiUrl('/api/lab72/analysis'))
-      .then(response => {
-        if (!response.headers.get('content-type')?.includes('application/json')) {
-          throw new Error('Lab 7.2 API is not loaded. Restart the app server and reload this page.');
-        }
-        if (!response.ok) throw new Error(`Working set analysis failed (${response.status})`);
-        return response.json();
-      })
-      .then(data => {
-        document.getElementById('ws-document-count').textContent = Number(data.count).toLocaleString();
-        document.getElementById('ws-document-size').textContent = data.count
-          ? `Average BSON document: ${formatBytes(data.avgSize)}`
-          : 'No real-source records found; sync feeds and build the Lab 7.2 workload';
-        document.getElementById('ws-footprint').textContent = formatBytes(data.totalFootprintBytes);
-      })
-      .catch(error => {
-        console.error(error);
-        document.getElementById('ws-document-count').textContent = 'Unavailable';
-        document.getElementById('ws-document-size').textContent = error.message;
-        document.getElementById('ws-footprint').textContent = 'Unavailable';
-      });
+  const TELEMETRY_INTERVAL_MS = 10000;
+  const REQUEST_TIMEOUT_MS = 10000;
+  const CHART_WINDOW = 60; // server keeps the 60 most recent 10-second samples
+  let telemetryTimer = null;
+  let telemetryBusy = false;
+  let randomReadsRunning = false;
+  let randomReadsHaveResult = false;
+
+  async function fetchJson(path, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      let response;
+      try {
+        response = await fetch(apiUrl(path), { ...options, signal: controller.signal });
+      } catch (error) {
+        if (error.name === 'AbortError') throw new Error(`The request timed out after ${Math.round(timeoutMs / 1000)} seconds.`);
+        throw new Error(`Could not reach the API (${error.message}).`);
+      }
+      let body = null;
+      try { body = await response.json(); } catch { /* non-JSON body */ }
+      if (!response.ok) {
+        const detail = body && (body.detail || body.error);
+        throw new Error(typeof detail === 'string' ? detail : `HTTP ${response.status}`);
+      }
+      if (body === null || typeof body !== 'object') throw new Error('The API returned an unexpected response.');
+      return body;
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
-  function loadWiredTigerTelemetry() {
-    fetch(apiUrl('/api/metrics'))
-      .then(response => {
-        if (!response.ok) throw new Error(`WiredTiger telemetry failed (${response.status})`);
-        return response.json();
-      })
-      .then(data => {
-        if (!data.available) {
-          console.error(data.reason || 'WiredTiger telemetry unavailable');
-          return;
-        }
+  const byId = id => document.getElementById(id);
+  const finite = value => (value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)) ? Number(value) : null);
+  const bytesOrNA = value => (finite(value) === null ? 'N/A' : formatBytes(finite(value)));
+  const countOrNA = value => (finite(value) === null ? 'N/A' : finite(value).toLocaleString());
 
-        const hitRatio = data.hit_ratio_interval != null ? (data.hit_ratio_interval * 100).toFixed(2) + '%' : '—';
-        document.getElementById('wt-hit-ratio').textContent = hitRatio;
-
-        const maxBytes = Number(data.max_bytes) || 0;
-        const cachePct = maxBytes ? Math.min(100, (data.bytes_in_cache / maxBytes) * 100) : 0;
-        document.getElementById('wt-bytes-cache').textContent = formatBytes(data.bytes_in_cache);
-        document.getElementById('wt-cache-pct').textContent = `${cachePct.toFixed(2)}% of ${formatBytes(maxBytes)}`;
-        document.getElementById('wt-cache-capacity').textContent = `Cache limit: ${formatBytes(maxBytes)}`;
-        document.getElementById('wt-dirty').textContent = formatBytes(data.dirty_bytes);
-        document.getElementById('wt-evictions').textContent = Number(data.pages_evicted || 0).toLocaleString();
-        document.getElementById('wt-pages-read').textContent = Number(data.pages_read || 0).toLocaleString();
-        const progress = document.getElementById('wt-cache-progress');
-        progress.style.width = `${cachePct}%`;
-        progress.parentElement.setAttribute('aria-valuenow', cachePct.toFixed(2));
-        renderCacheChart(data);
-      })
-      .catch(error => {
-        console.error(error);
-      });
+  async function loadWorkingSetAnalysis() {
+    try {
+      const data = await fetchJson('/api/lab72/analysis');
+      const count = finite(data.count) || 0;
+      byId('ws-document-count').textContent = count.toLocaleString();
+      byId('ws-document-size').textContent = count
+        ? `Average BSON document: ${bytesOrNA(data.avgSize)}`
+        : 'Benchmark collection is empty; build the working-set workload (see Random Point-Read Experiment)';
+      byId('ws-footprint').textContent = bytesOrNA(data.totalFootprintBytes);
+      byId('ws-build-hint').hidden = count > 0;
+      if (!count && !randomReadsHaveResult) {
+        byId('ws-read-count').textContent = 'Benchmark collection is empty';
+        byId('ws-read-pages-detail').textContent = 'Build the working-set workload to enable this measurement';
+      }
+    } catch (error) {
+      console.error(error);
+      byId('ws-document-count').textContent = 'Unavailable';
+      byId('ws-document-size').textContent = error.message;
+      byId('ws-footprint').textContent = 'Unavailable';
+    }
   }
 
+  async function loadWiredTigerTelemetry() {
+    if (telemetryBusy) return;
+    telemetryBusy = true;
+    const status = byId('wt-telemetry-status');
+    const report = (text, isError) => {
+      status.textContent = text;
+      status.classList.toggle('error', Boolean(isError));
+    };
+    try {
+      const data = await fetchJson('/api/metrics');
+      if (!data.available) {
+        report(data.reason || 'WiredTiger cache statistics are not exposed by this MongoDB deployment.', true);
+        return;
+      }
+      const maxBytes = finite(data.max_bytes) || 0;
+      const inCache = finite(data.bytes_in_cache);
+      const cachePct = maxBytes && inCache !== null ? Math.min(100, (inCache / maxBytes) * 100) : 0;
+      const hit = finite(data.hit_ratio_interval);
+      byId('wt-hit-ratio').textContent = hit === null ? '—' : `${(hit * 100).toFixed(2)}%`;
+      byId('wt-bytes-cache').textContent = bytesOrNA(data.bytes_in_cache);
+      byId('wt-cache-pct').textContent = maxBytes ? `${cachePct.toFixed(2)}% of ${formatBytes(maxBytes)}` : 'Cache limit not reported';
+      byId('wt-cache-capacity').textContent = `Cache limit: ${maxBytes ? formatBytes(maxBytes) : 'N/A'}`;
+      byId('wt-dirty').textContent = bytesOrNA(data.dirty_bytes);
+      byId('wt-evictions').textContent = countOrNA(data.pages_evicted);
+      byId('wt-pages-read').textContent = countOrNA(data.pages_read);
+      const progress = byId('wt-cache-progress');
+      progress.style.width = `${cachePct}%`;
+      progress.parentElement.setAttribute('aria-valuenow', cachePct.toFixed(2));
+      const points = renderCacheChart(data);
+      report(points === null
+        ? 'Chart unavailable: Chart.js could not be loaded. Values above are still live.'
+        : `${points} sample${points === 1 ? '' : 's'} (one every ${Math.round((finite(data.sampling_interval_seconds) || 10))} s) \u00b7 updated ${new Date().toLocaleTimeString()}`,
+      points === null);
+    } catch (error) {
+      console.error(error);
+      report(`Cache telemetry unavailable: ${error.message}`, true);
+    } finally {
+      telemetryBusy = false;
+    }
+  }
+
+  // Returns the number of plotted samples, or null when the chart library is missing.
   function renderCacheChart(data) {
-    const canvas = document.getElementById('wt-cache-chart');
-    if (!canvas) return;
-    if (!window.Chart) {
-      console.error('Chart.js is unavailable; WiredTiger cache chart cannot be rendered.');
-      return;
-    }
-
-    const history = (data.history || []).slice(-20);
+    const canvas = byId('wt-cache-chart');
+    if (!canvas || !window.Chart) return null;
+    const history = (Array.isArray(data.history) ? data.history : [])
+      .filter(point => point && finite(point.max_bytes) && finite(point.bytes_in_cache) !== null)
+      .slice(-CHART_WINDOW);
     const labels = history.map(point => new Date(point.timestamp).toLocaleTimeString());
-    const values = history.map(point => point.max_bytes
-      ? Number(((point.bytes_in_cache / point.max_bytes) * 100).toFixed(2))
-      : 0);
-    if (history.length === 0 || history[history.length - 1].timestamp !== data.timestamp) {
-      labels.push(new Date().toLocaleTimeString());
-      values.push(Number(((data.bytes_in_cache / data.max_bytes) * 100).toFixed(2)));
-    }
+    const values = history.map(point => Number(((point.bytes_in_cache / point.max_bytes) * 100).toFixed(2)));
+    const axisMax = Math.min(100, Math.max(5, Math.ceil(Math.max(0, ...values) * 1.5)));
 
     if (!cacheChart) {
       cacheChart = new Chart(canvas, {
@@ -500,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
             backgroundColor: 'rgba(121, 83, 111, 0.12)',
             fill: true,
             tension: 0.3,
-            pointRadius: 2
+            pointRadius: 3
           }]
         },
         options: {
@@ -508,51 +552,68 @@ document.addEventListener('DOMContentLoaded', () => {
           maintainAspectRatio: false,
           animation: false,
           scales: {
-            y: { beginAtZero: true, max: 100, title: { display: true, text: 'Cache capacity used (%)' } },
+            y: { beginAtZero: true, max: axisMax, title: { display: true, text: 'Cache capacity used (%)' } },
             x: { ticks: { maxTicksLimit: 8 } }
           },
           plugins: { legend: { display: false } }
         }
       });
-      return;
+    } else {
+      cacheChart.data.labels = labels;
+      cacheChart.data.datasets[0].data = values;
+      cacheChart.options.scales.y.max = axisMax;
+      cacheChart.update('none');
     }
-    cacheChart.data.labels = labels;
-    cacheChart.data.datasets[0].data = values;
-    cacheChart.update('none');
+    return values.length;
   }
 
-  const randomReadsButton = document.getElementById('btn-run-random-reads');
-  randomReadsButton.addEventListener('click', () => {
+  // One interval, only while the Working Set view is open.
+  function startTelemetryPolling() {
+    if (telemetryTimer) return;
+    telemetryTimer = setInterval(() => {
+      if (!document.hidden) loadWiredTigerTelemetry();
+    }, TELEMETRY_INTERVAL_MS);
+  }
+
+  function stopTelemetryPolling() {
+    if (telemetryTimer) clearInterval(telemetryTimer);
+    telemetryTimer = null;
+  }
+
+  const randomReadsButton = byId('btn-run-random-reads');
+  randomReadsButton.addEventListener('click', async () => {
+    if (randomReadsRunning) return;
+    randomReadsRunning = true;
+    const status = byId('ws-experiment-status');
     randomReadsButton.disabled = true;
     randomReadsButton.textContent = 'Running 500 random reads...';
-    document.getElementById('ws-experiment-status').textContent = 'Running indexed random lookups against the real-derived benchmark collection...';
-    fetch(apiUrl('/api/lab72/simulate-reads'), { method: 'POST' })
-      .then(response => response.json().then(data => {
-        if (!response.ok) throw new Error(data.error || `Random-read experiment failed (${response.status})`);
-        return data;
-      }))
-      .then(result => {
-        document.getElementById('ws-read-latency').textContent = `${result.avgLatencyMs} ms`;
-        document.getElementById('ws-read-count').textContent = `${result.queriesExecuted.toLocaleString()} random _id lookups in ${result.durationMs} ms total`;
-        document.getElementById('ws-read-pages').textContent = `${result.pageReads.toLocaleString()} / ${result.evictions.toLocaleString()}`;
-        document.getElementById('ws-read-pages-detail').textContent = 'Pages read into cache / application-thread evictions during workload';
-        document.getElementById('ws-experiment-status').textContent = 'Experiment completed; cache metrics refreshed from MongoDB.';
-        loadWiredTigerTelemetry();
-      })
-      .catch(error => {
-        console.error(error);
-        document.getElementById('ws-experiment-status').textContent = `Experiment failed: ${error.message}`;
-      })
-      .finally(() => {
-        randomReadsButton.disabled = false;
-        randomReadsButton.textContent = 'Run 500 Random Reads';
-      });
+    status.classList.remove('error');
+    status.textContent = 'Running indexed random lookups against the benchmark collection...';
+    try {
+      const result = await fetchJson('/api/lab72/simulate-reads', { method: 'POST' }, 120000);
+      const executed = finite(result.queriesExecuted);
+      if (executed === null) throw new Error('The API response did not include the number of reads executed.');
+      byId('ws-read-latency').textContent = finite(result.avgLatencyMs) === null ? 'N/A' : `${finite(result.avgLatencyMs)} ms`;
+      byId('ws-read-count').textContent = `${executed.toLocaleString()} random _id lookups in ${countOrNA(result.durationMs)} ms total`;
+      byId('ws-read-pages').textContent = `${countOrNA(result.pageReads)} / ${countOrNA(result.evictions)}`;
+      byId('ws-read-pages-detail').textContent = 'Pages read into cache / application-thread evictions during the workload';
+      status.textContent = `Experiment completed ${new Date().toLocaleTimeString()}; cache metrics refreshed from MongoDB.`;
+      randomReadsHaveResult = true;
+      loadWiredTigerTelemetry();
+    } catch (error) {
+      console.error(error);
+      status.classList.add('error');
+      status.textContent = `Experiment failed: ${error.message}`;
+      if (!randomReadsHaveResult) {
+        byId('ws-read-latency').textContent = '—';
+        byId('ws-read-count').textContent = 'No measurement: the last attempt failed';
+      }
+    } finally {
+      randomReadsRunning = false;
+      randomReadsButton.disabled = false;
+      randomReadsButton.textContent = 'Run 500 Random Reads';
+    }
   });
-
-  // WiredTiger telemetry is sampled by the server every 10 seconds.
-  setInterval(() => {
-    loadWiredTigerTelemetry();
-  }, 10000);
 
   setInterval(loadSourceSyncStatus, 60000);
 
@@ -635,28 +696,79 @@ document.addEventListener('DOMContentLoaded', () => {
       .join('');
 
     vtModalTitle.textContent = `${report.indicator || 'Target'} full report`;
-    vtModalContent.innerHTML = entries
+    const problem = report.error
+      ? `<div class="vt-notice error" role="alert"><div><strong>The full report could not be loaded</strong><p>${escapeHtml(report.error)}</p></div></div>`
+      : '';
+    vtModalContent.innerHTML = problem || (entries
       ? `<div class="vt-engine-list">${entries}</div>`
-      : '<div class="empty-prompt">No real VirusTotal engine results are available for this target.</div>';
+      : '<div class="vt-notice"><div><strong>No engine results</strong><p>VirusTotal returned no per-engine results for this target.</p></div></div>');
+    vtModalBackdrop.hidden = false;
     vtModalBackdrop.classList.remove('hidden');
     vtModalBackdrop.setAttribute('aria-hidden', 'false');
+    vtModalClose.focus();
   }
 
   function closeVtModal() {
     vtModalBackdrop.classList.add('hidden');
+    vtModalBackdrop.hidden = true;
     vtModalBackdrop.setAttribute('aria-hidden', 'true');
+  }
+
+  const VT_ERROR_TITLES = {
+    auth_failed: 'VirusTotal rejected the API key',
+    not_configured: 'VirusTotal is not configured',
+    rate_limited: 'VirusTotal rate limit reached',
+    forbidden: 'VirusTotal refused the request',
+    timeout: 'VirusTotal did not respond',
+    unavailable: 'VirusTotal could not be reached',
+    invalid_indicator: 'Check the indicator',
+    bad_request: 'VirusTotal could not process this indicator',
+    upstream_error: 'VirusTotal returned an unexpected response',
+    unexpected_response: 'VirusTotal returned an unexpected response'
+  };
+  let vtScanning = false;
+  let vtRefreshing = false;
+  let vtLastReport = null;
+
+  const vtNotice = (tone, title, text) => `
+    <div class="vt-notice ${tone}" role="${tone === 'error' ? 'alert' : 'status'}">
+      <div>
+        <strong>${escapeHtml(title)}</strong>
+        <p>${escapeHtml(text)}</p>
+      </div>
+    </div>`;
+
+  async function vtFetch(path, options = {}, timeoutMs = 30000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      let response;
+      try {
+        response = await fetch(apiUrl(path), { ...options, signal: controller.signal });
+      } catch (error) {
+        if (error.name === 'AbortError') throw new Error(`The request timed out after ${Math.round(timeoutMs / 1000)} seconds.`);
+        throw new Error(`Could not reach the backend (${error.message}).`);
+      }
+      let body = {};
+      try { body = await response.json(); } catch { /* non-JSON body */ }
+      return { response, body };
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   function renderRecentScans(items) {
     if (!Array.isArray(items) || !items.length) {
-      vtRecentBody.innerHTML = '<tr><td colspan="6" class="vt-empty-row">No real VirusTotal scans yet.</td></tr>';
+      vtRecentBody.innerHTML = `<tr><td colspan="6" class="vt-empty-row">
+        <strong>No scans yet.</strong><br>Scan an IP address, domain, URL or file hash above. Results are cached for 24 hours.
+      </td></tr>`;
       vtCacheCount.textContent = '0 cached';
       return;
     }
 
     vtCacheCount.textContent = `${items.length} cached`;
     vtRecentBody.innerHTML = items.map(item => {
-      const verdict = verdictFromResult(item);
+      const verdict = item.verdict ? String(item.verdict).replace(/^./, c => c.toUpperCase()) : verdictFromResult(item);
       const className = verdictClassFor(verdict);
       const indicator = item.indicator || 'Unknown';
       const type = String(item.indicator_type || 'HASH').toUpperCase();
@@ -676,92 +788,117 @@ document.addEventListener('DOMContentLoaded', () => {
         const indicator = row.dataset.vtIndicator;
         const type = row.dataset.vtType;
         try {
-          const response = await fetch(apiUrl(`/api/virustotal/report?indicator=${encodeURIComponent(indicator)}${type ? `&indicator_type=${encodeURIComponent(type)}` : ''}`));
-          const data = await response.json();
-          if (!response.ok || data.error || !data.report) {
-            throw new Error(data.error || 'The full report is unavailable.');
+          const { response, body } = await vtFetch(`/api/virustotal/report?indicator=${encodeURIComponent(indicator)}${type ? `&indicator_type=${encodeURIComponent(type)}` : ''}`);
+          if (!response.ok || body.error || !body.report) {
+            throw new Error(body.error || body.detail || 'The full report is unavailable.');
           }
-          openVtModal(data.report);
+          openVtModal(body.report);
         } catch (error) {
-          openVtModal({
-            indicator,
-            engine_results: {},
-            error: error.message,
-          });
+          openVtModal({ indicator, engine_results: {}, error: error.message });
         }
       });
     });
   }
 
   async function refreshRecentScans() {
+    if (vtRefreshing) return;
+    vtRefreshing = true;
+    vtRefreshButton.disabled = true;
+    vtRefreshButton.textContent = 'Refreshing...';
     try {
-      const response = await fetch(apiUrl('/api/virustotal/recent'));
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Recent VirusTotal scans could not be loaded.');
-      renderRecentScans(data.items || []);
+      const { response, body } = await vtFetch('/api/virustotal/recent', {}, 15000);
+      if (!response.ok) throw new Error(body.detail || body.error || `HTTP ${response.status}`);
+      renderRecentScans(body.items || []);
     } catch (error) {
-      vtRecentBody.innerHTML = `<tr><td colspan="6" class="vt-empty-row">${escapeHtml(error.message)}</td></tr>`;
-      vtCacheCount.textContent = '0 cached';
+      vtRecentBody.innerHTML = `<tr><td colspan="6" class="vt-empty-row vt-error-row">
+        <strong>Recent scans could not be loaded.</strong><br>${escapeHtml(error.message)}<br>Use Refresh to try again.
+      </td></tr>`;
+      vtCacheCount.textContent = 'unavailable';
+    } finally {
+      vtRefreshing = false;
+      vtRefreshButton.disabled = false;
+      vtRefreshButton.textContent = '\u21bb Refresh';
     }
   }
 
+  function renderVtSuccess(data) {
+    const verdict = verdictFromResult(data);
+    const badgeClass = verdictClassFor(verdict);
+    const target = data.indicator || '';
+    const url = data.virustotal_url || `https://www.virustotal.com/gui/search/${encodeURIComponent(target)}`;
+    const counts = [
+      ['Malicious', data.malicious_count],
+      ['Suspicious', data.suspicious_count],
+      ['Harmless', data.harmless_count],
+      ['Undetected', data.undetected_count]
+    ].filter(([, value]) => Number.isFinite(value));
+    const facts = [
+      data.indicator_type && ['Type', String(data.indicator_type).toUpperCase()],
+      ['Country', data.country || 'Unknown'],
+      ['Owner', data.owner || 'Unknown'],
+      data.last_analysis_date && ['Last analysed', new Date(data.last_analysis_date).toLocaleString()],
+      ['Source', data.cached ? 'Local cache (results are kept 24 hours)' : 'Live VirusTotal lookup']
+    ].filter(Boolean);
+    vtLastReport = data;
+    vtScanResult.innerHTML = `
+      <div class="vt-result-card">
+        <div class="vt-result-row">
+          <div class="vt-result-target">${escapeHtml(target)}</div>
+          <span class="vt-verdict-pill ${badgeClass}">${escapeHtml(verdict)}</span>
+        </div>
+        ${counts.length ? `<div class="vt-counts">${counts.map(([label, value]) =>
+          `<span class="vt-count"><b>${value}</b> ${label}</span>`).join('')}</div>` : ''}
+        <dl class="vt-facts">${facts.map(([label, value]) =>
+          `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}</dl>
+        <div class="vt-actions">
+          <button class="vt-report-btn" type="button" id="vt-view-report">View full report</button>
+          <a class="vt-official-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Open on VirusTotal &nearr;</a>
+        </div>
+      </div>`;
+    const reportButton = byId('vt-view-report');
+    if (reportButton) reportButton.addEventListener('click', () => openVtModal(vtLastReport));
+  }
+
   async function runVtScan() {
+    if (vtScanning) return;
     const target = vtScanInput.value.trim();
     if (!target) {
-      vtScanResult.innerHTML = '<div class="empty-prompt">Enter an IP address, domain, URL or file hash.</div>';
+      vtScanResult.innerHTML = vtNotice('info', 'Enter an indicator', 'Type an IP address, domain, URL or file hash (MD5, SHA-1, SHA-256).');
       return;
     }
 
+    vtScanning = true;
+    vtScanInput.disabled = true;
     setVtButtonLoading(true);
-    vtScanResult.innerHTML = '<div class="loading-state">Scanning VirusTotal...</div>';
+    vtScanResult.innerHTML = '<div class="loading-state">Contacting VirusTotal...</div>';
 
     try {
-      const response = await fetch(apiUrl('/api/virustotal/scan'), {
+      const { response, body: data } = await vtFetch('/api/virustotal/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ target }),
       });
-      const data = await response.json();
-      if (!response.ok || data.error) {
-        throw new Error(data.error || data.detail || 'VirusTotal scan failed');
+      if (!response.ok) {
+        throw new Error(typeof data.detail === 'string' ? data.detail : `The backend returned HTTP ${response.status}.`);
       }
-      if (data.message && !data.indicator) {
-        vtScanResult.innerHTML = `<div class="empty-prompt">${escapeHtml(data.message)}</div>`;
+      if (data.error) {
+        const title = VT_ERROR_TITLES[data.error_code] || 'VirusTotal scan failed';
+        vtScanResult.innerHTML = vtNotice('error', title, data.error);
         return;
       }
-      const malicious = Number(data.malicious_count || 0);
-      const suspicious = Number(data.suspicious_count || 0);
-      const verdict = verdictFromResult(data);
-      const badgeClass = verdictClassFor(verdict);
-      const severity = malicious > 0 ? 'High' : 'Low';
-      const reportId = (data.report_id || data.source_id || '').toString();
-      const safeTarget = data.indicator || target;
-      const url = data.virustotal_url || `https://www.virustotal.com/gui/search/${encodeURIComponent(safeTarget)}`;
-
-      vtScanResult.innerHTML = `
-        <div class="vt-result-card">
-          <div class="vt-result-row">
-            <div class="vt-result-target">Target Scanned: ${escapeHtml(safeTarget)}</div>
-            <span class="vt-verdict-pill ${badgeClass}">Detections: ${malicious} malicious engines</span>
-          </div>
-          <div class="vt-meta-row">
-            <span>Saved in MongoDB Atlas (Report ID: ${escapeHtml(reportId ? `VT-${reportId.slice(-6)}` : 'VT-unknown')}), Severity: ${severity}.</span>
-          </div>
-          <div class="vt-actions">
-            <button class="vt-report-btn" type="button" data-vt-report="${escapeHtml(JSON.stringify(data))}">🔍 View Full Report</button>
-            <a class="vt-official-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Official VT GUI ↗</a>
-          </div>
-        </div>`;
-
-      const reportButton = vtScanResult.querySelector('[data-vt-report]');
-      if (reportButton) {
-        reportButton.addEventListener('click', () => openVtModal(data));
+      if (data.found === false) {
+        vtScanResult.innerHTML = vtNotice('info', 'No VirusTotal report for this indicator',
+          `${data.message || 'VirusTotal has no existing report.'}${data.cached ? ' (Remembered from a previous lookup.)' : ''}`);
+        await refreshRecentScans();
+        return;
       }
-
+      renderVtSuccess(data);
       await refreshRecentScans();
     } catch (error) {
-      vtScanResult.innerHTML = `<div class="empty-prompt">${escapeHtml(error.message)}</div>`;
+      vtScanResult.innerHTML = vtNotice('error', 'The scan could not be completed', error.message);
     } finally {
+      vtScanning = false;
+      vtScanInput.disabled = false;
       setVtButtonLoading(false);
     }
   }
@@ -775,6 +912,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   vtRefreshButton.addEventListener('click', refreshRecentScans);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !vtModalBackdrop.hidden) closeVtModal();
+  });
   vtModalClose.addEventListener('click', closeVtModal);
   vtModalBackdrop.addEventListener('click', event => {
     if (event.target === vtModalBackdrop) closeVtModal();
@@ -785,6 +925,5 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial Load
   loadThreatStream();
   loadWorkingSetAnalysis();
-  loadWiredTigerTelemetry();
   loadSourceSyncStatus();
 });

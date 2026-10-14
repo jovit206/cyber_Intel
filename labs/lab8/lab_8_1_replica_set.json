@@ -1,0 +1,459 @@
+{
+  "activity": "Lab 8.1 - Deploy a Local Replica Set",
+  "script": "lab_8_1_replica_set.py",
+  "steps": [
+    {
+      "step": "Step 2: initialise the replica set",
+      "executedAt": {
+        "$date": "2026-10-14T04:47:11.698Z"
+      },
+      "command": {
+        "replSetInitiate": {
+          "_id": "rs0",
+          "members": [
+            {
+              "_id": 0,
+              "host": "mongo1:27017"
+            },
+            {
+              "_id": 1,
+              "host": "mongo2:27017"
+            },
+            {
+              "_id": 2,
+              "host": "mongo3:27017"
+            }
+          ]
+        }
+      },
+      "result": {
+        "ok": 0.0,
+        "errmsg": "already initialized",
+        "code": 23,
+        "codeName": "AlreadyInitialized",
+        "$clusterTime": {
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1791953231,
+              "i": 38
+            }
+          },
+          "signature": {
+            "hash": {
+              "$binary": {
+                "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "subType": "00"
+              }
+            },
+            "keyId": 0
+          }
+        },
+        "operationTime": {
+          "$timestamp": {
+            "t": 1791953231,
+            "i": 38
+          }
+        }
+      }
+    },
+    {
+      "step": "Step 3a: insert a document into the primary",
+      "executedAt": {
+        "$date": "2026-10-14T04:47:11.723Z"
+      },
+      "command": {
+        "insert": "messages",
+        "$db": "lab",
+        "documents": [
+          {
+            "text": "hello from the primary",
+            "lab": "8.1",
+            "insertedAt": {
+              "$date": "2026-10-14T04:47:11.706Z"
+            },
+            "_id": {
+              "$oid": "6acf094f5cb664d003a2fb83"
+            }
+          }
+        ],
+        "writeConcern": {
+          "w": 3,
+          "wtimeout": 30000
+        }
+      },
+      "result": {
+        "acknowledged": true,
+        "insertedId": {
+          "$oid": "6acf094f5cb664d003a2fb83"
+        },
+        "primary": "mongo1:27017"
+      }
+    },
+    {
+      "step": "Step 3b: read the document directly on mongo1:27017 (PRIMARY)",
+      "executedAt": {
+        "$date": "2026-10-14T04:47:11.725Z"
+      },
+      "command": {
+        "find": "messages",
+        "$db": "lab",
+        "filter": {
+          "_id": {
+            "$oid": "6acf094f5cb664d003a2fb83"
+          }
+        },
+        "directConnection": "mongo1:27017"
+      },
+      "result": [
+        {
+          "_id": {
+            "$oid": "6acf094f5cb664d003a2fb83"
+          },
+          "text": "hello from the primary",
+          "lab": "8.1",
+          "insertedAt": {
+            "$date": "2026-10-14T04:47:11.706Z"
+          }
+        }
+      ]
+    },
+    {
+      "step": "Step 3b: read the document directly on mongo2:27017 (SECONDARY)",
+      "executedAt": {
+        "$date": "2026-10-14T04:47:11.730Z"
+      },
+      "command": {
+        "find": "messages",
+        "$db": "lab",
+        "filter": {
+          "_id": {
+            "$oid": "6acf094f5cb664d003a2fb83"
+          }
+        },
+        "directConnection": "mongo2:27017"
+      },
+      "result": [
+        {
+          "_id": {
+            "$oid": "6acf094f5cb664d003a2fb83"
+          },
+          "text": "hello from the primary",
+          "lab": "8.1",
+          "insertedAt": {
+            "$date": "2026-10-14T04:47:11.706Z"
+          }
+        }
+      ]
+    },
+    {
+      "step": "Step 3b: read the document directly on mongo3:27017 (SECONDARY)",
+      "executedAt": {
+        "$date": "2026-10-14T04:47:11.735Z"
+      },
+      "command": {
+        "find": "messages",
+        "$db": "lab",
+        "filter": {
+          "_id": {
+            "$oid": "6acf094f5cb664d003a2fb83"
+          }
+        },
+        "directConnection": "mongo3:27017"
+      },
+      "result": [
+        {
+          "_id": {
+            "$oid": "6acf094f5cb664d003a2fb83"
+          },
+          "text": "hello from the primary",
+          "lab": "8.1",
+          "insertedAt": {
+            "$date": "2026-10-14T04:47:11.706Z"
+          }
+        }
+      ]
+    },
+    {
+      "step": "Step 4: rs.status()",
+      "executedAt": {
+        "$date": "2026-10-14T04:47:11.736Z"
+      },
+      "command": {
+        "replSetGetStatus": 1
+      },
+      "result": {
+        "set": "rs0",
+        "date": {
+          "$date": "2026-10-14T04:47:11.735Z"
+        },
+        "myState": 1,
+        "term": 1,
+        "syncSourceHost": "",
+        "syncSourceId": -1,
+        "heartbeatIntervalMillis": 2000,
+        "majorityVoteCount": 2,
+        "writeMajorityCount": 2,
+        "votingMembersCount": 3,
+        "writableVotingMembersCount": 3,
+        "optimes": {
+          "lastCommittedOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791953231,
+                "i": 39
+              }
+            },
+            "t": 1
+          },
+          "lastCommittedWallTime": {
+            "$date": "2026-10-14T04:47:11.717Z"
+          },
+          "readConcernMajorityOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791953231,
+                "i": 39
+              }
+            },
+            "t": 1
+          },
+          "appliedOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791953231,
+                "i": 39
+              }
+            },
+            "t": 1
+          },
+          "durableOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791953231,
+                "i": 36
+              }
+            },
+            "t": 1
+          },
+          "lastAppliedWallTime": {
+            "$date": "2026-10-14T04:47:11.717Z"
+          },
+          "lastDurableWallTime": {
+            "$date": "2026-10-14T04:47:11.640Z"
+          }
+        },
+        "lastStableRecoveryTimestamp": {
+          "$timestamp": {
+            "t": 1791953174,
+            "i": 8
+          }
+        },
+        "electionCandidateMetrics": {
+          "lastElectionReason": "electionTimeout",
+          "lastElectionDate": {
+            "$date": "2026-10-14T04:15:20.901Z"
+          },
+          "electionTerm": 1,
+          "lastCommittedOpTimeAtElection": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791951309,
+                "i": 1
+              }
+            },
+            "t": -1
+          },
+          "lastSeenOpTimeAtElection": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791951309,
+                "i": 1
+              }
+            },
+            "t": -1
+          },
+          "numVotesNeeded": 2,
+          "priorityAtElection": 1.0,
+          "electionTimeoutMillis": 10000,
+          "numCatchUpOps": 0,
+          "newTermStartDate": {
+            "$date": "2026-10-14T04:15:21.021Z"
+          },
+          "wMajorityWriteAvailabilityDate": {
+            "$date": "2026-10-14T04:15:21.561Z"
+          }
+        },
+        "members": [
+          {
+            "_id": 0,
+            "name": "mongo1:27017",
+            "health": 1.0,
+            "state": 1,
+            "stateStr": "PRIMARY",
+            "uptime": 2037,
+            "optime": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791953231,
+                  "i": 39
+                }
+              },
+              "t": 1
+            },
+            "optimeDate": {
+              "$date": "2026-10-14T04:47:11Z"
+            },
+            "lastAppliedWallTime": {
+              "$date": "2026-10-14T04:47:11.717Z"
+            },
+            "lastDurableWallTime": {
+              "$date": "2026-10-14T04:47:11.640Z"
+            },
+            "syncSourceHost": "",
+            "syncSourceId": -1,
+            "infoMessage": "",
+            "electionTime": {
+              "$timestamp": {
+                "t": 1791951320,
+                "i": 1
+              }
+            },
+            "electionDate": {
+              "$date": "2026-10-14T04:15:20Z"
+            },
+            "configVersion": 1,
+            "configTerm": 1,
+            "self": true,
+            "lastHeartbeatMessage": ""
+          },
+          {
+            "_id": 1,
+            "name": "mongo2:27017",
+            "health": 1.0,
+            "state": 2,
+            "stateStr": "SECONDARY",
+            "uptime": 1566,
+            "optime": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791953231,
+                  "i": 22
+                }
+              },
+              "t": 1
+            },
+            "optimeDurable": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791953231,
+                  "i": 20
+                }
+              },
+              "t": 1
+            },
+            "optimeDate": {
+              "$date": "2026-10-14T04:47:11Z"
+            },
+            "optimeDurableDate": {
+              "$date": "2026-10-14T04:47:11Z"
+            },
+            "lastAppliedWallTime": {
+              "$date": "2026-10-14T04:47:11.717Z"
+            },
+            "lastDurableWallTime": {
+              "$date": "2026-10-14T04:47:11.717Z"
+            },
+            "lastHeartbeat": {
+              "$date": "2026-10-14T04:47:11.405Z"
+            },
+            "lastHeartbeatRecv": {
+              "$date": "2026-10-14T04:47:11.396Z"
+            },
+            "pingMs": 0,
+            "lastHeartbeatMessage": "",
+            "syncSourceHost": "mongo1:27017",
+            "syncSourceId": 0,
+            "infoMessage": "",
+            "configVersion": 1,
+            "configTerm": 1
+          },
+          {
+            "_id": 2,
+            "name": "mongo3:27017",
+            "health": 1.0,
+            "state": 2,
+            "stateStr": "SECONDARY",
+            "uptime": 1922,
+            "optime": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791953231,
+                  "i": 22
+                }
+              },
+              "t": 1
+            },
+            "optimeDurable": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791953231,
+                  "i": 22
+                }
+              },
+              "t": 1
+            },
+            "optimeDate": {
+              "$date": "2026-10-14T04:47:11Z"
+            },
+            "optimeDurableDate": {
+              "$date": "2026-10-14T04:47:11Z"
+            },
+            "lastAppliedWallTime": {
+              "$date": "2026-10-14T04:47:11.717Z"
+            },
+            "lastDurableWallTime": {
+              "$date": "2026-10-14T04:47:11.717Z"
+            },
+            "lastHeartbeat": {
+              "$date": "2026-10-14T04:47:11.429Z"
+            },
+            "lastHeartbeatRecv": {
+              "$date": "2026-10-14T04:47:10.316Z"
+            },
+            "pingMs": 0,
+            "lastHeartbeatMessage": "",
+            "syncSourceHost": "mongo1:27017",
+            "syncSourceId": 0,
+            "infoMessage": "",
+            "configVersion": 1,
+            "configTerm": 1
+          }
+        ],
+        "ok": 1.0,
+        "$clusterTime": {
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1791953231,
+              "i": 39
+            }
+          },
+          "signature": {
+            "hash": {
+              "$binary": {
+                "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "subType": "00"
+              }
+            },
+            "keyId": 0
+          }
+        },
+        "operationTime": {
+          "$timestamp": {
+            "t": 1791953231,
+            "i": 39
+          }
+        }
+      }
+    }
+  ]
+}
