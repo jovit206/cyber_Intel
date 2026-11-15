@@ -1,0 +1,67 @@
+# Optional Chapter 18 overlay. It joins the root compose project's mongo-net and
+# leaves its MongoDB replica set and existing named volumes untouched.
+services:
+  cassandra:
+    image: cassandra:5.0
+    hostname: cassandra
+    restart: unless-stopped
+    volumes:
+      - chapter18-cassandra-data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'SELECT release_version FROM system.local' >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 90s
+    networks:
+      - mongo-net
+
+  neo4j:
+    image: neo4j:5.26-community
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: "${LAB18_NEO4J_USERNAME:-neo4j}/${LAB18_NEO4J_PASSWORD:?Set LAB18_NEO4J_PASSWORD in the environment}"
+    volumes:
+      - chapter18-neo4j-data:/data
+      - chapter18-neo4j-logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u \"$${NEO4J_AUTH%/*}\" -p \"$${NEO4J_AUTH#*/}\" 'RETURN 1' >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+    networks:
+      - mongo-net
+
+  lab7-backend:
+    build:
+      args:
+        INSTALL_CHAPTER18_POLYGLOT: "true"
+    environment:
+      LAB18_MONGO_DATABASE: "${LAB18_MONGO_DATABASE:-threat_intel_lab18}"
+      LAB18_CASSANDRA_HOSTS: cassandra
+      LAB18_CASSANDRA_PORT: "9042"
+      LAB18_CASSANDRA_KEYSPACE: "${LAB18_CASSANDRA_KEYSPACE:-threat_intel_lab18}"
+      LAB18_CASSANDRA_DATACENTER: "${LAB18_CASSANDRA_DATACENTER:-datacenter1}"
+      LAB18_CASSANDRA_REPLICATION_FACTOR: "${LAB18_CASSANDRA_REPLICATION_FACTOR:-1}"
+      LAB18_CASSANDRA_USERNAME: "${LAB18_CASSANDRA_USERNAME:-}"
+      LAB18_CASSANDRA_PASSWORD: "${LAB18_CASSANDRA_PASSWORD:-}"
+      LAB18_NEO4J_URI: bolt://neo4j:7687
+      LAB18_NEO4J_USERNAME: "${LAB18_NEO4J_USERNAME:-neo4j}"
+      LAB18_NEO4J_PASSWORD: "${LAB18_NEO4J_PASSWORD:?Set LAB18_NEO4J_PASSWORD in the environment}"
+      LAB18_NEO4J_DATABASE: "${LAB18_NEO4J_DATABASE:-neo4j}"
+    depends_on:
+      cassandra:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+
+volumes:
+  chapter18-cassandra-data:
+  chapter18-neo4j-data:
+  chapter18-neo4j-logs:
+
+networks:
+  mongo-net:
+    external: true
+    name: ${MONGO_NETWORK:-mongo-net}

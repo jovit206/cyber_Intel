@@ -38,3 +38,18 @@ test
 *.pdf
 README.md
 docs
+
+# Public portfolio resources served by the application.
+!chapter-13/README.md
+!chapter-13/kubernetes/README.md
+!chapter-14/README.md
+!chapter-14/CHAPTER_14_EXECUTION_REPORT.md
+!chapter-15/README.md
+!chapter-15/CHAPTER_15_EXECUTION_REPORT.md
+!chapter-16/README.md
+!chapter-16/CHAPTER_16_EXECUTION_REPORT.md
+!chapter-17/README.md
+!chapter-17/requirements-vector-lab.txt
+!chapter-18/README.md
+chapter-13/secrets
+chapter-14/logs

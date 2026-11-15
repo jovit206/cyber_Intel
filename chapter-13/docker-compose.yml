@@ -1,0 +1,148 @@
+name: chapter13-mongodb
+
+services:
+  mongo1:
+    image: mongo:7.0.45
+    hostname: mongo1
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - |
+        cp /run/secrets/mongo-keyfile /tmp/mongo-keyfile
+        chown mongodb:mongodb /tmp/mongo-keyfile
+        chmod 0400 /tmp/mongo-keyfile
+        exec /usr/local/bin/docker-entrypoint.sh mongod --replSet rs0 --bind_ip_all --auth --keyFile /tmp/mongo-keyfile
+    environment: &mongo-environment
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?Set MONGO_INITDB_ROOT_USERNAME in chapter-13/.env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?Set MONGO_INITDB_ROOT_PASSWORD in chapter-13/.env}
+      MONGO_EXPORTER_USERNAME: ${MONGO_EXPORTER_USERNAME:?Set MONGO_EXPORTER_USERNAME in chapter-13/.env}
+      MONGO_EXPORTER_PASSWORD: ${MONGO_EXPORTER_PASSWORD:?Set MONGO_EXPORTER_PASSWORD in chapter-13/.env}
+    ports:
+      - "127.0.0.1:27117:27017"
+    volumes:
+      - mongo1-data:/data/db
+    secrets:
+      - mongo-keyfile
+    networks:
+      - mongo-net
+    healthcheck: &mongo-healthcheck
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --quiet --username "$$MONGO_INITDB_ROOT_USERNAME"
+          --password "$$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin
+          --eval 'quit(db.adminCommand({ping: 1}).ok ? 0 : 1)'
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    init: true
+    stop_grace_period: 60s
+    mem_limit: 1g
+    cpus: 1.0
+    restart: unless-stopped
+
+  mongo2:
+    image: mongo:7.0.45
+    hostname: mongo2
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - |
+        cp /run/secrets/mongo-keyfile /tmp/mongo-keyfile
+        chown mongodb:mongodb /tmp/mongo-keyfile
+        chmod 0400 /tmp/mongo-keyfile
+        exec /usr/local/bin/docker-entrypoint.sh mongod --replSet rs0 --bind_ip_all --auth --keyFile /tmp/mongo-keyfile
+    environment: *mongo-environment
+    ports:
+      - "127.0.0.1:27118:27017"
+    volumes:
+      - mongo2-data:/data/db
+    secrets:
+      - mongo-keyfile
+    networks:
+      - mongo-net
+    healthcheck: *mongo-healthcheck
+    init: true
+    stop_grace_period: 60s
+    mem_limit: 1g
+    cpus: 1.0
+    restart: unless-stopped
+
+  mongo3:
+    image: mongo:7.0.45
+    hostname: mongo3
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - |
+        cp /run/secrets/mongo-keyfile /tmp/mongo-keyfile
+        chown mongodb:mongodb /tmp/mongo-keyfile
+        chmod 0400 /tmp/mongo-keyfile
+        exec /usr/local/bin/docker-entrypoint.sh mongod --replSet rs0 --bind_ip_all --auth --keyFile /tmp/mongo-keyfile
+    environment: *mongo-environment
+    ports:
+      - "127.0.0.1:27119:27017"
+    volumes:
+      - mongo3-data:/data/db
+    secrets:
+      - mongo-keyfile
+    networks:
+      - mongo-net
+    healthcheck: *mongo-healthcheck
+    init: true
+    stop_grace_period: 60s
+    mem_limit: 1g
+    cpus: 1.0
+    restart: unless-stopped
+
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40.0
+    environment:
+      MONGODB_URI: mongodb://${MONGO_EXPORTER_USERNAME:?Set MONGO_EXPORTER_USERNAME in chapter-13/.env}:${MONGO_EXPORTER_PASSWORD:?Set MONGO_EXPORTER_PASSWORD in chapter-13/.env}@mongo1:27017,mongo2:27017,mongo3:27017/admin?replicaSet=rs0&authSource=admin
+    command:
+      - --web.listen-address=:9216
+    depends_on:
+      mongo1:
+        condition: service_healthy
+      mongo2:
+        condition: service_healthy
+      mongo3:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:19216:9216"
+    networks:
+      - mongo-net
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.25
+
+  failover-test:
+    image: chapter13-failover-test:local
+    build:
+      context: .
+      dockerfile: Dockerfile.failover
+    profiles: ["tools"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?Set MONGO_INITDB_ROOT_USERNAME in chapter-13/.env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?Set MONGO_INITDB_ROOT_PASSWORD in chapter-13/.env}
+      MONGODB_HOSTS: mongo1:27017,mongo2:27017,mongo3:27017
+    depends_on:
+      mongo1:
+        condition: service_healthy
+      mongo2:
+        condition: service_healthy
+      mongo3:
+        condition: service_healthy
+    networks:
+      - mongo-net
+
+secrets:
+  mongo-keyfile:
+    file: ./secrets/mongodb-keyfile
+
+volumes:
+  mongo1-data:
+  mongo2-data:
+  mongo3-data:
+
+networks:
+  mongo-net:
+    name: chapter13-mongo-net

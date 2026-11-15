@@ -173,10 +173,8 @@
     if (!runs.length) {
       return `
         <div class="rel-card">
-          <div class="rel-card-head"><h4>Saved experiment runs</h4><span class="rel-pill plain">None yet</span></div>
-          <p class="rel-note">No saved runs. Run
-            <span class="rel-mono">docker compose exec lab7-backend python labs/lab9/lab_01_write_concern_latency.py</span>
-            to measure w:1, w:majority and w:all with and without journaling. The report is saved here as JSON and CSV.</p>
+          <div class="rel-card-head"><h4>Saved performance measurements</h4><span class="rel-pill plain">None yet</span></div>
+          <p class="rel-note">No saved measurements. Use the live measurement controls above to compare w:1, w:majority, and w:all with and without journaling.</p>
         </div>`;
     }
     return runs.map((run, index) => {
@@ -194,7 +192,7 @@
         </tr>`).join('');
       return `
         <details class="rel-card"${index === 0 ? ' open' : ''}>
-          <summary class="rel-card-head"><h4>Saved experiment run ${esc(run.run_id || '')}</h4>
+          <summary class="rel-card-head"><h4>Saved performance run ${esc(run.run_id || '')}</h4>
             <span class="rel-pill info plain">Saved run &middot; ${when(run.finished_at)}</span></summary>
           <div class="rel-table-wrap" style="margin-top:10px;"><table class="rel-table">
             <thead><tr><th>Configuration</th><th class="num">Acknowledged</th><th class="num">Timeouts</th><th class="num">Errors</th>
@@ -202,7 +200,7 @@
             <tbody>${rows}</tbody>
           </table></div>
           <ul class="rel-note" style="padding-left:18px;">${arr(run.interpretation).map(t => `<li>${esc(t)}</li>`).join('')}</ul>
-          <p class="rel-note">${count(run.docs_per_configuration)} documents per configuration &middot; file ${show(run.file)}</p>
+          <p class="rel-note">${count(run.docs_per_configuration)} documents per configuration &middot; ${when(run.finished_at)}</p>
         </details>`;
     }).join('');
   }
@@ -229,8 +227,7 @@
 
     const empty = data.has_data
       ? ''
-      : `<div class="rel-card"><p class="rel-note">No recorded benchmark data was found in <span class="rel-mono">${show(data.database, 'cap_latency_test')}</span>.
-         Use the live runner below, or run <span class="rel-mono">labs/lab9/lab_01_write_concern_latency.py</span>.</p></div>`;
+      : '<div class="rel-card"><p class="rel-note">No saved benchmark data was found. Use the live runner below to record measurements.</p></div>';
 
     const takeaways = arr(data.key_takeaways).map(t => `<li>${esc(t)}</li>`).join('');
 
@@ -301,7 +298,7 @@
       </div>`;
   }
 
-  function experimentCard(title, wc, data, countLabel, note) {
+  function measurementCard(title, wc, data, countLabel, note) {
     const present = Number(data.document_count) > 0;
     return `
       <div class="rel-card">
@@ -328,7 +325,7 @@
     const verified = saved.recovery_verified === true;
     return `
       <div class="rel-card">
-        <div class="rel-card-head"><h4>Saved partition experiment report</h4><span class="rel-pill info plain">Saved run &middot; ${when(saved.executedAt)}</span></div>
+        <div class="rel-card-head"><h4>Saved partition report</h4><span class="rel-pill info plain">Saved run &middot; ${when(saved.executedAt)}</span></div>
         <div class="rel-grid rel-grid-stats" style="margin-bottom:12px;">
           <div class="rel-stat"><span class="rel-label">Primary at test</span><div class="rel-stat-value">${show(saved.primary_at_test)}</div></div>
           <div class="rel-stat"><span class="rel-label">Isolated member</span><div class="rel-stat-value">${show(saved.secondary_isolated)}</div></div>
@@ -364,8 +361,7 @@
           then reconnects it. Run it yourself, deliberately:
         </p>
         ${checkList}
-        <div class="rel-code">${show(sim.dry_run_command, '')}\n${show(sim.manual_command, 'bash labs/lab9/lab_02_simulate_partition.sh')}</div>
-        <p class="rel-note">${show(sim.run_from, '')}</p>
+        <p class="rel-note">Run the verified simulation from an administrator terminal only after reviewing its safeguards.</p>
       </div>`;
   }
 
@@ -398,14 +394,14 @@
     container.innerHTML = `
       <div class="rel-head">
         <div>
-          <h3>Network partition experiment &amp; cluster status</h3>
-          <p>What the recorded partition experiment wrote, alongside the replica set's current state.</p>
+          <h3>Network partition behavior &amp; cluster status</h3>
+          <p>Recorded partition measurements alongside the replica set's current state.</p>
         </div>
         <span class="tag-badge cyan">LIVE STATUS &middot; HISTORICAL RECORDS</span>
       </div>
 
       <div class="rel-card">
-        <div class="rel-card-head"><h4>Current cluster status</h4><span class="rel-pill ok">Live &middot; checked ${when(cr.checked_at)}</span></div>
+        <div class="rel-card-head"><h4>Current cluster status</h4><span class="rel-pill ${cr.error ? 'bad' : 'ok'}">${cr.error ? 'Check failed' : 'Live'} &middot; checked ${when(cr.checked_at)}</span></div>
         <div class="rel-grid rel-grid-stats" style="margin-bottom:14px;">
           <div class="rel-stat">
             <span class="rel-label">Replica set</span>
@@ -433,16 +429,16 @@
         <div class="rel-members" style="margin-top:12px;">${members.map(memberCard).join('') || (cr.error ? '' : '<div class="rel-note">No member details returned.</div>')}</div>
       </div>
 
-      <h4 style="font-size:14px;font-weight:700;color:var(--text-white);margin-bottom:10px;">Recorded experiment results (${show(data.database, 'lab9_partition')})</h4>
-      ${data.has_historical_data ? '' : '<p class="rel-note" style="margin-bottom:12px;">No experiment records found yet. Run the manual simulation below to create them.</p>'}
+      <h4 style="font-size:14px;font-weight:700;color:var(--text-white);margin-bottom:10px;">Recorded partition measurements</h4>
+      ${data.has_historical_data ? '' : '<p class="rel-note" style="margin-bottom:12px;">No saved measurement records were found. Run the manual simulation below to create them.</p>'}
       <div class="rel-grid">
-        ${experimentCard('Phase 1: baseline writes', baseline.write_concern || 'w:1', baseline, 'documents', baseline.note)}
-        ${experimentCard('Phase 2: writes during partition', w1.write_concern || 'w:1', w1, 'documents', w1.explanation)}
-        ${experimentCard('Phase 3: majority writes during partition', majority.write_concern || 'w:majority', majority, 'documents', majority.explanation)}
+        ${measurementCard('Phase 1: baseline writes', baseline.write_concern || 'w:1', baseline, 'documents', baseline.note)}
+        ${measurementCard('Phase 2: writes during partition', w1.write_concern || 'w:1', w1, 'documents', w1.explanation)}
+        ${measurementCard('Phase 3: majority writes during partition', majority.write_concern || 'w:majority', majority, 'documents', majority.explanation)}
       </div>
       <p class="rel-note" style="margin:-6px 0 18px;">Counts are documents stored in each collection. Whether a write was acknowledged is printed by the script and is not stored in the database.</p>
 
-      ${saved ? savedPartitionCard(saved) : '<div class="rel-card"><div class="rel-card-head"><h4>Saved partition experiment report</h4><span class="rel-pill plain">None yet</span></div><p class="rel-note">No report found. The manual Lab 9.2 script writes one to <span class="rel-mono">labs/lab9/results/</span> when it completes.</p></div>'}
+      ${saved ? savedPartitionCard(saved) : '<div class="rel-card"><div class="rel-card-head"><h4>Saved partition report</h4><span class="rel-pill plain">None yet</span></div><p class="rel-note">No report found. Run the manual simulation to save a report.</p></div>'}
 
       ${simulationCard(obj(data.simulation), cr.detected_primary)}`;
   }

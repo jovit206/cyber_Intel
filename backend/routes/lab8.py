@@ -7,13 +7,14 @@ from pathlib import Path
 from typing import Any
 
 from bson import ObjectId, Timestamp
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from pymongo import ReadPreference
 from pymongo.errors import AutoReconnect, PyMongoError
 
 from backend.config import settings
 from backend.database import get_database
+from backend.routes.admin import _admin_user
 
 logger = logging.getLogger("aegis.lab8")
 
@@ -60,7 +61,7 @@ def _load_json_file(path: Path) -> dict[str, Any] | None:
     return None
 
 
-@router.get("/status")
+@router.get("/status", dependencies=[Depends(_admin_user)])
 def get_replica_set_status() -> dict[str, Any]:
     """Retrieve current, live replica set topology and member health."""
     try:
@@ -136,7 +137,7 @@ def get_replica_set_status() -> dict[str, Any]:
     }
 
 
-@router.get("/historical")
+@router.get("/historical", dependencies=[Depends(_admin_user)])
 def get_historical_results() -> dict[str, Any]:
     """Load historical Lab 8 experiment outputs, write concern proofs, and failover logs."""
     # Find files from internal or external paths
@@ -210,7 +211,7 @@ class StepDownRequest(BaseModel):
     seconds: int = 60
 
 
-@router.post("/stepdown")
+@router.post("/stepdown", dependencies=[Depends(_admin_user)])
 def trigger_stepdown(req: StepDownRequest) -> dict[str, Any]:
     """Explicit, guarded failover trigger requiring confirmation."""
     if not req.confirm:

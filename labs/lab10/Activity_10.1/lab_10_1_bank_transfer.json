@@ -1,0 +1,838 @@
+{
+  "activity": "Lab 10.1 - Bank Transfer Transactions: 14 Payment Scenarios",
+  "script": "lab_10_1_bank_transfer.py",
+  "steps": [
+    {
+      "step": "Setup: seed accounts",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.308Z"
+      },
+      "command": {
+        "insert": "accounts",
+        "documents": [
+          {
+            "account_id": "ACC-101",
+            "holder": "Asha",
+            "balance": 5000,
+            "status": "active",
+            "daily_limit": 20000,
+            "version": 0,
+            "_id": {
+              "$oid": "6acf0eefcd7af908dab2bb7e"
+            }
+          },
+          {
+            "account_id": "ACC-102",
+            "holder": "Ravi",
+            "balance": 3000,
+            "status": "active",
+            "daily_limit": 20000,
+            "version": 0,
+            "_id": {
+              "$oid": "6acf0eefcd7af908dab2bb7f"
+            }
+          },
+          {
+            "account_id": "ACC-103",
+            "holder": "Meera",
+            "balance": 1000,
+            "status": "active",
+            "daily_limit": 20000,
+            "version": 0,
+            "_id": {
+              "$oid": "6acf0eefcd7af908dab2bb80"
+            }
+          },
+          {
+            "account_id": "ACC-104",
+            "holder": "Kiran",
+            "balance": 2000,
+            "status": "frozen",
+            "daily_limit": 20000,
+            "version": 0,
+            "_id": {
+              "$oid": "6acf0eefcd7af908dab2bb81"
+            }
+          },
+          {
+            "account_id": "ACC-105",
+            "holder": "Dev",
+            "balance": 8000,
+            "status": "active",
+            "daily_limit": 3000,
+            "version": 0,
+            "_id": {
+              "$oid": "6acf0eefcd7af908dab2bb82"
+            }
+          },
+          {
+            "account_id": "MERCHANT-01",
+            "holder": "Campus Cafe",
+            "balance": 0,
+            "status": "active",
+            "daily_limit": 50000,
+            "version": 0,
+            "_id": {
+              "$oid": "6acf0eefcd7af908dab2bb83"
+            }
+          },
+          {
+            "account_id": "BANK-FEES",
+            "holder": "Bank fee account",
+            "balance": 0,
+            "status": "active",
+            "daily_limit": 0,
+            "version": 0,
+            "_id": {
+              "$oid": "6acf0eefcd7af908dab2bb84"
+            }
+          }
+        ]
+      },
+      "result": {
+        "inserted": 7
+      }
+    },
+    {
+      "step": "Setup: unique index on transfers.idempotency_key",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.308Z"
+      },
+      "command": {
+        "createIndexes": "transfers",
+        "key": {
+          "idempotency_key": 1
+        },
+        "unique": true
+      },
+      "result": {
+        "ok": 1
+      }
+    },
+    {
+      "step": "Scenario 1: Normal payment",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.323Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Asha pays Ravi 1,500",
+            "expected": "COMMITTED"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "COMMITTED",
+            "detail": "TXN-5AA75B16",
+            "steps": [
+              "debit  ACC-101 -1,500",
+              "credit ACC-102 +1,500",
+              "history TXN-5AA75B16"
+            ]
+          }
+        ],
+        "balanceChanges": [
+          "ACC-101 5,000 -> 3,500",
+          "ACC-102 3,000 -> 4,500"
+        ],
+        "historyAdded": 1,
+        "committedPayments": 1,
+        "totalMoney": 19000,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 2: Insufficient balance",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.329Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Meera (1,000) pays Asha 5,000",
+            "expected": "REJECTED"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "REJECTED",
+            "detail": "insufficient balance (1,000 < 5,000)",
+            "steps": []
+          }
+        ],
+        "balanceChanges": [],
+        "historyAdded": 0,
+        "committedPayments": 0,
+        "totalMoney": 19000,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 3: Pay exactly the whole balance",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.344Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Meera pays Ravi her whole balance, 1,000",
+            "expected": "COMMITTED"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "COMMITTED",
+            "detail": "TXN-EF048CE3",
+            "steps": [
+              "debit  ACC-103 -1,000",
+              "credit ACC-102 +1,000",
+              "history TXN-EF048CE3"
+            ]
+          }
+        ],
+        "balanceChanges": [
+          "ACC-102 4,500 -> 5,500",
+          "ACC-103 1,000 -> 0"
+        ],
+        "historyAdded": 1,
+        "committedPayments": 1,
+        "totalMoney": 19000,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 4: Payee does not exist",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.354Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Ravi pays 700 to ACC-999, which does not exist",
+            "expected": "ROLLED BACK"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "ROLLED BACK",
+            "detail": "payee account ACC-999 does not exist or is not active",
+            "steps": [
+              "debit  ACC-102 -700"
+            ]
+          }
+        ],
+        "balanceChanges": [],
+        "historyAdded": 0,
+        "committedPayments": 0,
+        "totalMoney": 19000,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 5: Zero and negative amount",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.359Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Asha pays Ravi 0",
+            "expected": "REJECTED"
+          },
+          {
+            "description": "Asha pays Ravi -500 (would pull 500 from Ravi)",
+            "expected": "REJECTED"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "REJECTED",
+            "detail": "amount must be positive (got 0)",
+            "steps": []
+          },
+          {
+            "outcome": "REJECTED",
+            "detail": "amount must be positive (got -500)",
+            "steps": []
+          }
+        ],
+        "balanceChanges": [],
+        "historyAdded": 0,
+        "committedPayments": 0,
+        "totalMoney": 19000,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 6: Pay yourself",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.363Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Asha pays Asha 100",
+            "expected": "REJECTED"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "REJECTED",
+            "detail": "payer and payee are the same account",
+            "steps": []
+          }
+        ],
+        "balanceChanges": [],
+        "historyAdded": 0,
+        "committedPayments": 0,
+        "totalMoney": 19000,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 7: Frozen payer, frozen payee",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.374Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Kiran (frozen) pays Asha 100",
+            "expected": "REJECTED"
+          },
+          {
+            "description": "Asha pays Kiran (frozen) 100",
+            "expected": "ROLLED BACK"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "REJECTED",
+            "detail": "payer account ACC-104 is frozen",
+            "steps": []
+          },
+          {
+            "outcome": "ROLLED BACK",
+            "detail": "payee account ACC-104 does not exist or is not active",
+            "steps": [
+              "debit  ACC-101 -100"
+            ]
+          }
+        ],
+        "balanceChanges": [],
+        "historyAdded": 0,
+        "committedPayments": 0,
+        "totalMoney": 19000,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 8: Daily limit exceeded",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.390Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Dev (limit 3,000/day) pays Asha 2,500",
+            "expected": "COMMITTED"
+          },
+          {
+            "description": "Dev pays Asha another 1,000 the same day",
+            "expected": "REJECTED"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "COMMITTED",
+            "detail": "TXN-7137120D",
+            "steps": [
+              "debit  ACC-105 -2,500",
+              "credit ACC-101 +2,500",
+              "history TXN-7137120D"
+            ]
+          },
+          {
+            "outcome": "REJECTED",
+            "detail": "daily limit 3,000 exceeded (2,500 already paid today + 1,000)",
+            "steps": []
+          }
+        ],
+        "balanceChanges": [
+          "ACC-101 3,500 -> 6,000",
+          "ACC-105 8,000 -> 5,500"
+        ],
+        "historyAdded": 1,
+        "committedPayments": 1,
+        "totalMoney": 19000,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 9: Duplicate submit (idempotency key)",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.413Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Ravi pays Meera 300, key order-7731",
+            "expected": "COMMITTED"
+          },
+          {
+            "description": "same request sent again (double click)",
+            "expected": "ROLLED BACK"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "COMMITTED",
+            "detail": "TXN-4375244C",
+            "steps": [
+              "debit  ACC-102 -300",
+              "credit ACC-103 +300",
+              "history TXN-4375244C"
+            ]
+          },
+          {
+            "outcome": "ROLLED BACK",
+            "detail": "duplicate idempotency_key",
+            "steps": [
+              "debit  ACC-102 -300",
+              "credit ACC-103 +300"
+            ]
+          }
+        ],
+        "balanceChanges": [
+          "ACC-102 5,500 -> 5,200",
+          "ACC-103 0 -> 300"
+        ],
+        "historyAdded": 1,
+        "committedPayments": 1,
+        "totalMoney": 19000,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 10: Merchant payment with fee",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.434Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Asha pays Campus Cafe 500, 2% fee to BANK-FEES",
+            "expected": "COMMITTED"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "COMMITTED",
+            "detail": "merchant gets 490, fee 10",
+            "steps": [
+              "debit  ACC-101 -500",
+              "credit MERCHANT-01 +500",
+              "history TXN-00F4BB7A",
+              "debit  MERCHANT-01 -10",
+              "credit BANK-FEES +10",
+              "history TXN-FE7F8CC3"
+            ]
+          }
+        ],
+        "balanceChanges": [
+          "ACC-101 6,000 -> 5,500",
+          "MERCHANT-01 0 -> 490",
+          "BANK-FEES 0 -> 10"
+        ],
+        "historyAdded": 2,
+        "committedPayments": 1,
+        "totalMoney": 19000.0,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 11: Batch payout, one payee invalid",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.452Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Ravi pays 200 each to Asha, Meera and ACC-999",
+            "expected": "ROLLED BACK"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "ROLLED BACK",
+            "detail": "payee account ACC-999 does not exist or is not active",
+            "steps": [
+              "debit  ACC-102 -200",
+              "credit ACC-101 +200",
+              "history TXN-C8CF94DF",
+              "debit  ACC-102 -200",
+              "credit ACC-103 +200",
+              "history TXN-9E4872D0",
+              "debit  ACC-102 -200"
+            ]
+          }
+        ],
+        "balanceChanges": [],
+        "historyAdded": 0,
+        "committedPayments": 0,
+        "totalMoney": 19000.0,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 12: Refund, then refund again",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.480Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "refund payment 1 (Ravi returns 1,500 to Asha)",
+            "expected": "COMMITTED"
+          },
+          {
+            "description": "refund payment 1 again",
+            "expected": "ROLLED BACK"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "COMMITTED",
+            "detail": "TXN-9124C6A4",
+            "steps": [
+              "debit  ACC-102 -1,500",
+              "credit ACC-101 +1,500",
+              "history TXN-9124C6A4"
+            ]
+          },
+          {
+            "outcome": "ROLLED BACK",
+            "detail": "duplicate idempotency_key",
+            "steps": [
+              "debit  ACC-102 -1,500",
+              "credit ACC-101 +1,500"
+            ]
+          }
+        ],
+        "balanceChanges": [
+          "ACC-101 5,500 -> 7,000",
+          "ACC-102 5,200 -> 3,700"
+        ],
+        "historyAdded": 1,
+        "committedPayments": 1,
+        "totalMoney": 19000.0,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 13: shorten the transaction lifetime",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:11.483Z"
+      },
+      "command": {
+        "setParameter": 1,
+        "transactionLifetimeLimitSeconds": 5
+      },
+      "result": {
+        "was": 60,
+        "ok": 1.0,
+        "$clusterTime": {
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1791954671,
+              "i": 36
+            }
+          },
+          "signature": {
+            "hash": {
+              "$binary": {
+                "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "subType": "00"
+              }
+            },
+            "keyId": 0
+          }
+        },
+        "operationTime": {
+          "$timestamp": {
+            "t": 1791954671,
+            "i": 36
+          }
+        }
+      }
+    },
+    {
+      "step": "Scenario 13: App dies mid-payment",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:19.048Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Asha pays Meera 400, the app dies after the debit",
+            "expected": "ROLLED BACK"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "ROLLED BACK",
+            "detail": "Asha still has 7,000",
+            "steps": [
+              "debit  ACC-101 -400",
+              "app dies; server holds 1 open transaction",
+              "server aborted it after 7.5 s"
+            ]
+          }
+        ],
+        "balanceChanges": [],
+        "historyAdded": 0,
+        "committedPayments": 0,
+        "totalMoney": 19000.0,
+        "passed": true
+      }
+    },
+    {
+      "step": "Scenario 14: Isolation during an open payment",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:19.066Z"
+      },
+      "command": {
+        "payments": [
+          {
+            "description": "Ravi pays Meera 1,000; another reader looks before the commit",
+            "expected": "COMMITTED"
+          }
+        ]
+      },
+      "result": {
+        "results": [
+          {
+            "outcome": "COMMITTED",
+            "detail": "uncommitted debit hidden from other readers",
+            "steps": [
+              "debit  ACC-102 -1,000",
+              "credit ACC-103 +1,000",
+              "history TXN-BECEDBCE",
+              "while open: outside reader sees 3,700, the transaction sees 2,700",
+              "after commit: everyone sees 2,700"
+            ]
+          }
+        ],
+        "balanceChanges": [
+          "ACC-102 3,700 -> 2,700",
+          "ACC-103 300 -> 1,300"
+        ],
+        "historyAdded": 1,
+        "committedPayments": 1,
+        "totalMoney": 19000.0,
+        "passed": true
+      }
+    },
+    {
+      "step": "Final balances",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:19.070Z"
+      },
+      "command": {
+        "find": "accounts"
+      },
+      "result": [
+        {
+          "account_id": "ACC-101",
+          "holder": "Asha",
+          "balance": 7000,
+          "status": "active",
+          "daily_limit": 20000,
+          "version": 4
+        },
+        {
+          "account_id": "ACC-102",
+          "holder": "Ravi",
+          "balance": 2700,
+          "status": "active",
+          "daily_limit": 20000,
+          "version": 5
+        },
+        {
+          "account_id": "ACC-103",
+          "holder": "Meera",
+          "balance": 1300,
+          "status": "active",
+          "daily_limit": 20000,
+          "version": 3
+        },
+        {
+          "account_id": "ACC-104",
+          "holder": "Kiran",
+          "balance": 2000,
+          "status": "frozen",
+          "daily_limit": 20000,
+          "version": 0
+        },
+        {
+          "account_id": "ACC-105",
+          "holder": "Dev",
+          "balance": 5500,
+          "status": "active",
+          "daily_limit": 3000,
+          "version": 1
+        },
+        {
+          "account_id": "BANK-FEES",
+          "holder": "Bank fee account",
+          "balance": 10.0,
+          "status": "active",
+          "daily_limit": 0,
+          "version": 1
+        },
+        {
+          "account_id": "MERCHANT-01",
+          "holder": "Campus Cafe",
+          "balance": 490.0,
+          "status": "active",
+          "daily_limit": 50000,
+          "version": 2
+        }
+      ]
+    },
+    {
+      "step": "Transfer history",
+      "executedAt": {
+        "$date": "2026-10-14T05:11:19.072Z"
+      },
+      "command": {
+        "find": "transfers"
+      },
+      "result": [
+        {
+          "transfer_id": "TXN-5AA75B16",
+          "idempotency_key": "pay-c779729b2988",
+          "from": "ACC-101",
+          "to": "ACC-102",
+          "amount": 1500,
+          "note": "rent share",
+          "refund_of": null,
+          "at": {
+            "$date": "2026-10-14T05:11:11.315Z"
+          }
+        },
+        {
+          "transfer_id": "TXN-EF048CE3",
+          "idempotency_key": "pay-94666787ab99",
+          "from": "ACC-103",
+          "to": "ACC-102",
+          "amount": 1000,
+          "note": "payment",
+          "refund_of": null,
+          "at": {
+            "$date": "2026-10-14T05:11:11.335Z"
+          }
+        },
+        {
+          "transfer_id": "TXN-7137120D",
+          "idempotency_key": "pay-57f64cce8002",
+          "from": "ACC-105",
+          "to": "ACC-101",
+          "amount": 2500,
+          "note": "payment",
+          "refund_of": null,
+          "at": {
+            "$date": "2026-10-14T05:11:11.379Z"
+          }
+        },
+        {
+          "transfer_id": "TXN-4375244C",
+          "idempotency_key": "order-7731",
+          "from": "ACC-102",
+          "to": "ACC-103",
+          "amount": 300,
+          "note": "payment",
+          "refund_of": null,
+          "at": {
+            "$date": "2026-10-14T05:11:11.395Z"
+          }
+        },
+        {
+          "transfer_id": "TXN-00F4BB7A",
+          "idempotency_key": "pay-650ca03867ee",
+          "from": "ACC-101",
+          "to": "MERCHANT-01",
+          "amount": 500,
+          "note": "coffee order",
+          "refund_of": null,
+          "at": {
+            "$date": "2026-10-14T05:11:11.418Z"
+          }
+        },
+        {
+          "transfer_id": "TXN-FE7F8CC3",
+          "idempotency_key": "pay-650ca03867ee-fee",
+          "from": "MERCHANT-01",
+          "to": "BANK-FEES",
+          "amount": 10.0,
+          "note": "card fee 2%",
+          "refund_of": null,
+          "at": {
+            "$date": "2026-10-14T05:11:11.422Z"
+          }
+        },
+        {
+          "transfer_id": "TXN-9124C6A4",
+          "idempotency_key": "refund-TXN-5AA75B16",
+          "from": "ACC-102",
+          "to": "ACC-101",
+          "amount": 1500,
+          "note": "refund",
+          "refund_of": "TXN-5AA75B16",
+          "at": {
+            "$date": "2026-10-14T05:11:11.458Z"
+          }
+        },
+        {
+          "transfer_id": "TXN-BECEDBCE",
+          "idempotency_key": "pay-42ae2ba394c6",
+          "from": "ACC-102",
+          "to": "ACC-103",
+          "amount": 1000,
+          "note": "isolation test",
+          "refund_of": null,
+          "at": {
+            "$date": "2026-10-14T05:11:19.054Z"
+          }
+        }
+      ]
+    }
+  ]
+}

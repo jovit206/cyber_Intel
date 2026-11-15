@@ -6,7 +6,7 @@ import json
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from typing import Any
 from urllib.parse import urljoin
@@ -16,6 +16,7 @@ from pymongo import UpdateOne
 from pymongo.database import Database
 
 from backend.database import close_database, connect_database
+from backend.config import settings
 from backend.services.normalization import normalize_indicator, normalize_timestamp
 
 logger = logging.getLogger("aegis.misp_feeds")
@@ -25,11 +26,18 @@ EVENT_BATCH_SIZE = 500
 FEEDS = {
     "circl": "https://www.circl.lu/doc/misp/feed-osint",
     "botvrij": "https://www.botvrij.eu/data/feed-osint",
-    "threatfox": "https://threatfox.abuse.ch/downloads/misp",
+    "threatfox": "https://threatfox-api.abuse.ch/api/v1/",
 }
 
 
 class FeedSyncError(RuntimeError):
+    def __init__(self, message: str, status_code: int | None = None, *, temporary: bool = False):
+        super().__init__(message)
+        self.status_code = status_code
+        self.temporary = temporary
+
+
+class FeedConfigurationError(FeedSyncError):
     pass
 
 
@@ -85,8 +93,51 @@ def _get_json(
             logger.warning("Retrying failed request %s in %.1f seconds", url, delay)
             sleep(delay)
         except httpx.HTTPStatusError as error:
-            raise FeedSyncError(f"HTTP {error.response.status_code} from {url}") from error
+            raise FeedSyncError(f"HTTP {error.response.status_code} from {url}", error.response.status_code) from error
     raise FeedSyncError(f"Request failed after {MAX_RETRIES + 1} attempts: {url}") from last_error
+
+
+def _post_json(
+    client: httpx.Client,
+    url: str,
+    *,
+    headers: dict[str, str],
+    json_body: dict[str, Any],
+    sleep=time.sleep,
+) -> Any:
+    last_error: Exception | None = None
+    for attempt in range(MAX_RETRIES + 1):
+        response: httpx.Response | None = None
+        try:
+            response = client.post(url, headers=headers, json=json_body)
+            if response.status_code == 429 or response.status_code >= 500:
+                if attempt < MAX_RETRIES:
+                    delay = _retry_delay(response, attempt)
+                    logger.warning("Retrying ThreatFox API after HTTP %d in %.1f seconds", response.status_code, delay)
+                    sleep(delay)
+                    continue
+            response.raise_for_status()
+            try:
+                return response.json()
+            except ValueError as error:
+                raise FeedSyncError("ThreatFox returned invalid JSON", response.status_code) from error
+        except httpx.TimeoutException as error:
+            last_error = error
+            if attempt == MAX_RETRIES:
+                break
+            delay = _retry_delay(response, attempt)
+            logger.warning("Retrying timed-out ThreatFox API request in %.1f seconds", delay)
+            sleep(delay)
+        except httpx.RequestError as error:
+            last_error = error
+            if attempt == MAX_RETRIES:
+                break
+            delay = _retry_delay(response, attempt)
+            logger.warning("Retrying failed ThreatFox API request in %.1f seconds", delay)
+            sleep(delay)
+        except httpx.HTTPStatusError as error:
+            raise FeedSyncError(f"ThreatFox API returned HTTP {error.response.status_code}", error.response.status_code) from error
+    raise FeedSyncError("ThreatFox API request failed after retries", temporary=True) from last_error
 
 
 def _manifest_items(payload: Any) -> list[tuple[str, dict[str, Any]]]:
@@ -310,6 +361,184 @@ def _store_event(
         ], ordered=False)
 
 
+def _threatfox_timestamp(value: Any) -> str | None:
+    text = str(value).strip() if value is not None else ""
+    if text.endswith(" UTC"):
+        text = text[:-4]
+    return normalize_timestamp(text) if text else None
+
+
+def _threatfox_indicator_type(value: Any) -> str | None:
+    kind = str(value or "").strip().lower()
+    return {
+        "ip:port": "ip-port",
+        "ip": "ip-src",
+        "md5_hash": "md5",
+        "sha1_hash": "sha1",
+        "sha256_hash": "sha256",
+    }.get(kind, kind or None)
+
+
+def _threatfox_documents(row: dict[str, Any], feed_url: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    threatfox_id = str(row["id"])
+    event_uuid = f"threatfox-{threatfox_id}"
+    event_id = f"threatfox:{threatfox_id}"
+    ioc = str(row["ioc"]).strip()
+    indicator_type = _threatfox_indicator_type(row.get("ioc_type"))
+    if not ioc or not indicator_type:
+        raise FeedSyncError(f"ThreatFox IOC {threatfox_id} is missing its indicator or type")
+    first_seen = _threatfox_timestamp(row.get("first_seen"))
+    last_seen = _threatfox_timestamp(row.get("last_seen"))
+    tags = row.get("tags") if isinstance(row.get("tags"), list) else []
+    tags = [str(tag) for tag in tags if isinstance(tag, (str, int, float))]
+    info = row.get("malware_printable") or row.get("malware") or row.get("threat_type_desc") or "ThreatFox IOC"
+    source_ref = row.get("reference")
+    if not isinstance(source_ref, str) or not source_ref.startswith(("https://", "http://")):
+        source_ref = f"https://threatfox.abuse.ch/ioc/{threatfox_id}/"
+    fingerprint = _manifest_fingerprint(row)
+    event_doc = {
+        "_id": event_id,
+        "source": "misp",
+        "source_feed": feed_url.rstrip("/"),
+        "source_feed_name": "threatfox",
+        "misp_uuid": event_uuid,
+        "source_id": event_id,
+        "info": str(info),
+        "date": first_seen[:10] if first_seen else None,
+        "timestamp": first_seen,
+        "manifest_timestamp": first_seen,
+        "manifest_fingerprint": fingerprint,
+        "publisher": "ThreatFox (abuse.ch)",
+        "threat_level": str(row.get("confidence_level")) if row.get("confidence_level") is not None else None,
+        "threat_level_id": str(row.get("confidence_level")) if row.get("confidence_level") is not None else None,
+        "published": True,
+        "tags": list(dict.fromkeys(tags + [str(row.get("threat_type"))] if row.get("threat_type") else tags)),
+        "galaxies": [],
+        "attribute_count": 1,
+        "source_reference": source_ref,
+        "feed_synced_at": datetime.now(timezone.utc),
+    }
+    attribute_uuid = f"threatfox-attribute-{threatfox_id}"
+    attribute_hash = hashlib.sha256(
+        f"{feed_url.rstrip('/')}\n{event_uuid}\n{attribute_uuid}".encode("utf-8")
+    ).hexdigest()
+    attribute_doc = {
+        "_id": f"threatfox:{attribute_hash}",
+        "source": "misp",
+        "source_feed": feed_url.rstrip("/"),
+        "source_feed_name": "threatfox",
+        "event_uuid": event_uuid,
+        "event_id": event_id,
+        "attribute_uuid": attribute_uuid,
+        "attribute_id": threatfox_id,
+        "type": indicator_type,
+        "indicator_type": indicator_type,
+        "value": ioc,
+        "indicator": ioc,
+        "normalized_indicator": normalize_indicator(indicator_type, ioc),
+        "category": row.get("threat_type_desc") or row.get("threat_type"),
+        "to_ids": True,
+        "comment": row.get("malware_printable") or row.get("malware"),
+        "timestamp": first_seen,
+        "first_seen": first_seen,
+        "last_seen": last_seen,
+        "tags": tags,
+        "references": [source_ref],
+        "object_name": None,
+        "threat_ids": [],
+        "is_current": True,
+    }
+    return event_doc, [attribute_doc]
+
+
+def _sync_threatfox(
+    database: Database,
+    feed_url: str,
+    *,
+    max_events: int | None,
+    client: httpx.Client | None,
+) -> dict[str, int]:
+    if not settings.threatfox_auth_key:
+        raise FeedConfigurationError("THREATFOX_AUTH_KEY is required")
+    owns_client = client is None
+    http = client or httpx.Client(timeout=httpx.Timeout(30.0, connect=10.0), follow_redirects=True)
+    try:
+        payload = _post_json(
+            http,
+            feed_url,
+            headers={"Auth-Key": settings.threatfox_auth_key, "Accept": "application/json"},
+            json_body={"query": "get_iocs", "days": 7},
+        )
+        if not isinstance(payload, dict):
+            raise FeedSyncError("ThreatFox response must be a JSON object")
+        query_status = payload.get("query_status")
+        if query_status == "no_result":
+            rows: list[dict[str, Any]] = []
+        elif query_status == "ok" and isinstance(payload.get("data"), list):
+            rows = [row for row in payload["data"] if isinstance(row, dict)]
+            if len(rows) != len(payload["data"]):
+                raise FeedSyncError("ThreatFox response contains malformed IOC records")
+        else:
+            raise FeedSyncError(f"ThreatFox query failed: {query_status or 'missing query_status'}")
+
+        if max_events is not None:
+            rows.sort(key=lambda row: str(row.get("first_seen") or ""), reverse=True)
+            rows = rows[:max_events]
+        if any(not row.get("id") or not row.get("ioc") or not row.get("ioc_type") for row in rows):
+            raise FeedSyncError("ThreatFox response contains an IOC without id, value, or type")
+
+        collection = database["events"]
+        state_collection = database["cti_sync_state"]
+        source_feed = feed_url.rstrip("/")
+        event_uuids = [f"threatfox-{row['id']}" for row in rows]
+        existing = {
+            event["misp_uuid"]: event
+            for event in collection.find(
+                {"source_feed": source_feed, "misp_uuid": {"$in": event_uuids}},
+                {"_id": 1, "misp_uuid": 1, "manifest_timestamp": 1, "manifest_fingerprint": 1},
+            )
+        } if event_uuids else {}
+
+        inserted = fetched = 0
+        completed_at = datetime.now(timezone.utc)
+        for row in rows:
+            event_doc, attribute_docs = _threatfox_documents(row, feed_url)
+            prior = existing.get(event_doc["misp_uuid"])
+            if prior and (
+                prior.get("manifest_timestamp") == event_doc["manifest_timestamp"]
+                and prior.get("manifest_fingerprint") == event_doc["manifest_fingerprint"]
+            ):
+                continue
+            was_present = prior is not None
+            _store_event(database, event_doc, attribute_docs)
+            inserted += int(not was_present)
+            fetched += 1
+
+        state_collection.update_one(
+            {"_id": "threatfox"},
+            {"$set": {
+                "source_feed": source_feed,
+                "last_attempt": completed_at,
+                "last_successful_sync": completed_at,
+                "last_manifest_event_count": len(rows),
+                "last_fetched_event_count": fetched,
+                "last_inserted_event_count": inserted,
+                "last_error": None,
+                "sync_status": "success",
+            }},
+            upsert=True,
+        )
+        return {
+            "manifest_events": len(rows),
+            "fetched_events": fetched,
+            "inserted_events": inserted,
+            "updated_events": fetched - inserted,
+        }
+    finally:
+        if owns_client:
+            http.close()
+
+
 def sync_feed(
     database: Database,
     feed_name: str,
@@ -319,12 +548,16 @@ def sync_feed(
     workers: int = MAX_WORKERS,
     client: httpx.Client | None = None,
 ) -> dict[str, int]:
-    if feed_name not in FEEDS or FEEDS[feed_name] != feed_url.rstrip("/"):
+    if feed_name not in FEEDS or FEEDS[feed_name].rstrip("/") != feed_url.rstrip("/"):
         raise ValueError(f"Unsupported MISP feed: {feed_name}")
     if max_events is not None and max_events < 1:
         raise ValueError("max_events must be at least 1")
     if workers < 1 or workers > 32:
         raise ValueError("workers must be between 1 and 32")
+    if feed_name == "threatfox":
+        # get_iocs is already bounded to a seven-day window; ingest the whole response so a
+        # recurring scheduler capped for MISP startup runs does not re-fetch only the same 25 rows.
+        return _sync_threatfox(database, feed_url, max_events=None, client=client)
 
     owns_client = client is None
     http = client or httpx.Client(timeout=httpx.Timeout(30.0, connect=10.0), follow_redirects=True)
@@ -416,6 +649,7 @@ def sync_feed(
             {"_id": feed_name},
             {"$set": {
                 "source_feed": feed_url,
+                "last_attempt": completed_at,
                 "last_successful_sync": completed_at,
                 "last_manifest_event_count": len(manifest),
                 "last_fetched_event_count": len(pending),

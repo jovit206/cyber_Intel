@@ -1,0 +1,385 @@
+{
+  "dataset": {
+    "students": 10,
+    "courses": 5,
+    "enrollments": 24
+  },
+  "student_id": "S001",
+  "course_id": "C101",
+  "courses_for_student": {
+    "mongodb": [
+      {
+        "course_id": "C101",
+        "course_name": "Introduction to Python",
+        "instructor": "Dr. Rivera",
+        "credits": 3,
+        "student_ids": [
+          "S001",
+          "S002",
+          "S004",
+          "S006",
+          "S008",
+          "S010"
+        ]
+      },
+      {
+        "course_id": "C202",
+        "course_name": "Database Systems",
+        "instructor": "Dr. Singh",
+        "credits": 4,
+        "student_ids": [
+          "S001",
+          "S003",
+          "S004",
+          "S007",
+          "S008"
+        ]
+      },
+      {
+        "course_id": "C303",
+        "course_name": "Applied Statistics",
+        "instructor": "Dr. Chen",
+        "credits": 3,
+        "student_ids": [
+          "S001",
+          "S002",
+          "S005",
+          "S006",
+          "S009"
+        ]
+      }
+    ],
+    "cassandra": [
+      {
+        "course_id": "C101",
+        "course_name": "Introduction to Python",
+        "instructor": "Dr. Rivera",
+        "credits": 3
+      },
+      {
+        "course_id": "C202",
+        "course_name": "Database Systems",
+        "instructor": "Dr. Singh",
+        "credits": 4
+      },
+      {
+        "course_id": "C303",
+        "course_name": "Applied Statistics",
+        "instructor": "Dr. Chen",
+        "credits": 3
+      }
+    ],
+    "neo4j": [
+      {
+        "course_id": "C101",
+        "course_name": "Introduction to Python",
+        "instructor": "Dr. Rivera",
+        "credits": 3
+      },
+      {
+        "course_id": "C202",
+        "course_name": "Database Systems",
+        "instructor": "Dr. Singh",
+        "credits": 4
+      },
+      {
+        "course_id": "C303",
+        "course_name": "Applied Statistics",
+        "instructor": "Dr. Chen",
+        "credits": 3
+      }
+    ]
+  },
+  "students_in_course": {
+    "mongodb": [
+      {
+        "student_id": "S001",
+        "name": "Ava Patel",
+        "email": "ava1@university.example",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S002",
+        "name": "Noah Kim",
+        "email": "noah2@university.example",
+        "department": "Mathematics"
+      },
+      {
+        "student_id": "S004",
+        "name": "Liam Chen",
+        "email": "liam4@university.example",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S006",
+        "name": "Ethan Wilson",
+        "email": "ethan6@university.example",
+        "department": "Mathematics"
+      },
+      {
+        "student_id": "S008",
+        "name": "Lucas Miller",
+        "email": "lucas8@university.example",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S010",
+        "name": "Mason Taylor",
+        "email": "mason10@university.example",
+        "department": "Mathematics"
+      }
+    ],
+    "cassandra": [
+      {
+        "student_id": "S001",
+        "student_name": "Ava Patel",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S002",
+        "student_name": "Noah Kim",
+        "department": "Mathematics"
+      },
+      {
+        "student_id": "S004",
+        "student_name": "Liam Chen",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S006",
+        "student_name": "Ethan Wilson",
+        "department": "Mathematics"
+      },
+      {
+        "student_id": "S008",
+        "student_name": "Lucas Miller",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S010",
+        "student_name": "Mason Taylor",
+        "department": "Mathematics"
+      }
+    ],
+    "neo4j": [
+      {
+        "student_id": "S001",
+        "name": "Ava Patel",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S002",
+        "name": "Noah Kim",
+        "department": "Mathematics"
+      },
+      {
+        "student_id": "S004",
+        "name": "Liam Chen",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S006",
+        "name": "Ethan Wilson",
+        "department": "Mathematics"
+      },
+      {
+        "student_id": "S008",
+        "name": "Lucas Miller",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S010",
+        "name": "Mason Taylor",
+        "department": "Mathematics"
+      }
+    ]
+  },
+  "students_sharing_course": {
+    "mongodb": [
+      {
+        "student_id": "S002",
+        "name": "Noah Kim",
+        "email": "noah2@university.example",
+        "department": "Mathematics"
+      },
+      {
+        "student_id": "S003",
+        "name": "Mia Garcia",
+        "email": "mia3@university.example",
+        "department": "Physics"
+      },
+      {
+        "student_id": "S004",
+        "name": "Liam Chen",
+        "email": "liam4@university.example",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S005",
+        "name": "Sophia Brown",
+        "email": "sophia5@university.example",
+        "department": "Biology"
+      },
+      {
+        "student_id": "S006",
+        "name": "Ethan Wilson",
+        "email": "ethan6@university.example",
+        "department": "Mathematics"
+      },
+      {
+        "student_id": "S007",
+        "name": "Isabella Davis",
+        "email": "isabella7@university.example",
+        "department": "Physics"
+      },
+      {
+        "student_id": "S008",
+        "name": "Lucas Miller",
+        "email": "lucas8@university.example",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S009",
+        "name": "Amelia Moore",
+        "email": "amelia9@university.example",
+        "department": "Biology"
+      },
+      {
+        "student_id": "S010",
+        "name": "Mason Taylor",
+        "email": "mason10@university.example",
+        "department": "Mathematics"
+      }
+    ],
+    "cassandra": [
+      {
+        "student_id": "S002",
+        "name": "Noah Kim",
+        "department": "Mathematics"
+      },
+      {
+        "student_id": "S003",
+        "name": "Mia Garcia",
+        "department": "Physics"
+      },
+      {
+        "student_id": "S004",
+        "name": "Liam Chen",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S005",
+        "name": "Sophia Brown",
+        "department": "Biology"
+      },
+      {
+        "student_id": "S006",
+        "name": "Ethan Wilson",
+        "department": "Mathematics"
+      },
+      {
+        "student_id": "S007",
+        "name": "Isabella Davis",
+        "department": "Physics"
+      },
+      {
+        "student_id": "S008",
+        "name": "Lucas Miller",
+        "department": "Computer Science"
+      },
+      {
+        "student_id": "S009",
+        "name": "Amelia Moore",
+        "department": "Biology"
+      },
+      {
+        "student_id": "S010",
+        "name": "Mason Taylor",
+        "department": "Mathematics"
+      }
+    ],
+    "neo4j": [
+      {
+        "student_id": "S002",
+        "name": "Noah Kim",
+        "department": "Mathematics",
+        "shared_course_ids": [
+          "C303",
+          "C101"
+        ]
+      },
+      {
+        "student_id": "S003",
+        "name": "Mia Garcia",
+        "department": "Physics",
+        "shared_course_ids": [
+          "C202"
+        ]
+      },
+      {
+        "student_id": "S004",
+        "name": "Liam Chen",
+        "department": "Computer Science",
+        "shared_course_ids": [
+          "C202",
+          "C101"
+        ]
+      },
+      {
+        "student_id": "S005",
+        "name": "Sophia Brown",
+        "department": "Biology",
+        "shared_course_ids": [
+          "C303"
+        ]
+      },
+      {
+        "student_id": "S006",
+        "name": "Ethan Wilson",
+        "department": "Mathematics",
+        "shared_course_ids": [
+          "C303",
+          "C101"
+        ]
+      },
+      {
+        "student_id": "S007",
+        "name": "Isabella Davis",
+        "department": "Physics",
+        "shared_course_ids": [
+          "C202"
+        ]
+      },
+      {
+        "student_id": "S008",
+        "name": "Lucas Miller",
+        "department": "Computer Science",
+        "shared_course_ids": [
+          "C202",
+          "C101"
+        ]
+      },
+      {
+        "student_id": "S009",
+        "name": "Amelia Moore",
+        "department": "Biology",
+        "shared_course_ids": [
+          "C303"
+        ]
+      },
+      {
+        "student_id": "S010",
+        "name": "Mason Taylor",
+        "department": "Mathematics",
+        "shared_course_ids": [
+          "C101"
+        ]
+      }
+    ]
+  },
+  "consistent": {
+    "courses_for_student": true,
+    "students_in_course": true,
+    "students_sharing_course": true
+  }
+}

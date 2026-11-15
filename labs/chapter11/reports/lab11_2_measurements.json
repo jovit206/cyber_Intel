@@ -1,0 +1,1563 @@
+{
+  "experiment": "Lab 11.2 \u2014 Shard Key Hotspot Detection",
+  "captured_at_utc": "2026-10-30T09:06:44.797251+00:00",
+  "mongo_uri_target": "mongos router (secret-free; URI value omitted)",
+  "mongodb_version": "7.0.45",
+  "shards": [
+    {
+      "name": "c11-shard1-rs",
+      "host": "c11-shard1-rs/c11-shard1:27018"
+    },
+    {
+      "name": "c11-shard2-rs",
+      "host": "c11-shard2-rs/c11-shard2:27018"
+    }
+  ],
+  "requested_documents_per_collection": 10000,
+  "collections": {
+    "orders_by_timestamp": {
+      "shard_key": {
+        "event_at": 1
+      },
+      "total_documents": 10000,
+      "distinct_users": 10000,
+      "distinct_event_timestamps": 10000,
+      "write_seconds": 0.919,
+      "per_shard": [
+        {
+          "shard": "c11-shard1-rs",
+          "owned_documents": 5000,
+          "collstats_count": 5000,
+          "storage_size_bytes": 208896,
+          "logical_size_bytes": 705000,
+          "total_index_size_bytes": 303104,
+          "host": "c11-shard1:27018"
+        },
+        {
+          "shard": "c11-shard2-rs",
+          "owned_documents": 5000,
+          "collstats_count": 5000,
+          "storage_size_bytes": 208896,
+          "logical_size_bytes": 705000,
+          "total_index_size_bytes": 303104,
+          "host": "c11-shard2:27018"
+        }
+      ],
+      "distribution_details": [
+        {
+          "ns": "chapter11.orders_by_timestamp",
+          "shards": [
+            {
+              "shardName": "c11-shard2-rs",
+              "numOrphanedDocs": 0,
+              "numOwnedDocuments": 5000,
+              "ownedSizeBytes": 705000,
+              "orphanedSizeBytes": 0
+            },
+            {
+              "shardName": "c11-shard1-rs",
+              "numOrphanedDocs": 0,
+              "numOwnedDocuments": 5000,
+              "ownedSizeBytes": 705000,
+              "orphanedSizeBytes": 0
+            }
+          ]
+        }
+      ],
+      "queries": [
+        {
+          "label": "exact user lookup (no timestamp shard key)",
+          "filter": {
+            "user_id": "user-09999"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "execution_millis": 6,
+          "n_returned": 1,
+          "docs_examined": 10000,
+          "winning_plan": {
+            "stage": "SHARD_MERGE",
+            "shards": [
+              {
+                "shardName": "c11-shard1-rs",
+                "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                "serverInfo": {
+                  "host": "c11-shard1",
+                  "port": 27018,
+                  "version": "7.0.45",
+                  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                },
+                "namespace": "chapter11.orders_by_timestamp",
+                "indexFilterSet": false,
+                "parsedQuery": {
+                  "user_id": {
+                    "$eq": "user-09999"
+                  }
+                },
+                "queryHash": "6FA4800E",
+                "planCacheKey": "6FA4800E",
+                "optimizationTimeMillis": 0,
+                "maxIndexedOrSolutionsReached": false,
+                "maxIndexedAndSolutionsReached": false,
+                "maxScansToExplodeReached": false,
+                "winningPlan": {
+                  "stage": "SHARDING_FILTER",
+                  "inputStage": {
+                    "stage": "COLLSCAN",
+                    "filter": {
+                      "user_id": {
+                        "$eq": "user-09999"
+                      }
+                    },
+                    "direction": "forward"
+                  }
+                },
+                "rejectedPlans": []
+              },
+              {
+                "shardName": "c11-shard2-rs",
+                "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                "serverInfo": {
+                  "host": "c11-shard2",
+                  "port": 27018,
+                  "version": "7.0.45",
+                  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                },
+                "namespace": "chapter11.orders_by_timestamp",
+                "indexFilterSet": false,
+                "parsedQuery": {
+                  "user_id": {
+                    "$eq": "user-09999"
+                  }
+                },
+                "queryHash": "6FA4800E",
+                "planCacheKey": "6FA4800E",
+                "optimizationTimeMillis": 0,
+                "maxIndexedOrSolutionsReached": false,
+                "maxIndexedAndSolutionsReached": false,
+                "maxScansToExplodeReached": false,
+                "winningPlan": {
+                  "stage": "SHARDING_FILTER",
+                  "inputStage": {
+                    "stage": "COLLSCAN",
+                    "filter": {
+                      "user_id": {
+                        "$eq": "user-09999"
+                      }
+                    },
+                    "direction": "forward"
+                  }
+                },
+                "rejectedPlans": []
+              }
+            ]
+          },
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.orders_by_timestamp",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "user_id": {
+                        "$eq": "user-09999"
+                      }
+                    },
+                    "queryHash": "6FA4800E",
+                    "planCacheKey": "6FA4800E",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "user_id": {
+                            "$eq": "user-09999"
+                          }
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.orders_by_timestamp",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "user_id": {
+                        "$eq": "user-09999"
+                      }
+                    },
+                    "queryHash": "6FA4800E",
+                    "planCacheKey": "6FA4800E",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "user_id": {
+                            "$eq": "user-09999"
+                          }
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 1,
+              "executionTimeMillis": 6,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 10000,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 1,
+                "executionTimeMillis": 6,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 10000,
+                "totalChildMillis": 7,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 0,
+                    "executionTimeMillis": 2,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 5000,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 0,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 5001,
+                      "advanced": 0,
+                      "needTime": 5000,
+                      "needYield": 0,
+                      "saveState": 5,
+                      "restoreState": 5,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "user_id": {
+                            "$eq": "user-09999"
+                          }
+                        },
+                        "nReturned": 0,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 5001,
+                        "advanced": 0,
+                        "needTime": 5000,
+                        "needYield": 0,
+                        "saveState": 5,
+                        "restoreState": 5,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 5000
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 1,
+                    "executionTimeMillis": 5,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 5000,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 1,
+                      "executionTimeMillisEstimate": 1,
+                      "works": 5001,
+                      "advanced": 1,
+                      "needTime": 4999,
+                      "needYield": 0,
+                      "saveState": 5,
+                      "restoreState": 5,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "user_id": {
+                            "$eq": "user-09999"
+                          }
+                        },
+                        "nReturned": 1,
+                        "executionTimeMillisEstimate": 1,
+                        "works": 5001,
+                        "advanced": 1,
+                        "needTime": 4999,
+                        "needYield": 0,
+                        "saveState": 5,
+                        "restoreState": 5,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 5000
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "orders_by_timestamp",
+              "filter": {
+                "user_id": "user-09999"
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "OaA4iTkfTvSBd3MEUfBydg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351202,
+                    "i": 1
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351202,
+                  "i": 1
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351195,
+                "i": 1
+              }
+            }
+          }
+        },
+        {
+          "label": "recent time range (timestamp shard key)",
+          "filter": {
+            "event_at": {
+              "$gte": {
+                "$date": "2025-01-01T02:45:00Z"
+              },
+              "$lt": {
+                "$date": "2025-01-01T02:46:40Z"
+              }
+            }
+          },
+          "targeted_shards": [
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": false,
+          "execution_millis": 2,
+          "n_returned": 100,
+          "docs_examined": 100,
+          "winning_plan": {
+            "stage": "SINGLE_SHARD",
+            "shards": [
+              {
+                "shardName": "c11-shard2-rs",
+                "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                "serverInfo": {
+                  "host": "c11-shard2",
+                  "port": 27018,
+                  "version": "7.0.45",
+                  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                },
+                "namespace": "chapter11.orders_by_timestamp",
+                "indexFilterSet": false,
+                "parsedQuery": {
+                  "$and": [
+                    {
+                      "event_at": {
+                        "$lt": {
+                          "$date": "2025-01-01T02:46:40Z"
+                        }
+                      }
+                    },
+                    {
+                      "event_at": {
+                        "$gte": {
+                          "$date": "2025-01-01T02:45:00Z"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "queryHash": "E22859DD",
+                "planCacheKey": "99E9DFD3",
+                "optimizationTimeMillis": 0,
+                "maxIndexedOrSolutionsReached": false,
+                "maxIndexedAndSolutionsReached": false,
+                "maxScansToExplodeReached": false,
+                "winningPlan": {
+                  "stage": "FETCH",
+                  "inputStage": {
+                    "stage": "SHARDING_FILTER",
+                    "inputStage": {
+                      "stage": "IXSCAN",
+                      "keyPattern": {
+                        "event_at": 1
+                      },
+                      "indexName": "event_at_shard_key",
+                      "isMultiKey": false,
+                      "multiKeyPaths": {
+                        "event_at": []
+                      },
+                      "isUnique": false,
+                      "isSparse": false,
+                      "isPartial": false,
+                      "indexVersion": 2,
+                      "direction": "forward",
+                      "indexBounds": {
+                        "event_at": [
+                          "[new Date(1735699500000), new Date(1735699600000))"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "rejectedPlans": []
+              }
+            ]
+          },
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SINGLE_SHARD",
+                "shards": [
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.orders_by_timestamp",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "event_at": {
+                            "$lt": {
+                              "$date": "2025-01-01T02:46:40Z"
+                            }
+                          }
+                        },
+                        {
+                          "event_at": {
+                            "$gte": {
+                              "$date": "2025-01-01T02:45:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "E22859DD",
+                    "planCacheKey": "99E9DFD3",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "FETCH",
+                      "inputStage": {
+                        "stage": "SHARDING_FILTER",
+                        "inputStage": {
+                          "stage": "IXSCAN",
+                          "keyPattern": {
+                            "event_at": 1
+                          },
+                          "indexName": "event_at_shard_key",
+                          "isMultiKey": false,
+                          "multiKeyPaths": {
+                            "event_at": []
+                          },
+                          "isUnique": false,
+                          "isSparse": false,
+                          "isPartial": false,
+                          "indexVersion": 2,
+                          "direction": "forward",
+                          "indexBounds": {
+                            "event_at": [
+                              "[new Date(1735699500000), new Date(1735699600000))"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 100,
+              "executionTimeMillis": 2,
+              "totalKeysExamined": 100,
+              "totalDocsExamined": 100,
+              "executionStages": {
+                "stage": "SINGLE_SHARD",
+                "nReturned": 100,
+                "executionTimeMillis": 2,
+                "totalKeysExamined": 100,
+                "totalDocsExamined": 100,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 100,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 100,
+                    "totalDocsExamined": 100,
+                    "executionStages": {
+                      "stage": "FETCH",
+                      "nReturned": 100,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 101,
+                      "advanced": 100,
+                      "needTime": 0,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "docsExamined": 100,
+                      "alreadyHasObj": 0,
+                      "inputStage": {
+                        "stage": "SHARDING_FILTER",
+                        "nReturned": 100,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 101,
+                        "advanced": 100,
+                        "needTime": 0,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "chunkSkips": 0,
+                        "inputStage": {
+                          "stage": "IXSCAN",
+                          "nReturned": 100,
+                          "executionTimeMillisEstimate": 0,
+                          "works": 101,
+                          "advanced": 100,
+                          "needTime": 0,
+                          "needYield": 0,
+                          "saveState": 0,
+                          "restoreState": 0,
+                          "isEOF": 1,
+                          "keyPattern": {
+                            "event_at": 1
+                          },
+                          "indexName": "event_at_shard_key",
+                          "isMultiKey": false,
+                          "multiKeyPaths": {
+                            "event_at": []
+                          },
+                          "isUnique": false,
+                          "isSparse": false,
+                          "isPartial": false,
+                          "indexVersion": 2,
+                          "direction": "forward",
+                          "indexBounds": {
+                            "event_at": [
+                              "[new Date(1735699500000), new Date(1735699600000))"
+                            ]
+                          },
+                          "keysExamined": 100,
+                          "seeks": 1,
+                          "dupsTested": 0,
+                          "dupsDropped": 0
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "orders_by_timestamp",
+              "filter": {
+                "event_at": {
+                  "$gte": {
+                    "$date": "2025-01-01T02:45:00Z"
+                  },
+                  "$lt": {
+                    "$date": "2025-01-01T02:46:40Z"
+                  }
+                }
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "OaA4iTkfTvSBd3MEUfBydg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351202,
+                    "i": 1
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351202,
+                  "i": 1
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351195,
+                "i": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "orders_by_hashed_user": {
+      "shard_key": {
+        "user_id": "hashed"
+      },
+      "total_documents": 10000,
+      "distinct_users": 10000,
+      "distinct_event_timestamps": 10000,
+      "write_seconds": 0.423,
+      "per_shard": [
+        {
+          "shard": "c11-shard2-rs",
+          "owned_documents": 4986,
+          "collstats_count": 4986,
+          "storage_size_bytes": 208896,
+          "logical_size_bytes": 703026,
+          "total_index_size_bytes": 360448,
+          "host": "c11-shard2:27018"
+        },
+        {
+          "shard": "c11-shard1-rs",
+          "owned_documents": 5014,
+          "collstats_count": 5014,
+          "storage_size_bytes": 212992,
+          "logical_size_bytes": 706974,
+          "total_index_size_bytes": 376832,
+          "host": "c11-shard1:27018"
+        }
+      ],
+      "distribution_details": [
+        {
+          "ns": "chapter11.orders_by_hashed_user",
+          "shards": [
+            {
+              "shardName": "c11-shard1-rs",
+              "numOrphanedDocs": 0,
+              "numOwnedDocuments": 5014,
+              "ownedSizeBytes": 706974,
+              "orphanedSizeBytes": 0
+            },
+            {
+              "shardName": "c11-shard2-rs",
+              "numOrphanedDocs": 0,
+              "numOwnedDocuments": 4986,
+              "ownedSizeBytes": 703026,
+              "orphanedSizeBytes": 0
+            }
+          ]
+        }
+      ],
+      "queries": [
+        {
+          "label": "exact user lookup (hashed shard key)",
+          "filter": {
+            "user_id": "user-09999"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": false,
+          "execution_millis": 1,
+          "n_returned": 1,
+          "docs_examined": 1,
+          "winning_plan": {
+            "stage": "SINGLE_SHARD",
+            "shards": [
+              {
+                "shardName": "c11-shard1-rs",
+                "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                "serverInfo": {
+                  "host": "c11-shard1",
+                  "port": 27018,
+                  "version": "7.0.45",
+                  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                },
+                "namespace": "chapter11.orders_by_hashed_user",
+                "indexFilterSet": false,
+                "parsedQuery": {
+                  "user_id": {
+                    "$eq": "user-09999"
+                  }
+                },
+                "queryHash": "6FA4800E",
+                "planCacheKey": "8CA2CB9B",
+                "optimizationTimeMillis": 0,
+                "maxIndexedOrSolutionsReached": false,
+                "maxIndexedAndSolutionsReached": false,
+                "maxScansToExplodeReached": false,
+                "winningPlan": {
+                  "stage": "FETCH",
+                  "filter": {
+                    "user_id": {
+                      "$eq": "user-09999"
+                    }
+                  },
+                  "inputStage": {
+                    "stage": "IXSCAN",
+                    "keyPattern": {
+                      "user_id": "hashed"
+                    },
+                    "indexName": "user_id_hashed_shard_key",
+                    "isMultiKey": false,
+                    "isUnique": false,
+                    "isSparse": false,
+                    "isPartial": false,
+                    "indexVersion": 2,
+                    "direction": "forward",
+                    "indexBounds": {
+                      "user_id": [
+                        "[-4048740871220327883, -4048740871220327883]"
+                      ]
+                    }
+                  }
+                },
+                "rejectedPlans": []
+              }
+            ]
+          },
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SINGLE_SHARD",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.orders_by_hashed_user",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "user_id": {
+                        "$eq": "user-09999"
+                      }
+                    },
+                    "queryHash": "6FA4800E",
+                    "planCacheKey": "8CA2CB9B",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "FETCH",
+                      "filter": {
+                        "user_id": {
+                          "$eq": "user-09999"
+                        }
+                      },
+                      "inputStage": {
+                        "stage": "IXSCAN",
+                        "keyPattern": {
+                          "user_id": "hashed"
+                        },
+                        "indexName": "user_id_hashed_shard_key",
+                        "isMultiKey": false,
+                        "isUnique": false,
+                        "isSparse": false,
+                        "isPartial": false,
+                        "indexVersion": 2,
+                        "direction": "forward",
+                        "indexBounds": {
+                          "user_id": [
+                            "[-4048740871220327883, -4048740871220327883]"
+                          ]
+                        }
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 1,
+              "executionTimeMillis": 1,
+              "totalKeysExamined": 1,
+              "totalDocsExamined": 1,
+              "executionStages": {
+                "stage": "SINGLE_SHARD",
+                "nReturned": 1,
+                "executionTimeMillis": 1,
+                "totalKeysExamined": 1,
+                "totalDocsExamined": 1,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 1,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 1,
+                    "totalDocsExamined": 1,
+                    "executionStages": {
+                      "stage": "FETCH",
+                      "filter": {
+                        "user_id": {
+                          "$eq": "user-09999"
+                        }
+                      },
+                      "nReturned": 1,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 2,
+                      "advanced": 1,
+                      "needTime": 0,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "docsExamined": 1,
+                      "alreadyHasObj": 0,
+                      "inputStage": {
+                        "stage": "IXSCAN",
+                        "nReturned": 1,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 2,
+                        "advanced": 1,
+                        "needTime": 0,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "keyPattern": {
+                          "user_id": "hashed"
+                        },
+                        "indexName": "user_id_hashed_shard_key",
+                        "isMultiKey": false,
+                        "isUnique": false,
+                        "isSparse": false,
+                        "isPartial": false,
+                        "indexVersion": 2,
+                        "direction": "forward",
+                        "indexBounds": {
+                          "user_id": [
+                            "[-4048740871220327883, -4048740871220327883]"
+                          ]
+                        },
+                        "keysExamined": 1,
+                        "seeks": 1,
+                        "dupsTested": 0,
+                        "dupsDropped": 0
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "orders_by_hashed_user",
+              "filter": {
+                "user_id": "user-09999"
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "OaA4iTkfTvSBd3MEUfBydg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351202,
+                    "i": 1
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351202,
+                  "i": 1
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351188,
+                "i": 170
+              }
+            }
+          }
+        },
+        {
+          "label": "recent time range (not a shard key)",
+          "filter": {
+            "event_at": {
+              "$gte": {
+                "$date": "2025-01-01T02:45:00Z"
+              },
+              "$lt": {
+                "$date": "2025-01-01T02:46:40Z"
+              }
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "execution_millis": 3,
+          "n_returned": 100,
+          "docs_examined": 10000,
+          "winning_plan": {
+            "stage": "SHARD_MERGE",
+            "shards": [
+              {
+                "shardName": "c11-shard1-rs",
+                "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                "serverInfo": {
+                  "host": "c11-shard1",
+                  "port": 27018,
+                  "version": "7.0.45",
+                  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                },
+                "namespace": "chapter11.orders_by_hashed_user",
+                "indexFilterSet": false,
+                "parsedQuery": {
+                  "$and": [
+                    {
+                      "event_at": {
+                        "$lt": {
+                          "$date": "2025-01-01T02:46:40Z"
+                        }
+                      }
+                    },
+                    {
+                      "event_at": {
+                        "$gte": {
+                          "$date": "2025-01-01T02:45:00Z"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "queryHash": "E22859DD",
+                "planCacheKey": "E22859DD",
+                "optimizationTimeMillis": 0,
+                "maxIndexedOrSolutionsReached": false,
+                "maxIndexedAndSolutionsReached": false,
+                "maxScansToExplodeReached": false,
+                "winningPlan": {
+                  "stage": "SHARDING_FILTER",
+                  "inputStage": {
+                    "stage": "COLLSCAN",
+                    "filter": {
+                      "$and": [
+                        {
+                          "event_at": {
+                            "$lt": {
+                              "$date": "2025-01-01T02:46:40Z"
+                            }
+                          }
+                        },
+                        {
+                          "event_at": {
+                            "$gte": {
+                              "$date": "2025-01-01T02:45:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "direction": "forward"
+                  }
+                },
+                "rejectedPlans": []
+              },
+              {
+                "shardName": "c11-shard2-rs",
+                "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                "serverInfo": {
+                  "host": "c11-shard2",
+                  "port": 27018,
+                  "version": "7.0.45",
+                  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                },
+                "namespace": "chapter11.orders_by_hashed_user",
+                "indexFilterSet": false,
+                "parsedQuery": {
+                  "$and": [
+                    {
+                      "event_at": {
+                        "$lt": {
+                          "$date": "2025-01-01T02:46:40Z"
+                        }
+                      }
+                    },
+                    {
+                      "event_at": {
+                        "$gte": {
+                          "$date": "2025-01-01T02:45:00Z"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "queryHash": "E22859DD",
+                "planCacheKey": "E22859DD",
+                "optimizationTimeMillis": 0,
+                "maxIndexedOrSolutionsReached": false,
+                "maxIndexedAndSolutionsReached": false,
+                "maxScansToExplodeReached": false,
+                "winningPlan": {
+                  "stage": "SHARDING_FILTER",
+                  "inputStage": {
+                    "stage": "COLLSCAN",
+                    "filter": {
+                      "$and": [
+                        {
+                          "event_at": {
+                            "$lt": {
+                              "$date": "2025-01-01T02:46:40Z"
+                            }
+                          }
+                        },
+                        {
+                          "event_at": {
+                            "$gte": {
+                              "$date": "2025-01-01T02:45:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "direction": "forward"
+                  }
+                },
+                "rejectedPlans": []
+              }
+            ]
+          },
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.orders_by_hashed_user",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "event_at": {
+                            "$lt": {
+                              "$date": "2025-01-01T02:46:40Z"
+                            }
+                          }
+                        },
+                        {
+                          "event_at": {
+                            "$gte": {
+                              "$date": "2025-01-01T02:45:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "E22859DD",
+                    "planCacheKey": "E22859DD",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "event_at": {
+                                "$lt": {
+                                  "$date": "2025-01-01T02:46:40Z"
+                                }
+                              }
+                            },
+                            {
+                              "event_at": {
+                                "$gte": {
+                                  "$date": "2025-01-01T02:45:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.orders_by_hashed_user",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "event_at": {
+                            "$lt": {
+                              "$date": "2025-01-01T02:46:40Z"
+                            }
+                          }
+                        },
+                        {
+                          "event_at": {
+                            "$gte": {
+                              "$date": "2025-01-01T02:45:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "E22859DD",
+                    "planCacheKey": "E22859DD",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "event_at": {
+                                "$lt": {
+                                  "$date": "2025-01-01T02:46:40Z"
+                                }
+                              }
+                            },
+                            {
+                              "event_at": {
+                                "$gte": {
+                                  "$date": "2025-01-01T02:45:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 100,
+              "executionTimeMillis": 3,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 10000,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 100,
+                "executionTimeMillis": 3,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 10000,
+                "totalChildMillis": 3,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 43,
+                    "executionTimeMillis": 1,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 5014,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 43,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 5015,
+                      "advanced": 43,
+                      "needTime": 4971,
+                      "needYield": 0,
+                      "saveState": 5,
+                      "restoreState": 5,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "event_at": {
+                                "$lt": {
+                                  "$date": "2025-01-01T02:46:40Z"
+                                }
+                              }
+                            },
+                            {
+                              "event_at": {
+                                "$gte": {
+                                  "$date": "2025-01-01T02:45:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 43,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 5015,
+                        "advanced": 43,
+                        "needTime": 4971,
+                        "needYield": 0,
+                        "saveState": 5,
+                        "restoreState": 5,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 5014
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 57,
+                    "executionTimeMillis": 2,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 4986,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 57,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 4987,
+                      "advanced": 57,
+                      "needTime": 4929,
+                      "needYield": 0,
+                      "saveState": 4,
+                      "restoreState": 4,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "event_at": {
+                                "$lt": {
+                                  "$date": "2025-01-01T02:46:40Z"
+                                }
+                              }
+                            },
+                            {
+                              "event_at": {
+                                "$gte": {
+                                  "$date": "2025-01-01T02:45:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 57,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 4987,
+                        "advanced": 57,
+                        "needTime": 4929,
+                        "needYield": 0,
+                        "saveState": 4,
+                        "restoreState": 4,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 4986
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "orders_by_hashed_user",
+              "filter": {
+                "event_at": {
+                  "$gte": {
+                    "$date": "2025-01-01T02:45:00Z"
+                  },
+                  "$lt": {
+                    "$date": "2025-01-01T02:46:40Z"
+                  }
+                }
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "OaA4iTkfTvSBd3MEUfBydg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351202,
+                    "i": 1
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351202,
+                  "i": 1
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351195,
+                "i": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "interpretation": {
+    "timestamp_writes": "Range-based monotonically increasing timestamps route the newest inserts to the chunk that owns the latest time range. Actual owning shard and counts are measured below.",
+    "hashed_user_writes": "Hashed customer/user keys distribute distinct user values across hash ranges. Actual chunk ownership and counts are measured below.",
+    "measurement_note": "Counts and plans are read from the running cluster. Distribution is not asserted to a predetermined ratio."
+  }
+}

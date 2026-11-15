@@ -364,7 +364,7 @@ def start_collectors(scheduler: Any, database: Database) -> None:
             args=[label, database, collector],
             id=f"cti-{name}",
             replace_existing=True,
-            next_run_time=datetime.now(timezone.utc),
+            next_run_time=datetime.now(timezone.utc) if settings.run_initial_feed_sync else None,
             max_instances=1,
             coalesce=True,
         )

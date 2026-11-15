@@ -1,0 +1,107 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongo-init
+  namespace: mongo-ha
+  labels:
+    app.kubernetes.io/name: mongodb
+    app.kubernetes.io/part-of: chapter-13
+spec:
+  backoffLimit: 6
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mongo-init
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: initialize-replica-set
+          image: mongo:7.0.45
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              mongosh --quiet \
+                --host mongo-0.mongo-headless-svc:27017 \
+                --username "$MONGO_INITDB_ROOT_USERNAME" \
+                --password "$MONGO_INITDB_ROOT_PASSWORD" \
+                --authenticationDatabase admin \
+                --eval '
+                  const expected = [
+                    "mongo-0.mongo-headless-svc:27017",
+                    "mongo-1.mongo-headless-svc:27017",
+                    "mongo-2.mongo-headless-svc:27017"
+                  ];
+                  let status;
+                  try {
+                    status = rs.status();
+                  } catch (error) {
+                    if (error.code !== 94) throw error;
+                  }
+                  if (!status) {
+                    rs.initiate({
+                      _id: "rs0",
+                      members: expected.map((host, _id) => ({ _id, host }))
+                    });
+                    print("Replica set initialization requested.");
+                  } else {
+                    if (status.set !== "rs0") {
+                      throw new Error("Unexpected replica set name: " + status.set);
+                    }
+                    const actual = rs.conf().members.map((member) => member.host).sort();
+                    if (JSON.stringify(actual) !== JSON.stringify(expected.slice().sort())) {
+                      throw new Error("Existing replica-set member list does not match this StatefulSet.");
+                    }
+                  }
+                  const deadline = Date.now() + 300000;
+                  while (Date.now() < deadline) {
+                    const current = rs.status();
+                    const members = current.members || [];
+                    const healthy =
+                      current.set === "rs0" &&
+                      members.length === 3 &&
+                      members.every((member) => expected.includes(member.name) && member.health === 1) &&
+                      members.filter((member) => member.stateStr === "PRIMARY").length === 1 &&
+                      members.filter((member) => member.stateStr === "SECONDARY").length === 2;
+                    if (healthy) {
+                      printjson(members.map((member) => ({
+                        name: member.name,
+                        state: member.stateStr,
+                        health: member.health
+                      })));
+                      quit(0);
+                    }
+                    sleep(5000);
+                  }
+                  throw new Error("Timed out waiting for a healthy 3-member replica set.");
+                '
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-credentials
+                  key: username
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-credentials
+                  key: password
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

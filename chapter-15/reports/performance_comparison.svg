@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420">
+<rect width="100%" height="100%" fill="white"/>
+<text x="450" y="32" text-anchor="middle" font-family="Arial" font-size="20">Measured MongoDB Tenant Strategy Performance</text>
+<line x1="80" y1="340.0" x2="820" y2="340.0" stroke="#dddddd"/>
+<text x="70" y="344.0" text-anchor="end" font-family="Arial" font-size="11">0.000000</text>
+<line x1="80" y1="275.0" x2="820" y2="275.0" stroke="#dddddd"/>
+<text x="70" y="279.0" text-anchor="end" font-family="Arial" font-size="11">0.008152</text>
+<line x1="80" y1="210.0" x2="820" y2="210.0" stroke="#dddddd"/>
+<text x="70" y="214.0" text-anchor="end" font-family="Arial" font-size="11">0.016304</text>
+<line x1="80" y1="145.0" x2="820" y2="145.0" stroke="#dddddd"/>
+<text x="70" y="149.0" text-anchor="end" font-family="Arial" font-size="11">0.024457</text>
+<line x1="80" y1="80.0" x2="820" y2="80.0" stroke="#dddddd"/>
+<text x="70" y="84.0" text-anchor="end" font-family="Arial" font-size="11">0.032609</text>
+<text x="203.3" y="368" text-anchor="middle" font-family="Arial" font-size="12">list one tenant</text>
+<rect x="157.3" y="281.0" width="42" height="59.0" fill="#2878b5"><title>document_level: 0.007405108 seconds</title></rect>
+<rect x="207.3" y="301.2" width="42" height="38.8" fill="#f28e2b"><title>collection_per_tenant: 0.004865492 seconds</title></rect>
+<text x="450.0" y="368" text-anchor="middle" font-family="Arial" font-size="12">create one task</text>
+<rect x="404.0" y="80.0" width="42" height="260.0" fill="#2878b5"><title>document_level: 0.032608792 seconds</title></rect>
+<rect x="454.0" y="213.9" width="42" height="126.1" fill="#f28e2b"><title>collection_per_tenant: 0.015811792 seconds</title></rect>
+<text x="696.7" y="368" text-anchor="middle" font-family="Arial" font-size="12">cross tenant analytics</text>
+<rect x="650.7" y="310.3" width="42" height="29.7" fill="#2878b5"><title>document_level: 0.003719324 seconds</title></rect>
+<rect x="700.7" y="146.0" width="42" height="194.0" fill="#f28e2b"><title>collection_per_tenant: 0.024336248 seconds</title></rect>
+<text x="20" y="210" transform="rotate(-90 20 210)" text-anchor="middle" font-family="Arial" font-size="13">Average seconds per operation</text>
+<rect x="270" y="382" width="14" height="14" fill="#2878b5"/><text x="290" y="394" font-family="Arial" font-size="12">Document-level</text>
+<rect x="440" y="382" width="14" height="14" fill="#f28e2b"/><text x="460" y="394" font-family="Arial" font-size="12">Collection-per-tenant</text>
+</svg>

@@ -327,7 +327,7 @@ def list_saved_runs(limit: int = 5, directory: Path | None = None) -> list[dict[
             "storage_mode": data.get("storage_mode"),
             "w_all_mapping": data.get("w_all_mapping"),
             "configurations": [
-                {k: row.get(k) for k in ("label", "acknowledged", "documents_attempted", "timeouts", "errors",
+                {k: row.get(k) for k in ("key", "label", "acknowledged", "documents_attempted", "timeouts", "errors",
                                          "total_elapsed_ms", "avg_ms", "p50_ms", "p99_ms", "status")}
                 for row in data.get("configurations", [])
             ],

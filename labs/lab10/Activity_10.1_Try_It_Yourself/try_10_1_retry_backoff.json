@@ -1,0 +1,123 @@
+{
+  "activity": "Activity 10.1 - Retry with Exponential Backoff",
+  "script": "try_10_1_retry_backoff.py",
+  "steps": [
+    {
+      "step": "Experiment 1: forced write conflict",
+      "executedAt": {
+        "$date": "2026-10-14T05:14:36.510Z"
+      },
+      "command": {
+        "transactionA": "debit ACC-201 100, held open 0.65 s",
+        "transactionB": "debit ACC-201 200 with retry"
+      },
+      "result": {
+        "attemptsB": [
+          {
+            "attempt": 1,
+            "result": "OperationFailure code 112 ['TransientTransactionError'] -> retry in 0.1 s",
+            "backoffSeconds": 0.1
+          },
+          {
+            "attempt": 2,
+            "result": "OperationFailure code 112 ['TransientTransactionError'] -> retry in 0.2 s",
+            "backoffSeconds": 0.2
+          },
+          {
+            "attempt": 3,
+            "result": "OperationFailure code 112 ['TransientTransactionError'] -> retry in 0.4 s",
+            "backoffSeconds": 0.4
+          },
+          {
+            "attempt": 4,
+            "result": "committed",
+            "backoffSeconds": null
+          }
+        ],
+        "balances": {
+          "ACC-201": 4700,
+          "ACC-202": 100,
+          "ACC-203": 200
+        }
+      }
+    },
+    {
+      "step": "Experiment 2: double spend, 2a without a transaction (read, check, write)",
+      "executedAt": {
+        "$date": "2026-10-14T05:14:36.727Z"
+      },
+      "command": {
+        "payer": "ACC-211 balance 1000",
+        "payments": "2 x 700 at the same instant"
+      },
+      "result": {
+        "results": {
+          "ACC-213": "paid",
+          "ACC-212": "paid"
+        },
+        "payerBalance": 300,
+        "received": 1400,
+        "total": 1700
+      }
+    },
+    {
+      "step": "Experiment 2: double spend, 2b with a transaction and retry",
+      "executedAt": {
+        "$date": "2026-10-14T05:14:36.995Z"
+      },
+      "command": {
+        "payer": "ACC-211 balance 1000",
+        "payments": "2 x 700 at the same instant"
+      },
+      "result": {
+        "results": {
+          "ACC-213": "committed (1 attempt)",
+          "ACC-212": "insufficient balance in ACC-211 (2 attempts)"
+        },
+        "payerBalance": 300,
+        "received": 700,
+        "total": 1000
+      }
+    },
+    {
+      "step": "Experiment 3: stress, without retry",
+      "executedAt": {
+        "$date": "2026-10-14T05:14:37.389Z"
+      },
+      "command": {
+        "threads": 8,
+        "paymentsPerThread": 10,
+        "maxAttempts": 1
+      },
+      "result": {
+        "committed": 16,
+        "failed": 64,
+        "attempts": 80,
+        "slept": 0.0,
+        "seconds": 0.22,
+        "ringTotal": 40000,
+        "historyRecords": 16
+      }
+    },
+    {
+      "step": "Experiment 3: stress, with retry",
+      "executedAt": {
+        "$date": "2026-10-14T05:14:38.508Z"
+      },
+      "command": {
+        "threads": 8,
+        "paymentsPerThread": 10,
+        "maxAttempts": 5
+      },
+      "result": {
+        "committed": 80,
+        "failed": 0,
+        "attempts": 97,
+        "slept": 2.7000000000000006,
+        "seconds": 0.96,
+        "ringTotal": 40000,
+        "historyRecords": 80
+      }
+    }
+  ]
+}

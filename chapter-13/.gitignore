@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+secrets/
+*.key
+*.pem
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.*
+terraform/crash.log
+terraform/*.tfplan
+terraform/terraform.tfvars
+terraform/terraform.tfvars.json
+__pycache__/
+*.py[cod]

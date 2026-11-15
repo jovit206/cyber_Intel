@@ -1,0 +1,2 @@
+CREATE CONSTRAINT fraud_user_id_unique IF NOT EXISTS
+FOR (u:User) REQUIRE u.id IS UNIQUE;

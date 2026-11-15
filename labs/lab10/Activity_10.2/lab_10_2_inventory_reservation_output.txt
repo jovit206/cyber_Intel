@@ -1,0 +1,57 @@
+LAB 10.2 - INVENTORY RESERVATION WITH DEADLOCK HANDLING
+
+Part 1: 8 customers, 5 laptops in stock, no retry
+    C-01: CONFLICT     after 1 attempt   [WriteConflict]
+    C-02: CONFLICT     after 1 attempt   [WriteConflict]
+    C-03: CONFLICT     after 1 attempt   [WriteConflict]
+    C-04: CONFLICT     after 1 attempt   [WriteConflict]
+    C-05: RESERVED     after 1 attempt 
+    C-06: CONFLICT     after 1 attempt   [WriteConflict]
+    C-07: RESERVED     after 1 attempt 
+    C-08: RESERVED     after 1 attempt 
+    reserved 3, insufficient 0, conflict 5  ->  stock left 2, orders 3, stock + orders = 5
+
+Part 2: the same rush with retry (up to 5 attempts, backoff 10 ms x 2^attempt, jittered)
+    C-01: RESERVED     after 2 attempts  [WriteConflict]
+    C-02: INSUFFICIENT after 2 attempts  [WriteConflict]
+    C-03: RESERVED     after 2 attempts  [WriteConflict]
+    C-04: INSUFFICIENT after 3 attempts  [WriteConflict, WriteConflict]
+    C-05: RESERVED     after 1 attempt 
+    C-06: RESERVED     after 1 attempt 
+    C-07: INSUFFICIENT after 3 attempts  [WriteConflict, WriteConflict]
+    C-08: RESERVED     after 2 attempts  [WriteConflict]
+    reserved 5, insufficient 3, conflict 0  ->  stock left 0, orders 5, stock + orders = 5
+
+Part 3: throughput, 3 s per level, every thread reserving the same product
+  Threads  Transaction (res/s)  Conflicts retried  findAndModify (res/s)  Consistent
+        1                124.0                  0                   93.3  yes
+        4                150.3                183                  206.1  yes
+        8                120.0                356                  317.6  yes
+       16                 96.6                605                  418.6  yes
+
+  transaction + retry (#) vs findAndModify (=), reservations per second
+    1 thr # ############                             124
+    1 thr = =========                                93
+    4 thr # ##############                           150
+    4 thr = ====================                     206
+    8 thr # ###########                              120
+    8 thr = ==============================           318
+   16 thr # #########                                97
+   16 thr = ======================================== 419
+  chart saved to throughput.png
+
+Part 4: the order insert fails after the stock was taken (order id already used)
+  without a transaction (findAndModify + insert)
+    order insert failed (DuplicateKeyError); stock 5 -> 4, orders for C-41: 0  ->  1 laptop lost: stock taken, no order
+  with a transaction
+    order insert failed (DuplicateKeyError); stock 5 -> 5, orders for C-41: 0  ->  consistent
+
+Part 5: checkout with payment - stock, wallet and order in one transaction
+  C-100 (wallet 60,000) buys a laptop at 55,000: COMMITTED
+    steps: stock 5 -> 4 | wallet -55,000 | order ORD-AAF23742 paid
+    stock 5 -> 4, wallet 60,000 -> 5,000, paid orders 1
+  C-200 (wallet 20,000) buys a laptop at 55,000: ROLLED BACK
+    steps: stock 4 -> 3 | wallet charge refused
+    stock 4 -> 4, wallet 20,000 -> 20,000, paid orders 0
+
+MongoDB commands and replies saved to lab_10_2_inventory_reservation.json

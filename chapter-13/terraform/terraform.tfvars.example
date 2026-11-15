@@ -1,0 +1,5 @@
+atlas_org_id       = "REPLACE_WITH_YOUR_ATLAS_ORGANIZATION_ID"
+atlas_user_password = "REPLACE_WITH_A_RANDOM_PASSWORD_OF_AT_LEAST_16_CHARACTERS"
+atlas_client_cidr  = "REPLACE_WITH_YOUR_PUBLIC_IPV4_CIDR/32"
+# Confirm current M0 availability before changing the default in variables.tf.
+# atlas_region = "AP_SOUTH_1"

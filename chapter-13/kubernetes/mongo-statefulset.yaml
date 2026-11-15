@@ -1,0 +1,170 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo
+  namespace: mongo-ha
+  labels:
+    app.kubernetes.io/name: mongodb
+    app.kubernetes.io/part-of: chapter-13
+spec:
+  serviceName: mongo-headless-svc
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mongodb
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mongodb
+        app.kubernetes.io/part-of: chapter-13
+    spec:
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: install-keyfile
+          image: mongo:7.0.45
+          command:
+            - /bin/bash
+            - -ec
+            - install -o 999 -g 999 -m 0400 /keyfile/keyfile /work/keyfile
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - name: keyfile-source
+              mountPath: /keyfile
+              readOnly: true
+            - name: keyfile-work
+              mountPath: /work
+      containers:
+        - name: mongod
+          image: mongo:7.0.45
+          imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/docker-entrypoint.sh
+          args:
+            - mongod
+            - --replSet
+            - rs0
+            - --bind_ip_all
+            - --auth
+            - --keyFile
+            - /etc/mongodb-keyfile/keyfile
+          ports:
+            - name: mongodb
+              containerPort: 27017
+              protocol: TCP
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-credentials
+                  key: username
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-credentials
+                  key: password
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - >-
+                  mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME"
+                  --password "$MONGO_INITDB_ROOT_PASSWORD"
+                  --authenticationDatabase admin
+                  --eval 'quit(db.adminCommand({ping: 1}).ok ? 0 : 1)'
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - >-
+                  mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME"
+                  --password "$MONGO_INITDB_ROOT_PASSWORD"
+                  --authenticationDatabase admin
+                  --eval 'quit(db.adminCommand({ping: 1}).ok ? 0 : 1)'
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - >-
+                  mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME"
+                  --password "$MONGO_INITDB_ROOT_PASSWORD"
+                  --authenticationDatabase admin
+                  --eval 'quit(db.adminCommand({ping: 1}).ok ? 0 : 1)'
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+            - name: keyfile-work
+              mountPath: /etc/mongodb-keyfile
+              readOnly: true
+      volumes:
+        - name: keyfile-source
+          secret:
+            secretName: mongo-keyfile
+            defaultMode: 0444
+        - name: keyfile-work
+          emptyDir:
+            medium: Memory
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-data
+        labels:
+          app.kubernetes.io/name: mongodb
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: mongo
+  namespace: mongo-ha
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mongodb

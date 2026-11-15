@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from os import getenv
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -35,7 +36,7 @@ LATENCY_DATABASE = "cap_latency_test"
 PARTITION_DATABASE = "lab9_partition"
 # Name of the docker network the manual script operates on. Informational only:
 # the backend cannot probe docker, so this is reported as configured, not verified.
-MONGO_NETWORK = "mongo-net"
+MONGO_NETWORK = getenv("MONGO_NETWORK", "fresh-mongo-net")
 
 MIN_BENCHMARK_DOCS = 10
 MAX_BENCHMARK_DOCS = 500
@@ -156,58 +157,141 @@ def _latency_highlights(configs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return highlights
 
 
+_LABEL_TO_KEY = re.compile(r"^w:(1|majority|all)(?: \(w:\d+\))?, j:(true|false)$")
+
+
+def _row_key(row: dict[str, Any]) -> str | None:
+    """Configuration key of a saved-run row (older files may only carry the label)."""
+    key = row.get("key")
+    if isinstance(key, str) and key:
+        return key
+    match = _LABEL_TO_KEY.match(str(row.get("label", "")))
+    if not match:
+        return None
+    level = {"1": "w1", "majority": "wmaj", "all": "wall"}[match.group(1)]
+    return f"{level}_j{1 if match.group(2) == 'true' else 0}"
+
+
+def _saved_run_rows(runs: list[dict[str, Any]]) -> dict[str, tuple[dict[str, Any], dict[str, Any]]]:
+    """Newest saved-run measurement per configuration key. Rows without an acknowledged latency are ignored."""
+    chosen: dict[str, tuple[dict[str, Any], dict[str, Any]]] = {}
+    for run in runs:                       # list_saved_runs() is newest first
+        for row in run.get("configurations", []):
+            key = _row_key(row)
+            avg = row.get("avg_ms")
+            if key is None or key in chosen:
+                continue
+            if isinstance(avg, (int, float)) and not isinstance(avg, bool) and (row.get("acknowledged") or 0) > 0:
+                chosen[key] = (run, row)
+    return chosen
+
+
 def latency_report(client) -> dict[str, Any]:
-    """Historical write-concern benchmark recorded by lab_01_write_concern_latency.py."""
+    """Recorded write-concern benchmark from data, run, live and saved-run sources.
+
+    All matching collections are inspected using the recorded ``value`` nanosecond stamps and
+    ``label`` configuration key. Saved JSON fills configurations with no measured collection data.
+    """
     test_db = client[LATENCY_DATABASE]
+    collection_names = set(test_db.list_collection_names())
     results: list[dict[str, Any]] = []
     has_data = False
 
     for cfg in LATENCY_CONFIGS:
-        collection = f"data_{cfg['key']}"
+        key = cfg["key"]
+        candidates = sorted(
+            name for name in collection_names
+            if name == f"data_{key}"
+            or name == f"live_benchmark_{key}"
+            or re.fullmatch(rf"run_.+_{re.escape(key)}", name)
+        )
         entry: dict[str, Any] = {
-            "collection": collection, "key": cfg["key"], "wc": cfg["wc"], "journal": cfg["journal"],
+            "collection": candidates[0] if len(candidates) == 1 else candidates,
+            "collections": candidates, "key": key, "wc": cfg["wc"], "journal": cfg["journal"],
             "label": cfg["label"], "desc": cfg["desc"],
             "operation_count": 0, "avg_ms": None, "p50_ms": None, "p99_ms": None, "timestamp": None,
         }
         try:
-            total = test_db[collection].count_documents({})
-            entry["operation_count"] = total
-            if total == 0:
+            samples: list[float] = []
+            first_timestamp = None
+            for collection in candidates:
+                docs = list(test_db[collection].find({}, {"_id": 1, "value": 1}).sort("value", 1))
+                entry["operation_count"] += len(docs)
+                intervals = interval_latencies_ms(docs)
+                samples.extend(intervals)
+                if first_timestamp is None and docs:
+                    first_id = docs[0].get("_id")
+                    if isinstance(first_id, ObjectId):
+                        first_timestamp = first_id.generation_time.isoformat()
+            if not candidates or entry["operation_count"] == 0:
                 entry["status"] = "UNAVAILABLE"
             else:
                 has_data = True
-                docs = list(test_db[collection].find({}, {"_id": 1, "value": 1}).sort("value", 1))
-                intervals = interval_latencies_ms(docs)
-                if intervals:
-                    entry.update(_stats(intervals))
+                if samples:
+                    entry.update(_stats(samples))
                     entry["status"] = "RECORDED_HISTORICAL"
-                    first_id = docs[0].get("_id")
-                    if isinstance(first_id, ObjectId):
-                        entry["timestamp"] = first_id.generation_time.isoformat()
+                    entry["origin"] = "collection"
+                    entry["timestamp"] = first_timestamp
                 else:
                     entry["status"] = "DOCUMENTS_PRESENT_INSUFFICIENT_TIMESTAMPS"
+                    entry["origin"] = "collection"
         except PyMongoError as exc:
-            logger.warning("Error reading %s.%s: %s", LATENCY_DATABASE, collection, exc)
+            logger.warning("Error reading %s collections for %s: %s", LATENCY_DATABASE, key, exc)
             entry["status"] = "ERROR"
             entry["error"] = str(exc)
+        entry.setdefault("origin", "none")
         results.append(_display_fields(entry))
 
-    return {
-        "source": "HISTORICAL" if has_data else "UNAVAILABLE",
-        "label": "HISTORICAL WRITE CONCERN BENCHMARK",
-        "has_data": has_data,
+    saved_runs = wc_core.list_saved_runs()
+    fallback = _saved_run_rows(saved_runs)
+    used_saved = False
+    for entry in results:
+        if entry["avg_ms"] is not None or entry["key"] not in fallback:
+            continue
+        run, row = fallback[entry["key"]]
+        entry.update({
+            "operation_count": row.get("acknowledged"),
+            "documents_attempted": row.get("documents_attempted"),
+            "timeouts": row.get("timeouts"),
+            "errors": row.get("errors"),
+            "total_elapsed_ms": row.get("total_elapsed_ms"),
+            "avg_ms": row.get("avg_ms"),
+            "p50_ms": row.get("p50_ms"),
+            "p99_ms": row.get("p99_ms"),
+            "timestamp": run.get("finished_at"),
+            "status": "SAVED_RUN",
+            "origin": "saved_run",
+            "saved_run_file": run.get("file"),
+        })
+        entry.pop("error", None)
+        _display_fields(entry)
+        used_saved = True
+
+    report = {
+        "source": "HISTORICAL" if has_data else ("SAVED_RUN" if used_saved else "UNAVAILABLE"),
+        "label": ("HISTORICAL WRITE CONCERN BENCHMARK" if has_data or not used_saved
+                  else "SAVED EXPERIMENT RUN (lab_01 JSON)"),
+        "has_data": has_data or used_saved,
+        "has_collection_data": has_data,
+        "saved_run_fallback_used": used_saved,
         "database": LATENCY_DATABASE,
         "method": "Interval between consecutive client-side insert timestamps",
         "retrieved_at": datetime.now(timezone.utc).isoformat(),
         "highlights": _latency_highlights(results),
         "configurations": results,
-        "saved_runs": wc_core.list_saved_runs(),
+        "saved_runs": saved_runs,
         "w_all_note": (
             "w:all is not a valid MongoDB write concern value. It is run as a numeric w equal to the number "
             "of data-bearing members (w:3 for this three-member replica set)."
         ),
         "key_takeaways": KEY_TAKEAWAYS,
     }
+    if used_saved:
+        report["method"] += (
+            ". Rows with origin 'saved_run' come from the newest saved experiment run: the per-insert "
+            "acknowledgement time measured by the experiment script (see saved_run_file)."
+        )
+    return report
 
 
 def run_live_benchmark(client, docs_per_config: int) -> dict[str, Any]:

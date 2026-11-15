@@ -1,0 +1,7 @@
+strategy,operation,iterations,average_seconds,sample_data_documents
+document_level,list_one_tenant,25,0.007405108,500
+collection_per_tenant,list_one_tenant,25,0.004865492,500
+document_level,create_one_task,25,0.032608792,500
+collection_per_tenant,create_one_task,25,0.015811792,500
+document_level,cross_tenant_analytics,25,0.003719324,500
+collection_per_tenant,cross_tenant_analytics,25,0.024336248,500

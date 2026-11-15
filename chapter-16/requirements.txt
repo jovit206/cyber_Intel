@@ -1,0 +1,7 @@
+pymongo>=4.11,<5
+cassandra-driver>=3.29,<3.31
+neo4j>=5.28,<7
+pytest>=8,<9
+matplotlib>=3.9,<4
+python-dotenv>=1,<2
+gevent>=24.11

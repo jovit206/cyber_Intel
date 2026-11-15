@@ -63,12 +63,12 @@ def sample_cache_metrics(database: Database) -> dict[str, Any] | None:
         "pages_evicted": _cache_stat(cache, *EVICTION_STAT_NAMES),
         "pages_requested": cache.get("pages requested from the cache", 0),
     }
-    hit_ratio = 1.0
+    hit_ratio: float | None = None
     if previous_cache_sample:
         delta_requests = current["pages_requested"] - previous_cache_sample["pages_requested"]
         delta_reads = current["pages_read"] - previous_cache_sample["pages_read"]
-        if delta_requests > 0:
-            hit_ratio = max(0, 1 - delta_reads / delta_requests)
+        if delta_requests > 0 and delta_reads >= 0:
+            hit_ratio = min(1.0, max(0.0, 1 - delta_reads / delta_requests))
     previous_cache_sample = current
     point = {**current, "hit_ratio_interval": hit_ratio, "available": True}
     metrics_history.append(point)
@@ -477,9 +477,10 @@ def get_data_source_status(request: Request) -> dict[str, Any]:
     database = request.app.state.database
     feed_syncs = list(database["cti_sync_state"].find(
         {"_id": {"$in": [*MISP_FEED_NAMES, "misp-galaxy", "annual-reports"]}},
-        {"_id": 1, "source_feed": 1, "last_successful_sync": 1, "last_error": 1,
+        {"_id": 1, "source_feed": 1, "last_attempt": 1, "last_successful_sync": 1, "last_error": 1,
          "last_manifest_event_count": 1, "last_fetched_event_count": 1},
     ))
+    persisted = {row["_id"]: row for row in feed_syncs}
     scheduler = getattr(request.app.state, "scheduler", None)
     for name, details in snapshot.items():
         job = scheduler.get_job(f"cti-{name}") if scheduler else None
@@ -487,9 +488,61 @@ def get_data_source_status(request: Request) -> dict[str, Any]:
             job.next_run_time.astimezone(timezone.utc).isoformat()
             if job and job.next_run_time else None
         )
+    feeds: list[dict[str, Any]] = []
+    for name in MISP_FEED_NAMES + ["misp-galaxy", "annual-reports"]:
+        row = persisted.get(name, {})
+        attempted = row.get("last_attempt")
+        succeeded = row.get("last_successful_sync")
+        in_progress = bool(attempted and (not succeeded or attempted > succeeded) and not row.get("last_error"))
+        configured = name != "threatfox" or bool(settings.threatfox_auth_key)
+        if not configured:
+            feed_state = "configuration_required"
+        elif row.get("sync_status") in {
+            "success", "configuration_required", "temporarily_unavailable", "failed", "never_synced"
+        }:
+            feed_state = row["sync_status"]
+        elif row.get("last_error"):
+            error_text = str(row["last_error"])
+            if name == "threatfox" and re.search(r"HTTP 40[13]", error_text):
+                feed_state = "configuration_required"
+            elif re.search(r"HTTP (?:429|5\d\d)|failed after retries|timed out|network failure", error_text, re.I):
+                feed_state = "temporarily_unavailable"
+            else:
+                feed_state = "failed"
+        elif in_progress:
+            feed_state = "syncing"
+        else:
+            feed_state = "success" if succeeded else "never_synced"
+        feeds.append({
+            "name": name,
+            "configured": configured,
+            "status": feed_state,
+            "last_attempt": row.get("last_attempt"),
+            "last_successful_sync": row.get("last_successful_sync"),
+            "last_error": row.get("last_error"),
+        })
+    for name in ("misp", "malwarebazaar", "virustotal"):
+        details = snapshot[name]
+        configured = bool(settings.virustotal_api_key) if name == "virustotal" else details["configured"]
+        feeds.append({
+            "name": name,
+            "configured": configured,
+            "status": (
+                "configuration_required" if not configured else
+                "failed" if name == "virustotal" and virustotal_key_status() == "unexpected_format" else
+                "temporarily_unavailable" if details["last_error"] and re.search(r"429|5\d\d|timeout|network", details["last_error"], re.I) else
+                "failed" if details["last_error"] else
+                "success" if details["last_successful_fetch"] else "never_synced"
+            ),
+            "last_attempt": None,
+            "last_successful_sync": details["last_successful_fetch"],
+            "last_error": details["last_error"],
+            "next_scheduled_fetch": details["next_scheduled_fetch"],
+        })
     return {
         "mongodb": database_status,
         "misp_feeds": serialize_document(feed_syncs),
+        "feeds": serialize_document(feeds),
         "virustotal": snapshot["virustotal"],
         "virustotal_configured": bool(settings.virustotal_api_key),
         "virustotal_key_status": virustotal_key_status(),

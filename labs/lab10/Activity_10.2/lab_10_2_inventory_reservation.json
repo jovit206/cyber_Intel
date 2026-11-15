@@ -1,0 +1,348 @@
+{
+  "activity": "Lab 10.2 - Inventory Reservation with Deadlock Handling",
+  "script": "lab_10_2_inventory_reservation.py",
+  "steps": [
+    {
+      "step": "Part 1: 8 concurrent reservations, no retry",
+      "executedAt": {
+        "$date": "2026-10-14T05:13:29.780Z"
+      },
+      "command": {
+        "threads": 8,
+        "stock": 5,
+        "maxAttempts": 1
+      },
+      "result": {
+        "counts": {
+          "RESERVED": 3,
+          "INSUFFICIENT": 0,
+          "CONFLICT": 5
+        },
+        "stockLeft": 2,
+        "orders": 3,
+        "perCustomer": {
+          "8": [
+            "RESERVED",
+            1,
+            [],
+            "ORD-87618E36"
+          ],
+          "1": [
+            "CONFLICT",
+            1,
+            [
+              "WriteConflict"
+            ],
+            null
+          ],
+          "2": [
+            "CONFLICT",
+            1,
+            [
+              "WriteConflict"
+            ],
+            null
+          ],
+          "5": [
+            "RESERVED",
+            1,
+            [],
+            "ORD-74139157"
+          ],
+          "3": [
+            "CONFLICT",
+            1,
+            [
+              "WriteConflict"
+            ],
+            null
+          ],
+          "6": [
+            "CONFLICT",
+            1,
+            [
+              "WriteConflict"
+            ],
+            null
+          ],
+          "7": [
+            "RESERVED",
+            1,
+            [],
+            "ORD-66E05F17"
+          ],
+          "4": [
+            "CONFLICT",
+            1,
+            [
+              "WriteConflict"
+            ],
+            null
+          ]
+        }
+      }
+    },
+    {
+      "step": "Part 2: 8 concurrent reservations, retry",
+      "executedAt": {
+        "$date": "2026-10-14T05:13:30.009Z"
+      },
+      "command": {
+        "threads": 8,
+        "stock": 5,
+        "maxAttempts": 5
+      },
+      "result": {
+        "counts": {
+          "RESERVED": 5,
+          "INSUFFICIENT": 3,
+          "CONFLICT": 0
+        },
+        "stockLeft": 0,
+        "orders": 5,
+        "perCustomer": {
+          "5": [
+            "RESERVED",
+            1,
+            [],
+            "ORD-A9AF1702"
+          ],
+          "6": [
+            "RESERVED",
+            1,
+            [],
+            "ORD-3911BDBE"
+          ],
+          "1": [
+            "RESERVED",
+            2,
+            [
+              "WriteConflict"
+            ],
+            "ORD-7F4EEE68"
+          ],
+          "8": [
+            "RESERVED",
+            2,
+            [
+              "WriteConflict"
+            ],
+            "ORD-2C0E627F"
+          ],
+          "2": [
+            "INSUFFICIENT",
+            2,
+            [
+              "WriteConflict"
+            ],
+            null
+          ],
+          "3": [
+            "RESERVED",
+            2,
+            [
+              "WriteConflict"
+            ],
+            "ORD-DA1D3FD5"
+          ],
+          "4": [
+            "INSUFFICIENT",
+            3,
+            [
+              "WriteConflict",
+              "WriteConflict"
+            ],
+            null
+          ],
+          "7": [
+            "INSUFFICIENT",
+            3,
+            [
+              "WriteConflict",
+              "WriteConflict"
+            ],
+            null
+          ]
+        }
+      }
+    },
+    {
+      "step": "Part 3: throughput",
+      "executedAt": {
+        "$date": "2026-10-14T05:13:58.569Z"
+      },
+      "command": {
+        "threadLevels": [
+          1,
+          4,
+          8,
+          16
+        ],
+        "secondsPerLevel": 3.0
+      },
+      "result": [
+        {
+          "threads": 1,
+          "txn": {
+            "reserved": 372,
+            "conflicts": 0,
+            "gave_up": 0,
+            "seconds": 3.0,
+            "perSecond": 124.0,
+            "consistent": true
+          },
+          "plain": {
+            "reserved": 280,
+            "conflicts": 0,
+            "gave_up": 0,
+            "seconds": 3.0,
+            "perSecond": 93.3,
+            "consistent": true
+          }
+        },
+        {
+          "threads": 4,
+          "txn": {
+            "reserved": 459,
+            "conflicts": 183,
+            "gave_up": 0,
+            "seconds": 3.05,
+            "perSecond": 150.3,
+            "consistent": true
+          },
+          "plain": {
+            "reserved": 621,
+            "conflicts": 0,
+            "gave_up": 0,
+            "seconds": 3.01,
+            "perSecond": 206.1,
+            "consistent": true
+          }
+        },
+        {
+          "threads": 8,
+          "txn": {
+            "reserved": 454,
+            "conflicts": 356,
+            "gave_up": 0,
+            "seconds": 3.78,
+            "perSecond": 120.0,
+            "consistent": true
+          },
+          "plain": {
+            "reserved": 957,
+            "conflicts": 0,
+            "gave_up": 0,
+            "seconds": 3.01,
+            "perSecond": 317.6,
+            "consistent": true
+          }
+        },
+        {
+          "threads": 16,
+          "txn": {
+            "reserved": 444,
+            "conflicts": 605,
+            "gave_up": 0,
+            "seconds": 4.6,
+            "perSecond": 96.6,
+            "consistent": true
+          },
+          "plain": {
+            "reserved": 1270,
+            "conflicts": 0,
+            "gave_up": 0,
+            "seconds": 3.03,
+            "perSecond": 418.6,
+            "consistent": true
+          }
+        }
+      ]
+    },
+    {
+      "step": "Part 4: failed order insert, without a transaction (findAndModify + insert)",
+      "executedAt": {
+        "$date": "2026-10-14T05:13:59.115Z"
+      },
+      "command": {
+        "orderId": "ORD-TAKEN (already exists)"
+      },
+      "result": {
+        "outcome": "order insert failed (DuplicateKeyError)",
+        "stockBefore": 5,
+        "stockAfter": 4,
+        "ordersCreated": 0,
+        "verdict": "1 laptop lost: stock taken, no order"
+      }
+    },
+    {
+      "step": "Part 4: failed order insert, with a transaction",
+      "executedAt": {
+        "$date": "2026-10-14T05:13:59.331Z"
+      },
+      "command": {
+        "orderId": "ORD-TAKEN (already exists)"
+      },
+      "result": {
+        "outcome": "order insert failed (DuplicateKeyError)",
+        "stockBefore": 5,
+        "stockAfter": 5,
+        "ordersCreated": 0,
+        "verdict": "consistent"
+      }
+    },
+    {
+      "step": "Part 5: checkout by C-100",
+      "executedAt": {
+        "$date": "2026-10-14T05:13:59.643Z"
+      },
+      "command": {
+        "customer": "C-100",
+        "price": 55000.0
+      },
+      "result": {
+        "outcome": "COMMITTED",
+        "steps": [
+          "stock 5 -> 4",
+          "wallet -55,000",
+          "order ORD-AAF23742 paid"
+        ],
+        "stock": [
+          5,
+          4
+        ],
+        "wallet": [
+          60000.0,
+          5000.0
+        ],
+        "paidOrders": 1
+      }
+    },
+    {
+      "step": "Part 5: checkout by C-200",
+      "executedAt": {
+        "$date": "2026-10-14T05:13:59.652Z"
+      },
+      "command": {
+        "customer": "C-200",
+        "price": 55000.0
+      },
+      "result": {
+        "outcome": "ROLLED BACK",
+        "steps": [
+          "stock 4 -> 3",
+          "wallet charge refused"
+        ],
+        "stock": [
+          4,
+          4
+        ],
+        "wallet": [
+          20000.0,
+          20000.0
+        ],
+        "paidOrders": 0
+      }
+    }
+  ]
+}

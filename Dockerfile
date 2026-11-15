@@ -1,8 +1,12 @@
+
 FROM python:3.12-slim
 
 ARG APP_VERSION=1.0.0
-LABEL org.opencontainers.image.title="Threat Intelligence Platform (Labs 7, 8, 9)" \
-      org.opencontainers.image.description="FastAPI threat-intelligence dashboard with MongoDB replica-set monitoring (Lab 8) and write-concern / network-partition experiments (Lab 9)" \
+ARG INSTALL_VECTOR_LAB=false
+ARG INSTALL_CHAPTER18_POLYGLOT=false
+
+LABEL org.opencontainers.image.title="Threat Intelligence Platform (Labs 7-18)" \
+      org.opencontainers.image.description="FastAPI threat-intelligence dashboard with MongoDB operations, vector projects, and optional comparative multi-database threat analysis" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.licenses="MIT"
 
@@ -13,14 +17,35 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Install main application dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Application, frontend and the Lab 7/8/9 scripts. No .env, secrets or database files are copied
-# (see .dockerignore); configuration is supplied at run time through environment variables.
+# Install optional Lab 17 dependencies
+COPY chapter-17/requirements-vector-lab.txt ./chapter-17/requirements-vector-lab.txt
+COPY chapter-18/requirements-chapter18.txt ./chapter-18/requirements-chapter18.txt
+
+# Install CPU-only PyTorch to avoid unnecessary CUDA dependencies
+RUN if [ "$INSTALL_VECTOR_LAB" = "true" ]; then \
+    pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch && \
+    pip install --no-cache-dir -r chapter-17/requirements-vector-lab.txt; \
+    fi
+
+RUN if [ "$INSTALL_CHAPTER18_POLYGLOT" = "true" ]; then \
+    pip install --no-cache-dir -r chapter-18/requirements-chapter18.txt; \
+    fi
+
+# Application, frontend and project documentation
+# No .env, secrets or database files are copied
 COPY backend ./backend
 COPY public ./public
 COPY labs ./labs
+COPY chapter-13 ./chapter-13
+COPY chapter-14 ./chapter-14
+COPY chapter-15 ./chapter-15
+COPY chapter-16 ./chapter-16
+COPY chapter-17 ./chapter-17
+COPY chapter-18 ./chapter-18
 
 EXPOSE 8000
 

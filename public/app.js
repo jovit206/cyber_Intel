@@ -4,6 +4,9 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Keep this binding ahead of startup handlers that reference it. A const
+  // declared later in this callback is in its temporal dead zone until then.
+  const byId = id => document.getElementById(id);
   const configuredApiUrl = window.AEGIS_API_BASE_URL || (
     window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : ''
   );
@@ -12,10 +15,86 @@ document.addEventListener('DOMContentLoaded', () => {
   // Navigation Links
   const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
   const views = document.querySelectorAll('.content-view');
+  let entitlementState = null;
+  let entitlementRequest = null;
+  const featureLabels = {reports:'Report Corpus',search:'Search & Enrich',cross_source:'Cross-Source Analysis',working_set:'Working Set Monitor',write_concern:'Write Concern Latency',network_reliability:'Network Reliability',sharding:'Sharding & Horizontal Scalability',inventory:'Reliability & Inventory'};
+  async function refreshPlanEntitlements() {
+    if (!entitlementRequest) entitlementRequest = fetch('/api/subscriptions/entitlements', {credentials:'same-origin'}).then(async response => {
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error('Plan access could not be loaded.');
+      return data.entitlements;
+    }).finally(() => { entitlementRequest = null; });
+    entitlementState = await entitlementRequest;
+    updateFeatureLocks();
+    return entitlementState;
+  }
+  function showUpgrade(feature, detail = {}) {
+    const state = entitlementState?.features?.[feature] || {};
+    const label = detail.label || featureLabels[feature] || 'This feature';
+    const plan = detail.current_plan || entitlementState?.plan || 'free';
+    const lockedFree = plan === 'free';
+    byId('upgrade-title').textContent = lockedFree ? `${label} is included with Plus` : `${label} monthly allowance used`;
+    byId('upgrade-description').textContent = detail.message || (lockedFree
+      ? `${label} is not included with Free. Upgrade to Plus or Pro to unlock this feature.`
+      : `You have used ${detail.used ?? state.used ?? ''} of ${detail.limit ?? state.limit ?? ''} monthly uses. Upgrade to Pro for unlimited access.`);
+    const left = detail.remaining ?? state.remaining;
+    const period = detail.period || state.period || entitlementState?.period;
+    byId('upgrade-usage').textContent = left === undefined || left === null
+      ? `Plus ₹299/month · Pro ₹799/month${period ? ` · Usage resets ${period}` : ''}`
+      : `${left} uses remaining${period ? ` · Monthly period ${period}` : ''} · ${detail.required_plan === 'pro' ? 'Pro ₹799/month for unlimited access' : 'Plus ₹299/month · Pro ₹799/month'}`;
+    byId('upgrade-dialog').hidden = false;
+    byId('upgrade-dismiss').focus();
+  }
+  function updateFeatureLocks() {
+    document.querySelectorAll('.sidebar-nav [data-feature]').forEach(link => {
+      const feature = entitlementState?.features?.[link.dataset.feature];
+      const locked = Boolean(feature && !feature.allowed);
+      link.classList.toggle('feature-locked', locked);
+      link.setAttribute('aria-disabled', String(locked));
+      let icon = link.querySelector('.feature-lock-icon');
+      if (locked && !icon) { icon = document.createElement('span'); icon.className='feature-lock-icon'; icon.textContent='🔒'; icon.setAttribute('aria-hidden','true'); link.append(icon); }
+      if (!locked) icon?.remove();
+    });
+  }
+  byId('upgrade-close').addEventListener('click', () => { byId('upgrade-dialog').hidden = true; });
+  byId('upgrade-dismiss').addEventListener('click', () => { byId('upgrade-dialog').hidden = true; });
+  byId('upgrade-dialog').addEventListener('click', event => { if (event.target === byId('upgrade-dialog')) byId('upgrade-dialog').hidden = true; });
+  refreshPlanEntitlements().catch(() => {});
+  fetch(apiUrl('/api/subscriptions/me'), { credentials: 'same-origin' })
+    .then(response => response.ok ? response.json() : null)
+    .then(data => {
+      const adminLink = byId('admin-nav');
+      if (adminLink) adminLink.hidden = data?.user?.role !== 'admin';
+      const managerLink = byId('manager-nav');
+      if (managerLink) managerLink.hidden = data?.user?.role !== 'manager';
+      const requestedView = new URLSearchParams(window.location.search);
+      if (data?.user?.role === 'admin' && requestedView.get('view') === 'admin') {
+        adminLink?.click();
+        if (requestedView.get('tab') === 'labs') document.querySelector('[data-admin-tab="labs"]')?.click();
+      }
+    })
+    .catch(() => { const adminLink = byId('admin-nav'); if (adminLink) adminLink.hidden = true; });
+  window.refreshPlanEntitlements = refreshPlanEntitlements;
 
   navLinks.forEach(link => {
-    link.addEventListener('click', () => {
+    link.addEventListener('click', event => {
       const viewId = link.dataset.view;
+      const feature = link.dataset.feature;
+      if (feature) {
+        if (link.dataset.entitlementApproved === 'true') {
+          delete link.dataset.entitlementApproved;
+        } else {
+          event.preventDefault(); event.stopImmediatePropagation();
+          if (link.dataset.entitlementCheck === 'true') return;
+          link.dataset.entitlementCheck = 'true';
+          refreshPlanEntitlements().then(state => {
+            delete link.dataset.entitlementCheck;
+            if (state.features?.[feature] && !state.features[feature].allowed) showUpgrade(feature);
+            else { link.dataset.entitlementApproved = 'true'; link.click(); }
+          }).catch(() => { delete link.dataset.entitlementCheck; showUpgrade(feature); });
+          return;
+        }
+      }
       navLinks.forEach(l => l.classList.remove('active'));
       views.forEach(v => v.classList.remove('active'));
 
@@ -27,11 +106,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (viewId === 'feed') loadThreatStream();
       if (viewId === 'threats') loadAdversaryMatrix();
       if (viewId === 'reports') loadReportCorpus();
+      if (viewId === 'admin' && typeof window.loadAdminDashboard === 'function') window.loadAdminDashboard();
+      if (viewId === 'manager' && typeof window.loadManagerDashboard === 'function') window.loadManagerDashboard();
       if (viewId === 'cache') {
         loadWorkingSetAnalysis();
         loadWiredTigerTelemetry();
         startTelemetryPolling();
-        if (cacheChart) cacheChart.resize();
       } else {
         stopTelemetryPolling();
       }
@@ -56,6 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const pagination = document.getElementById('feed-pagination');
   const previousPageButton = document.getElementById('feed-previous');
   const nextPageButton = document.getElementById('feed-next');
+
+  document.getElementById('events-stream').addEventListener('click', event => {
+    if (event.target.closest('[data-retry-threat-stream]')) loadThreatStream();
+  });
 
   previousPageButton.addEventListener('click', () => {
     if (currentEventPage > 1) {
@@ -85,17 +169,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageStatus = document.getElementById('feed-page-status');
     const requestId = ++eventRequestId;
     const url = `/api/events?page=${currentEventPage}&limit=${eventsPerPage}${currentSourceFilter ? `&source=${encodeURIComponent(currentSourceFilter)}` : ''}`;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
 
     stream.innerHTML = '<div class="loading-state">Streaming intelligence records...</div>';
+    stream.setAttribute('aria-busy', 'true');
     pagination.hidden = true;
 
-    fetch(apiUrl(url))
+    fetch(apiUrl(url), { signal: controller.signal, credentials: 'same-origin' })
       .then(r => {
+        if (r.status === 401) throw new Error('Your session has expired. Sign in again to view threat intelligence.');
         if (!r.ok) throw new Error(`Threat stream request failed (${r.status})`);
         return r.json();
       })
       .then(data => {
         if (requestId !== eventRequestId) return;
+        if (!data || !Array.isArray(data.events) || !Number.isFinite(Number(data.total))) {
+          throw new Error('The threat stream returned an unexpected response.');
+        }
 
         const totalEvents = Number(data.total);
         const totalPages = Math.ceil(totalEvents / Number(data.limit || eventsPerPage));
@@ -210,8 +301,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (requestId !== eventRequestId) return;
         console.error(err);
         counter.textContent = 'Unable to load event count';
-        stream.innerHTML = '<div class="empty-prompt">Threat stream is unavailable. Please try again.</div>';
+        const message = err.name === 'AbortError'
+          ? 'The threat stream took too long to respond.'
+          : err.message || 'Threat stream is unavailable.';
+        stream.innerHTML = `<div class="empty-prompt">${escapeHtml(message)} <button class="xs-btn secondary" type="button" data-retry-threat-stream>Retry</button></div>`;
         pagination.hidden = true;
+      })
+      .finally(() => {
+        window.clearTimeout(timeoutId);
+        if (requestId === eventRequestId) stream.setAttribute('aria-busy', 'false');
       });
   }
 
@@ -251,21 +349,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         matrix.innerHTML = events.map(event => {
           const title = event.info || event.indicator || 'Threat event';
-          const source = event.source_feed_name || event.source || 'Unknown source';
+          const sourceLabels = { misp: 'MISP', threatfox: 'ThreatFox', malwarebazaar: 'MalwareBazaar', virustotal: 'VirusTotal', misp_galaxy: 'MISP Galaxy' };
+          const rawSource = event.source_feed_name || event.source || 'Unknown source';
+          const source = sourceLabels[String(event.source || '').toLowerCase()] || rawSource;
           const indicator = event.indicator
             ? `<div class="event-card-indicator">${escapeHtml(event.indicator)}</div>`
             : '';
           const description = event.description || event.comment || '';
+          const tags = (Array.isArray(event.tags) ? event.tags : []).map(tag => typeof tag === 'string' ? tag : tag?.name || tag?.value).filter(Boolean).slice(0, 6);
+          const tagHtml = tags.length ? `<div class="event-card-tags">${tags.map(tag => `<span class="ioc-counter-tag">${escapeHtml(tag)}</span>`).join('')}</div>` : '';
+          const reputation = typeof event.reputation === 'number' && Number.isFinite(event.reputation)
+            ? `<span class="ioc-counter-tag">Reputation: <strong>${event.reputation}</strong></span>` : '';
+          const counts = [['Malicious', event.malicious_count], ['Suspicious', event.suspicious_count], ['Harmless', event.harmless_count]]
+            .filter(([, count]) => typeof count === 'number' && Number.isFinite(count));
+          const countHtml = counts.length ? `<div class="ioc-stats-row">${counts.map(([label, count]) => `<span class="ioc-counter-tag">${label}: <strong>${count.toLocaleString()}</strong></span>`).join('')}</div>` : '';
           return `
             <div class="threat-card" data-event-id="${escapeHtml(event._id)}" role="button" tabindex="0">
               <div class="event-card-head">
                 <span class="threat-card-title">${escapeHtml(title)}</span>
                 <span class="tag-badge cyan">${escapeHtml(source)}</span>
               </div>
-              ${event.indicator_type ? `<div class="event-card-meta"><span>Type: ${escapeHtml(event.indicator_type)}</span></div>` : ''}
+              ${event.indicator_type || event.category || reputation ? `<div class="event-card-meta">${event.indicator_type ? `<span>Type: ${escapeHtml(String(event.indicator_type).toUpperCase())}</span>` : ''}${event.category ? `<span>Category: ${escapeHtml(event.category)}</span>` : ''}${reputation}</div>` : ''}
               ${indicator}
+              ${tagHtml}
+              ${countHtml}
               ${description ? `<p class="event-card-description">${escapeHtml(description)}</p>` : ''}
-              ${event.timestamp ? `<div class="event-card-meta"><span>Received: ${escapeHtml(event.timestamp)}</span></div>` : ''}
+              ${event.timestamp || event.first_seen || event.last_seen ? `<div class="event-card-meta">${event.timestamp ? `<span>Observed: ${escapeHtml(event.timestamp)}</span>` : ''}${event.first_seen ? `<span>First seen: ${escapeHtml(event.first_seen)}</span>` : ''}${event.last_seen ? `<span>Last seen: ${escapeHtml(event.last_seen)}</span>` : ''}</div>` : ''}
             </div>
           `;
         }).join('');
@@ -376,41 +485,52 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadSourceSyncStatus() {
-    const status = document.getElementById('last-sync-status');
-    fetch(apiUrl('/api/data-source-status'))
-      .then(response => {
-        if (!response.ok) throw new Error(`Sync status request failed (${response.status})`);
-        return response.json();
-      })
-      .then(data => {
-        const feedRows = data.misp_feeds || [];
-        const latest = feedRows
-          .filter(feed => feed.last_successful_sync)
-          .sort((left, right) => new Date(right.last_successful_sync) - new Date(left.last_successful_sync))[0];
-        const failedFeeds = feedRows.filter(feed => feed.last_error).map(feed => feed._id);
-        let message = latest
-          ? `Last successful feed sync: ${new Date(latest.last_successful_sync).toLocaleString()}`
-          : 'No successful public-feed sync yet';
-        if (failedFeeds.length) message += ` · Sync errors: ${failedFeeds.join(', ')}`;
+    const panel = document.getElementById('threat-intelligence-status');
+    const label = document.getElementById('threat-intelligence-label');
+    const state = document.getElementById('threat-intelligence-state');
+    const updated = document.getElementById('threat-intelligence-updated');
+    const count = document.getElementById('threat-intelligence-count');
+    if (!panel || !state || !updated || !count) return;
 
-        const virusTotal = data.virustotal || {};
-        if (!data.virustotal_configured) {
-          message += ' · VirusTotal key not configured';
-        } else if (data.virustotal_key_status === 'unexpected_format') {
-          message += ' · VirusTotal API key has an unexpected format; check the backend configuration';
-        } else if (virusTotal.last_error && /\b401\b/.test(virusTotal.last_error)) {
-          message += ' · VirusTotal rejected the API key (401); check the backend configuration';
-        } else if (virusTotal.last_error && /429|quota|limit/i.test(virusTotal.last_error)) {
-          message += ' · VirusTotal free-tier limit reached; cached results are still available';
+    const unavailable = () => {
+      panel.classList.add('is-unavailable');
+      panel.setAttribute('aria-busy', 'false');
+      if (label) label.hidden = true;
+      state.textContent = 'Threat intelligence is temporarily unavailable.';
+      updated.textContent = '—';
+      count.textContent = '—';
+    };
+
+    Promise.all([
+      fetch(apiUrl('/api/events?page=1&limit=1')),
+      fetch(apiUrl('/api/data-source-status'))
+    ])
+      .then(async ([eventsResponse, statusResponse]) => {
+        if (!eventsResponse.ok || !statusResponse.ok) throw new Error('Threat data is unavailable');
+        const [events, sourceStatus] = await Promise.all([eventsResponse.json(), statusResponse.json()]);
+        if (sourceStatus.mongodb?.connected !== true || !Number.isFinite(Number(events.total))) {
+          throw new Error('Threat data is unavailable');
         }
-        status.textContent = message;
+
+        const lastSuccessfulSync = (sourceStatus.feeds || [])
+          .filter(feed => feed.status === 'success' && feed.last_successful_sync)
+          .map(feed => new Date(feed.last_successful_sync))
+          .filter(date => Number.isFinite(date.getTime()))
+          .sort((left, right) => right - left)[0];
+
+        panel.classList.remove('is-unavailable');
+        panel.setAttribute('aria-busy', 'false');
+        if (label) label.hidden = false;
+        state.textContent = 'Active';
+        updated.textContent = lastSuccessfulSync
+          ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(lastSuccessfulSync)
+          : '—';
+        count.textContent = Number(events.total).toLocaleString();
       })
-      .catch(error => {
-        status.textContent = `Sync status unavailable: ${error.message}`;
-      });
+      .catch(unavailable);
   }
 
-  // ==================== LAB 7.2: WORKING SET & WIREDTIGER CACHE ====================
+  // ==================== WORKING SET & WIREDTIGER CACHE ====================
   function formatBytes(bytes) {
     if (!bytes || bytes === 0) return '0 B';
     const k = 1024;
@@ -418,8 +538,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
-
-  let cacheChart = null;
 
   const TELEMETRY_INTERVAL_MS = 10000;
   const REQUEST_TIMEOUT_MS = 10000;
@@ -444,6 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try { body = await response.json(); } catch { /* non-JSON body */ }
       if (!response.ok) {
         const detail = body && (body.detail || body.error);
+        if (response.status === 402 && detail && typeof detail === 'object' && detail.feature) showUpgrade(detail.feature, detail);
         throw new Error(typeof detail === 'string' ? detail : `HTTP ${response.status}`);
       }
       if (body === null || typeof body !== 'object') throw new Error('The API returned an unexpected response.');
@@ -453,7 +572,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  const byId = id => document.getElementById(id);
   const finite = value => (value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)) ? Number(value) : null);
   const bytesOrNA = value => (finite(value) === null ? 'N/A' : formatBytes(finite(value)));
   const countOrNA = value => (finite(value) === null ? 'N/A' : finite(value).toLocaleString());
@@ -465,7 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
       byId('ws-document-count').textContent = count.toLocaleString();
       byId('ws-document-size').textContent = count
         ? `Average BSON document: ${bytesOrNA(data.avgSize)}`
-        : 'Benchmark collection is empty; build the working-set workload (see Random Point-Read Experiment)';
+        : 'Benchmark collection is empty; build the working-set workload (see working-set measurement)';
       byId('ws-footprint').textContent = bytesOrNA(data.totalFootprintBytes);
       byId('ws-build-hint').hidden = count > 0;
       if (!count && !randomReadsHaveResult) {
@@ -509,10 +627,10 @@ document.addEventListener('DOMContentLoaded', () => {
       progress.style.width = `${cachePct}%`;
       progress.parentElement.setAttribute('aria-valuenow', cachePct.toFixed(2));
       const points = renderCacheChart(data);
-      report(points === null
-        ? 'Chart unavailable: Chart.js could not be loaded. Values above are still live.'
-        : `${points} sample${points === 1 ? '' : 's'} (one every ${Math.round((finite(data.sampling_interval_seconds) || 10))} s) \u00b7 updated ${new Date().toLocaleTimeString()}`,
-      points === null);
+      report(points === 0
+        ? 'No historical cache samples are available yet; live cache values are shown above.'
+        : `${points} actual sample${points === 1 ? '' : 's'} (one every ${Math.round((finite(data.sampling_interval_seconds) || 10))} s) · updated ${new Date().toLocaleTimeString()}`,
+      false);
     } catch (error) {
       console.error(error);
       report(`Cache telemetry unavailable: ${error.message}`, true);
@@ -521,50 +639,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Returns the number of plotted samples, or null when the chart library is missing.
+  // Draw the cache chart directly from API samples; this avoids a third-party chart dependency.
   function renderCacheChart(data) {
-    const canvas = byId('wt-cache-chart');
-    if (!canvas || !window.Chart) return null;
+    const chart = byId('wt-cache-chart');
+    if (!chart) return 0;
     const history = (Array.isArray(data.history) ? data.history : [])
-      .filter(point => point && finite(point.max_bytes) && finite(point.bytes_in_cache) !== null)
+      .filter(point => point && finite(point.max_bytes) > 0 && finite(point.bytes_in_cache) !== null)
       .slice(-CHART_WINDOW);
-    const labels = history.map(point => new Date(point.timestamp).toLocaleTimeString());
-    const values = history.map(point => Number(((point.bytes_in_cache / point.max_bytes) * 100).toFixed(2)));
-    const axisMax = Math.min(100, Math.max(5, Math.ceil(Math.max(0, ...values) * 1.5)));
-
-    if (!cacheChart) {
-      cacheChart = new Chart(canvas, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Cache used (%)',
-            data: values,
-            borderColor: '#79536f',
-            backgroundColor: 'rgba(121, 83, 111, 0.12)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: false,
-          scales: {
-            y: { beginAtZero: true, max: axisMax, title: { display: true, text: 'Cache capacity used (%)' } },
-            x: { ticks: { maxTicksLimit: 8 } }
-          },
-          plugins: { legend: { display: false } }
-        }
-      });
-    } else {
-      cacheChart.data.labels = labels;
-      cacheChart.data.datasets[0].data = values;
-      cacheChart.options.scales.y.max = axisMax;
-      cacheChart.update('none');
+    if (!history.length) {
+      chart.innerHTML = '<p class="chart-empty">No measured cache utilization samples are available yet.</p>';
+      return 0;
     }
-    return values.length;
+    const width = 760, height = 230, left = 55, right = 22, top = 14, bottom = 40;
+    const plotWidth = width - left - right, plotHeight = height - top - bottom;
+    const points = history.map((sample, index) => {
+      const ratio = Math.min(100, Math.max(0, (Number(sample.bytes_in_cache) / Number(sample.max_bytes)) * 100));
+      const x = left + (history.length === 1 ? plotWidth / 2 : index * plotWidth / (history.length - 1));
+      const y = top + (1 - ratio / 100) * plotHeight;
+      return { x, y, ratio, sample };
+    });
+    const grid = [0, 25, 50, 75, 100].map(value => {
+      const y = top + (1 - value / 100) * plotHeight;
+      return `<line x1="${left}" y1="${y}" x2="${width - right}" y2="${y}" class="wt-chart-grid"/><text x="${left - 9}" y="${y + 4}" text-anchor="end" class="wt-chart-label">${value}%</text>`;
+    }).join('');
+    const line = points.map(point => `${point.x},${point.y}`).join(' ');
+    const marks = points.map(point => {
+      const timestamp = new Date(point.sample.timestamp);
+      const label = Number.isFinite(timestamp.getTime()) ? timestamp.toLocaleTimeString() : 'Sample time unavailable';
+      return `<circle cx="${point.x}" cy="${point.y}" r="3.5"><title>${label}: ${point.ratio.toFixed(2)}% of configured cache</title></circle>`;
+    }).join('');
+    const first = new Date(history[0].timestamp), last = new Date(history[history.length - 1].timestamp);
+    const firstLabel = Number.isFinite(first.getTime()) ? first.toLocaleTimeString() : 'First sample';
+    const lastLabel = Number.isFinite(last.getTime()) ? last.toLocaleTimeString() : 'Latest sample';
+    chart.innerHTML = `<svg class="wt-utilization-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="WiredTiger cache utilization from ${points.length} actual samples; percent of configured cache capacity"><text x="${left}" y="12" class="wt-chart-axis-title">Cache capacity used (%)</text>${grid}<polyline points="${line}" class="wt-chart-line"/>${marks}<text x="${left}" y="${height - 9}" class="wt-chart-label">${firstLabel}</text><text x="${width - right}" y="${height - 9}" text-anchor="end" class="wt-chart-label">${lastLabel}</text></svg>`;
+    return points.length;
   }
 
   // One interval, only while the Working Set view is open.
@@ -597,13 +705,13 @@ document.addEventListener('DOMContentLoaded', () => {
       byId('ws-read-count').textContent = `${executed.toLocaleString()} random _id lookups in ${countOrNA(result.durationMs)} ms total`;
       byId('ws-read-pages').textContent = `${countOrNA(result.pageReads)} / ${countOrNA(result.evictions)}`;
       byId('ws-read-pages-detail').textContent = 'Pages read into cache / application-thread evictions during the workload';
-      status.textContent = `Experiment completed ${new Date().toLocaleTimeString()}; cache metrics refreshed from MongoDB.`;
+      status.textContent = `Measurement completed ${new Date().toLocaleTimeString()}; cache metrics refreshed from MongoDB.`;
       randomReadsHaveResult = true;
       loadWiredTigerTelemetry();
     } catch (error) {
       console.error(error);
       status.classList.add('error');
-      status.textContent = `Experiment failed: ${error.message}`;
+      status.textContent = `Measurement failed: ${error.message}`;
       if (!randomReadsHaveResult) {
         byId('ws-read-latency').textContent = '—';
         byId('ws-read-count').textContent = 'No measurement: the last attempt failed';
@@ -879,7 +987,9 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ target }),
       });
       if (!response.ok) {
-        throw new Error(typeof data.detail === 'string' ? data.detail : `The backend returned HTTP ${response.status}.`);
+        const detail = data.detail;
+        if (response.status === 402 && detail && typeof detail === 'object' && detail.feature) showUpgrade(detail.feature, detail);
+        throw new Error(typeof detail === 'string' ? detail : detail?.message || `The backend returned HTTP ${response.status}.`);
       }
       if (data.error) {
         const title = VT_ERROR_TITLES[data.error_code] || 'VirusTotal scan failed';
@@ -926,4 +1036,5 @@ document.addEventListener('DOMContentLoaded', () => {
   loadThreatStream();
   loadWorkingSetAnalysis();
   loadSourceSyncStatus();
+  window.setInterval(loadSourceSyncStatus, 60_000);
 });

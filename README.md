@@ -15,6 +15,7 @@ scores or locations.
 
 ## Contents
 
+- [Starting the AEGIS Platform](#starting-the-aegis-platform)
 - [Prerequisites](#prerequisites)
 - [Start the application](#start-the-application)
 - [First run and health checks](#first-run-and-health-checks)
@@ -23,9 +24,158 @@ scores or locations.
 - [Lab 9.1: write concern latency](#lab-91-write-concern-latency)
 - [Lab 9.2: network partition](#lab-92-network-partition)
 - [Optional Working Set benchmark data](#optional-working-set-benchmark-data)
+- [Technology & Innovation Portfolio](#technology--innovation-portfolio)
 - [Troubleshooting](#troubleshooting)
 - [Shutdown and data persistence](#shutdown-and-data-persistence)
 - [Development without Docker](#development-without-docker)
+
+## Technology & Innovation Portfolio
+
+The Engineering sidebar opens one Technology & Innovation workspace with internal Overview, System
+Activity, Execution Timeline, Failures & Recovery, Execution Flow, Performance Analytics, Component
+Health, Infrastructure, and Technology Portfolio sections. The original four source-backed project
+details, architecture diagrams, resources, and verified Docker Hub links remain in the portfolio tab.
+
+Administrator-only operational APIs report live MongoDB ping/topology, scheduler state, and
+configured collector status. API request telemetry is stored in the `system_operations` collection
+for 30 days. It begins when this instrumentation is deployed; older request history is not available.
+Telemetry stores route templates, status, duration, and generated event/correlation IDs only; it
+does not store request bodies, query values, cookies, tokens, user identifiers, or raw exception
+messages. Failure status codes are recorded, but recovery/fallback outcomes are labeled unavailable
+unless a real recovery event is instrumented. WiredTiger history is sampled by the existing
+in-process sampler and resets when the backend restarts. Docker peer-container and backup health
+remain unmonitored because the application has no host-level Docker or backup health endpoint.
+The Activity view also includes existing administrator audit actions using only their recorded
+action, outcome, and timestamp; identities, targets, and audit details are omitted.
+
+## Starting the AEGIS Platform
+
+Use this machine-specific procedure after Docker Desktop or Windows has restarted. The verified
+deployment already exists as `fresh-mongo1`, `fresh-mongo2`, `fresh-mongo3`, and `fresh-backend`
+(currently running `aegis-cti-financial:2026-10-29-r2`).
+The PowerShell script starts only those existing containers, checks `rs0`, verifies backend health
+and anonymous-route protection, then opens the sign-in page. It never runs Compose, creates containers, changes networks,
+or touches the separate Chapter 10 `bank-primary`, `bank-backup`, and `bank-dr` containers.
+
+### 1. Open the project and start Docker Desktop
+
+Open Docker Desktop from the Windows Start menu and wait until its engine reports that it is running.
+Then open PowerShell:
+
+```powershell
+cd C:\Users\hp\Downloads\nosql-lab-7
+docker version
+docker ps -a
+```
+
+`docker version` must show both Client and Server sections. `docker ps -a` should list the three
+`fresh-mongo*` containers and `fresh-backend`; they may be running already because their restart
+policy is `unless-stopped`.
+
+### 2. Start the existing MongoDB replica set and backend
+
+The normal one-command startup is:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\start-project.ps1
+```
+
+The execution-policy option applies to that PowerShell process only. The script verifies that the
+existing containers are on `fresh-mongo-net` and that the MongoDB host ports are still 37017, 37018,
+and 37019. It starts only members that are stopped, waits for their health checks, verifies one
+healthy PRIMARY and two healthy SECONDARY members in `rs0`, and then starts `fresh-backend` if needed.
+It checks `/health`, confirms the sign-in page loads, and verifies `/api/meta` returns HTTP 401
+without a session. Sign in before using threat or experiment data APIs.
+
+To run the same checks without opening a browser:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\start-project.ps1 -NoBrowser
+```
+
+The script refuses to create or recreate missing containers. If one is missing or on a different
+network/port, stop and investigate the existing deployment; do not substitute the root Compose
+stack as a repair command. The standard `docker-compose.yml` in this repository describes the
+`mongo1`/`mongo2`/`mongo3` deployment and defaults `mongo1` to host port 27017. It is not the
+restart procedure for this machine and must not be started alongside the separate Chapter 10 bank
+deployment.
+
+### 3. Verify MongoDB, backend, and frontend
+
+The script performs these checks itself. To check them manually:
+
+```powershell
+docker ps --filter "name=fresh-"
+docker exec fresh-mongo1 mongosh --quiet --eval "const s=rs.status(); print(JSON.stringify({set:s.set,members:s.members.map(m=>({name:m.name,state:m.stateStr,health:m.health}))}))"
+Invoke-RestMethod http://localhost:8000/health
+(Invoke-WebRequest -UseBasicParsing http://localhost:8000/account).StatusCode
+curl.exe -i http://localhost:8000/api/meta
+```
+
+Expected: `rs0` has one `PRIMARY`, two `SECONDARY` members, and `health: 1` for all three;
+`/health` returns `status: ok`; `/account` loads the sign-in form; and anonymous `/api/meta` access
+returns HTTP 401. After creating an account and signing in, the inventory endpoint
+currently returns 10 persisted, clearly identified demonstration products from the separate
+`lab10_demo.inventory` database. Reservations are stored in `lab10_demo.orders`; it starts empty and
+does not contain fabricated history. The live Lab 10 banking replica set is separate and is not
+started by this procedure, so Banking Operations continues to show its saved experiment data unless
+its dedicated connection is configured separately.
+
+The backend container serves both the FastAPI API and the static frontend in `public/`. There is no
+separate frontend framework, Node process, npm install, or second terminal to keep open. The script
+runs the containers in the background; Docker Desktop must remain running, but PowerShell can close.
+The browser loads the API from the same origin (`/api/...`) at port 8000.
+The repository also has a `.venv` for local development/tests, but the verified application runs in
+the existing `fresh-backend` Docker container. Do not start a second local Uvicorn process on port
+8000 during normal use. Its image starts `uvicorn backend.main:app --host 0.0.0.0 --port 8000`.
+Inside `fresh-mongo-net`, its MongoDB URI uses `fresh-mongo1`, `fresh-mongo2`, and `fresh-mongo3` on
+port 27017 with `replicaSet=rs0`; `MONGO_DATABASE` is `chapter07`. The backend health endpoint does
+not expose database configuration; sign in to access the protected metadata API.
+
+| Service | Address / configuration |
+|---|---|
+| Frontend | <http://localhost:8000> |
+| Backend health | <http://localhost:8000/health> |
+| API documentation | <http://localhost:8000/docs> |
+| Lab 7 database | `chapter07` on replica set `rs0` |
+| MongoDB internal network | `fresh-mongo-net` |
+| MongoDB loopback host ports | `fresh-mongo1`: 37017, `fresh-mongo2`: 37018, `fresh-mongo3`: 37019 |
+
+No `.env` edit or API key is required to start the application. VirusTotal enrichment is optional;
+its key, if configured, belongs in the local `.env` and must never be pasted into this README.
+
+### Configure optional API credentials
+
+Keep credentials only in the ignored project `.env`. VirusTotal keys are available from your
+[VirusTotal account API key page](https://www.virustotal.com/gui/my-apikey). ThreatFox requires a
+separate abuse.ch Auth-Key from the [ThreatFox Community API](https://threatfox.abuse.ch/api/).
+Add these names locally, without quotes (never put values in source code or Git):
+
+```dotenv
+VIRUSTOTAL_API_KEY=your_private_value
+THREATFOX_AUTH_KEY=your_private_value
+```
+
+The existing `fresh-backend` is a machine-specific container and does not mount the host `.env`.
+After editing `.env`, copy it into that container and restart only the backend so the configuration
+loader can read it:
+
+```powershell
+cd C:\Users\hp\Downloads\nosql-lab-7
+docker cp .env fresh-backend:/app/.env
+docker restart fresh-backend
+Start-Process http://localhost:8000
+```
+
+After signing in, the response reports configuration state only; it never returns either secret. The dashboard’s
+VirusTotal test performs a real lookup when configured. ThreatFox syncs real IOCs through its
+authenticated v1 API; without `THREATFOX_AUTH_KEY`, the feed is explicitly marked as requiring
+configuration and its previous successful-sync time is retained.
+
+To restart only the backend without changing credentials, use `docker restart fresh-backend`. To
+stop the full AEGIS stack while keeping the containers and database volumes, stop `fresh-backend`,
+`fresh-mongo2`, `fresh-mongo3`, and `fresh-mongo1`; do not use the repository’s separate standard
+Compose stack for this existing machine-specific deployment.
 
 ## Prerequisites
 
@@ -38,6 +188,11 @@ scores or locations.
 - A Docker Hub account only if you want to pull a private image or publish your own.
 
 ## Start the application
+
+> This section describes the repository's standard Compose deployment. For this computer's already
+> created `fresh-*` containers and safe post-restart procedure, use [Starting the AEGIS Platform](#starting-the-aegis-platform).
+> Do not run the Compose commands below as a shortcut for that procedure: the checked-in Compose
+> file uses the separate `mongo1` naming and defaults to host port 27017.
 
 There are two equivalent ways to obtain the image. Both start the same stack.
 
@@ -209,10 +364,25 @@ button before building it, the page explains this and shows the command.
 
 ## Troubleshooting
 
+### Restarting this machine's verified deployment
+
+| Symptom | Fix |
+|---|---|
+| `docker info` cannot reach the server | Open Docker Desktop, wait for the engine to finish starting, then retry `docker version` and `docker ps -a`. |
+| `start-project.ps1` says a required container is missing | The script intentionally refuses to create containers. Do not run `docker compose up` as a shortcut: this checkout's Compose file uses `mongo1` and defaults to host port 27017, separate from the verified `fresh-*` deployment. Restore the existing deployment only from its original configuration and volumes. |
+| A port is already in use | The verified MongoDB containers use loopback ports 37017-37019, not 27017. Check listeners with `Get-NetTCPConnection -State Listen -LocalPort 37017,37018,37019,8000,18000 -ErrorAction SilentlyContinue`. Do not stop or rebind the Chapter 10 `bank-primary` container to free port 27017. |
+| A MongoDB member is unhealthy or `rs0` has no primary | Run `docker logs --tail 100 fresh-mongo1` (or the affected member), then rerun `start-project.ps1`. Do not run `rs.initiate()`, `rs.reconfig()`, or a data reset against this existing set. |
+| The backend container will not start or the health check fails | Run `docker logs --tail 150 fresh-backend`, then check `http://localhost:8000/health` and `/account`. Anonymous requests to `/api/meta` should return HTTP 401. Do not also launch local Uvicorn on port 8000. |
+| The page is blank or its API calls fail | Open <http://localhost:8000>, hard-refresh the page, and check `http://localhost:8000/health`. The frontend is served by `fresh-backend`; there is no separate Node process. Check `docker logs --tail 150 fresh-backend` for API errors. |
+| Python packages are missing | This does not affect the Docker startup path; dependencies are installed in the image. For optional local development/tests, activate `.\.venv\Scripts\Activate.ps1` and install `python -m pip install -r requirements.txt`. |
+| Frontend packages are missing | No frontend package install is required. The project serves plain HTML/CSS/JavaScript from `public/`; there is no `package.json` startup command. |
+| VirusTotal reports missing credentials | `VIRUSTOTAL_API_KEY` is optional and only enables enrichment. Keep the key in the ignored local `.env`; never put its value in the README, script, or browser code. |
+| Inventory or banking data is unavailable | Sign in before checking `/api/lab10/inventory/products` or other protected APIs, then review backend logs. Inventory uses `lab10_demo.inventory` in clearly labeled demonstration mode when the separate live Lab 10 URI is not configured. Banking stays on saved experiment data until its dedicated `LAB10_MONGO_URI` is available; this startup procedure does not start or modify the Chapter 10 bank containers. |
+
 | Symptom | Fix |
 |---|---|
 | `pull access denied` / `manifest unknown` | The image is not published or `APP_IMAGE` is wrong. `docker login` (private repo), check the name, or use `docker compose up -d --build`. |
-| `port is already allocated` | Set `APP_PORT`, `MONGO1_BIND`, ... in `.env` to free ports. |
+| `port is already allocated` | For the verified `fresh-*` stack, inspect ports 37017-37019 and 8000/18000; do not change the Chapter 10 bank port mapping. The `.env`/`MONGO1_BIND` advice below applies only to a separately reviewed standard Compose deployment. |
 | `mongo1` stays `starting` or `unhealthy` | `docker compose logs mongo1`. Usually low memory: raise Docker Desktop memory or lower `MONGO_CACHE_GB`. |
 | `mongo-init` exits non-zero | `docker compose logs mongo-init`; fix the member shown, then `docker compose up -d` (init is idempotent). |
 | `lab7-backend` restarts | `docker compose logs lab7-backend`: check the `[config]` lines and that `mongo-init` completed. |
@@ -223,6 +393,21 @@ button before building it, the page explains this and shows the command.
 | Authentication errors | This deployment runs MongoDB without authentication, bound to loopback host ports only and the internal network. Add auth before exposing it. |
 
 ## Shutdown and data persistence
+
+For the verified `fresh-*` deployment, stop only its existing application and MongoDB containers.
+These commands keep the containers and MongoDB volumes; they do not touch Chapter 10 bank containers:
+
+```powershell
+docker stop fresh-backend
+docker stop fresh-mongo2
+docker stop fresh-mongo3
+docker stop fresh-mongo1
+```
+
+Start them again with `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\start-project.ps1`.
+
+The Compose commands below apply only to a stack created with this repository's root Compose file;
+they are not the verified machine restart procedure above.
 
 ```bash
 docker compose stop        # stop containers, keep everything
@@ -287,7 +472,7 @@ and timestamps.
 |---|---|---|
 | CIRCL OSINT | <https://www.circl.lu/doc/misp/feed-osint/manifest.json> | ~1,681 |
 | Botvrij.eu | <https://www.botvrij.eu/data/feed-osint/manifest.json> | ~435 |
-| ThreatFox (abuse.ch) | <https://threatfox.abuse.ch/downloads/misp/manifest.json> | ~2,009 events holding several million indicators |
+| ThreatFox (abuse.ch) | <https://threatfox-api.abuse.ch/api/v1/> (`POST`, `get_iocs`, up to 7 days) | Requires `THREATFOX_AUTH_KEY`; Auth-Key header required |
 
 Each feed publishes continuously; the sync runs at least once per day (and
 on app startup), so the database converges to the feeds' newest events. A
@@ -363,3 +548,196 @@ With the API server running, `python smoke_test.py` exercises every
 endpoint and static page against the live data (feed stream, threat
 details, reports, search, WiredTiger metrics, Lab 7.2 analysis and
 random-read benchmark) and fails on any empty section.
+
+## Account, wallet and subscriptions
+
+The separate `/account` page provides sign-in, account creation, account details,
+and logout. Wallet balances, simulated top-ups, subscription plans, purchases,
+payments, receipts, and the single personal financial history are all managed in
+**Banking Operations**. The Account page contains no financial controls or
+transaction table. Existing
+Lab 10 transfer/retry/inventory pages remain academic experiment views; their
+saved or separate-bank records are not presented as purchases by the signed-in
+wallet user. Plan
+defaults are Free ₹0/100 credits, Plus ₹299/1,000 credits, and Pro ₹799/5,000
+credits. Wallet top-ups and subscription payments are simulated INR amounts;
+no payment gateway is connected. Each top-up and subscription purchase uses a
+MongoDB transaction with snapshot reads, majority writes, and primary reads.
+Changing plans charges the full monthly price without proration and replaces
+the current monthly credit allocation. Rebuying an active plan is rejected.
+
+Registration requires at least 12 characters with upper and lowercase letters,
+a number, and a symbol. Passwords use PBKDF2-HMAC-SHA256 with unique salts and
+are never printed by the application. The main dashboard and all threat,
+VirusTotal, cross-source, and experiment data APIs require a MongoDB-backed
+session. Anonymous visitors are redirected to `/account`, while protected API
+requests return HTTP 401. The login page presents one form at a time. For HTTPS,
+set `SESSION_COOKIE_SECURE=true`; local HTTP uses an HttpOnly SameSite=Lax
+cookie without the Secure flag.
+
+To create a normal account, open <http://localhost:8000/account>, choose
+**Create account**, and complete registration. New accounts start on Free with
+100 credits and a clearly labeled ₹1,000 simulated opening wallet. After signing
+in, use Banking Operations to add simulated money or purchase a plan. Demo-user
+initialization below is optional and is intended for local evaluation.
+
+Configure demo passwords in the current PowerShell session before initializing
+accounts. This creates `demo-free@aegis.local`, `demo-plus@aegis.local`,
+`demo-pro@aegis.local`, and `demo-admin@aegis.local` once; existing accounts
+are left unchanged. The platform wallet is created with a zero balance.
+
+```powershell
+Set-Location C:\Users\hp\Downloads\nosql-lab-7
+function Set-DemoPassword([string]$Name) {
+  $secret = Read-Host "Password for $Name (12+ chars; upper/lowercase, number, symbol)" -AsSecureString
+  $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret)
+  try { [Environment]::SetEnvironmentVariable($Name, [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr), 'Process') }
+  finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr) }
+}
+Set-DemoPassword DEMO_FREE_PASSWORD
+Set-DemoPassword DEMO_PLUS_PASSWORD
+Set-DemoPassword DEMO_PRO_PASSWORD
+Set-DemoPassword DEMO_ADMIN_PASSWORD
+& .\.venv\Scripts\python.exe -m backend.init_subscription_demo
+```
+
+The module exposes `GET /api/subscriptions/plans`, register/login/logout,
+session-backed `GET /api/subscriptions/me`, purchase quote, plan purchase,
+simulated wallet top-up (`POST /api/subscriptions/wallet/top-up`), wallet
+transfer, and the authenticated `GET /api/subscriptions/financial-activity`
+list/detail API. The API derives the owner from the server session; user IDs in
+query strings are not used to select private records. Admin-only summary and
+audit routes also report the platform wallet balance. Passwords are PBKDF2-SHA256 hashed
+with unique salts. Session tokens are random, stored only as SHA-256 hashes,
+and expire through a MongoDB TTL index after seven days. The browser session
+cookie is HttpOnly and SameSite=Lax; set `SESSION_COOKIE_SECURE=true` when
+serving HTTPS. Never put demo passwords in `.env.example`, source control, or
+Docker build arguments.
+
+Financial activity reuses these MongoDB collections; it does not copy legacy
+Lab 10 experiment snapshots into personal history:
+
+| Collection | Purpose in financial activity |
+|---|---|
+| `wallet_transactions` | Canonical per-user committed entries, including type, status, amount/currency, balances, plan/credit changes, related IDs, metadata, and idempotency key. |
+| `wallets`, `wallet_ledger` | Current balances and atomic money deltas. |
+| `subscription_payments`, `subscription_history` | Payment and plan-change records joined by transaction ID for new operations. |
+| `credit_ledger` | Plan allocations and feature-credit deductions. |
+| `wallet_operations`, `subscription_receipts` | Idempotency results, printable receipt details, and separately surfaced rolled-back failures. |
+
+The history API supports type/status/date/search filters and page-based results.
+Indexes cover per-user date/type/status lookup, unique per-user transaction IDs,
+idempotency keys, and one failure receipt per operation key. Add Money, plan
+changes, and wallet transfers insert their canonical activity rows in the same
+snapshot/majority/primary MongoDB transaction as balances, ledgers, payments,
+credits, and receipts. A reusable `record_financial_transaction()` writer and
+`charge_feature_credits()` transaction service are available to future paid
+features. Current threat features are not credit-metered, so the UI does not
+invent feature charges. There is no wallet refund endpoint today; the common
+writer accepts refunded operations when a real refund service is added.
+
+To demonstrate the workflow, sign in at `/account`, open Banking Operations,
+add simulated funds, and choose Plus or Pro. The result appears in Banking
+Operations → Transaction history, where filters, pagination, and Details show its receipt and
+ledger links. An insufficient-balance purchase is rejected and shown as a
+rolled-back failure without a committed money-history row. The separate
+`POST /api/subscriptions/transfer` route records one outgoing and one incoming
+private row for the respective wallet owners. The Lab 10 bank transfer
+demonstration remains separate because the configured app does not associate
+its experimental account numbers with subscription users.
+
+Focused tests:
+
+```powershell
+& .\.venv\Scripts\python.exe -m unittest test.test_subscriptions -v
+& .\.venv\Scripts\python.exe test\test_integration.py http://localhost:8000
+& .\.venv\Scripts\python.exe -m py_compile backend\services\subscriptions.py backend\routes\subscriptions.py backend\init_subscription_demo.py backend\main.py
+node --check public\account.js
+node --check public\banking-finance.js
+./scripts/health_check.ps1
+```
+
+The source checkout's backend service is `lab7-backend` in
+`docker-compose.yml`; Docker must already be running with its configured
+replica set. To build and replace only this backend service with a new local
+tag, preserving MongoDB containers and volumes:
+
+```powershell
+Set-Location C:\Users\hp\Downloads\nosql-lab-7
+docker build --file Dockerfile.upgrade --tag aegis-cti-financial:2026-10-29-r4 .
+
+# Keep the old backend container for rollback; only the backend is stopped.
+docker stop fresh-backend
+docker rename fresh-backend fresh-backend-rollback-20261029-r12
+$results = (Resolve-Path .\labs\lab9\results).Path
+docker run --detach --name fresh-backend --network fresh-mongo-net `
+  --restart unless-stopped --env-file .env `
+  --env MONGO_URI='mongodb://fresh-mongo1:27017,fresh-mongo2:27017,fresh-mongo3:27017/?replicaSet=rs0' `
+  --env MONGO_DATABASE=chapter07 --env FRONTEND_ORIGIN=http://localhost:8000 `
+  --env FRONTEND_API_URL= `
+  --env LAB9_RESULTS_DIR=/app/labs/lab9/results `
+  --mount "type=bind,source=$results,target=/app/labs/lab9/results" `
+  --publish 8000:8000 --publish 18000:8000 aegis-cti-financial:2026-10-29-r4
+Invoke-RestMethod http://localhost:8000/health
+Start-Process http://localhost:8000/account
+```
+
+If the replacement fails health checks, preserve it and roll back without
+deleting either container:
+
+```powershell
+docker stop fresh-backend
+docker rename fresh-backend fresh-backend-failed-20261029
+docker rename fresh-backend-rollback-20261029-r12 fresh-backend
+docker start fresh-backend
+```
+
+The repository's existing `start-project.ps1` is a separate safe starter for
+the already-created `fresh-*` containers; it starts the current backend but
+does not rebuild or recreate it. The build above reuses the locally installed
+dependencies in `lab7-threat-intel:latency-fix`, writes a new tag, and keeps
+the old image tag available for rollback.
+
+For a machine that does not already have `lab7-threat-intel:latency-fix`, build
+from the normal Python base instead (this downloads the packages in
+`requirements.txt`):
+
+```powershell
+docker build --tag aegis-cti-auth:2026-10-29-r5 .
+```
+
+Do not push until the Docker Hub username and repository are confirmed. After
+confirmation, replace the placeholder with the intended namespace:
+
+```powershell
+docker login
+docker tag aegis-cti-auth:2026-10-29-r5 <DOCKERHUB_USER>/<REPOSITORY>:2026-10-29-r5
+docker push <DOCKERHUB_USER>/<REPOSITORY>:2026-10-29-r5
+```
+
+### Current feature map
+
+| Page / operation | Existing or added behavior |
+| --- | --- |
+| Live Threat Stream, Top Threats, Report Corpus, Search & Enrich | Existing public threat data, filters, search, detail and VirusTotal UI remain available. |
+| Cross-Source Analysis | Existing cross-source routes and analysis view remain available. |
+| Working Set Monitor, Write Concern Latency, Network Reliability | Existing Experiment 7–9 monitoring and experiment views remain available. |
+| Banking Operations | Single place for personal wallet summaries, simulated deposits, plan selection and purchases, receipts, and private transaction history. Lab 10 saved transfers remain separately labeled experiment data. |
+| Reliability & Inventory | Existing Lab 10 retry, reservation, and saved benchmark views remain available. |
+| Account & Subscription (`/account`) | Account creation/sign-in, account identity, and logout; all wallet and subscription management is in Banking Operations. |
+| Admin Dashboard | Session- and role-protected user, subscription, wallet, transaction, dashboard, and audit views backed by existing records. See [ADMIN_GUIDE.md](ADMIN_GUIDE.md) for one-time local administrator setup. |
+| Security administration APIs | Existing backend security mechanisms and authenticated routes are retained; the separate Security Center page and navigation are removed. |
+
+Administrator metrics use the existing account and financial collections.
+“Active users” is based on successful logins in the preceding 30 days; accounts
+created before login timestamps were introduced have no inferred activity.
+Financial activity remains read-only in the Admin Dashboard; it does not repair
+or rewrite historical data.
+The Experiment 10 original submission remains in
+`C:\Users\hp\Downloads\Chapter_10_Submission\Chapter_10_Submission`; it is not
+part of this app's build context and has not been modified.
+
+See [SECURITY_CENTER.md](SECURITY_CENTER.md) for verified deployment state, safe MongoDB role/TLS prerequisites, and Security Center endpoints.
+
+See [BILLING_AND_ENTITLEMENTS.md](BILLING_AND_ENTITLEMENTS.md) for the Free wallet cap, monthly plan access, configurable Plus limits, and transaction-history behavior.
+See [ADMIN_GUIDE.md](ADMIN_GUIDE.md) for administrator credential setup and reporting definitions.

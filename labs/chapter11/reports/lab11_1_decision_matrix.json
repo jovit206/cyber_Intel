@@ -1,0 +1,658 @@
+{
+  "captured_at_utc": "2026-10-30T09:11:01.035265+00:00",
+  "experiment": "11.1 - Shard Key Evaluation",
+  "dataset": {
+    "label": "Transaction Dataset",
+    "source_collection": "chapter07.demo_financial_activity",
+    "record_count": 1400,
+    "filter": {
+      "source": "synthetic-demo-v1",
+      "is_synthetic": true
+    },
+    "unique_transaction_ids": 1400
+  },
+  "mongodb_version": "7.0.45",
+  "router": "mongos",
+  "shards": [
+    "c11-shard1-rs",
+    "c11-shard2-rs"
+  ],
+  "workload": {
+    "name": "customer-centric transaction lookup with order and date access",
+    "query_weights": {
+      "customer_id_equality": 0.45,
+      "order_id_equality": 0.3,
+      "date_range": 0.15,
+      "customer_id_range": 0.1
+    },
+    "score_formula": "70% measured weighted single-shard query coverage + 20% measured shard balance + 10% non-monotonic insert-key credit."
+  },
+  "recommendation": "customer_id",
+  "reason": "customer_id scored highest (0.615) under the displayed workload weights using measured query plans, shard balance, and key progression. Hashed keys can improve distribution but reduce range locality; here their measured results are shown rather than assumed.",
+  "matrix": [
+    {
+      "candidate": "order_id",
+      "shard_key": "{\"order_id\": 1}",
+      "cardinality": "1,400/1,400 distinct; 1\u20131 rows/value",
+      "distribution": "c11-shard1-rs: 700, c11-shard2-rs: 700",
+      "query_targeting": "customer id equality: 2 shard(s); order id equality: 1 shard(s); date range: 2 shard(s); customer id range: 2 shard(s)",
+      "targeted_query_count": 1,
+      "hotspot_risk": "High: input key values increase in insert order; the active upper range is a write hotspot risk.",
+      "range_efficiency": "Date range: scatter/gather; customer range: scatter/gather",
+      "fit": "Measured score 0.410"
+    },
+    {
+      "candidate": "customer_id",
+      "shard_key": "{\"customer_id\": 1}",
+      "cardinality": "100/1,400 distinct; 14\u201314 rows/value",
+      "distribution": "c11-shard1-rs: 700, c11-shard2-rs: 700",
+      "query_targeting": "customer id equality: 1 shard(s); order id equality: 2 shard(s); date range: 2 shard(s); customer id range: 2 shard(s)",
+      "targeted_query_count": 1,
+      "hotspot_risk": "Low in this dataset: values are not monotonic and the most frequent key represents 1.0% of rows.",
+      "range_efficiency": "Date range: scatter/gather; customer range: scatter/gather",
+      "fit": "Measured score 0.615"
+    },
+    {
+      "candidate": "order_date",
+      "shard_key": "{\"order_date\": 1}",
+      "cardinality": "1,400/1,400 distinct; 1\u20131 rows/value",
+      "distribution": "c11-shard1-rs: 699, c11-shard2-rs: 701",
+      "query_targeting": "customer id equality: 2 shard(s); order id equality: 2 shard(s); date range: 2 shard(s); customer id range: 2 shard(s)",
+      "targeted_query_count": 0,
+      "hotspot_risk": "High: input key values increase in insert order; the active upper range is a write hotspot risk.",
+      "range_efficiency": "Date range: scatter/gather; customer range: scatter/gather",
+      "fit": "Measured score 0.200"
+    },
+    {
+      "candidate": "hashed customer_id",
+      "shard_key": "{\"customer_id\": \"hashed\"}",
+      "cardinality": "100/1,400 distinct; 14\u201314 rows/value",
+      "distribution": "c11-shard1-rs: 630, c11-shard2-rs: 770",
+      "query_targeting": "customer id equality: 1 shard(s); order id equality: 2 shard(s); date range: 2 shard(s); customer id range: 2 shard(s)",
+      "targeted_query_count": 1,
+      "hotspot_risk": "Low in this dataset: values are not monotonic and the most frequent key represents 1.0% of rows.",
+      "range_efficiency": "Date range: scatter/gather; customer range: scatter/gather",
+      "fit": "Measured score 0.595"
+    }
+  ],
+  "collections": {
+    "transactions_by_order_id": {
+      "candidate": "order_id",
+      "shard_key": {
+        "order_id": 1
+      },
+      "source_collection": "chapter07.demo_financial_activity",
+      "total_documents": 1400,
+      "cardinality": {
+        "distinct_values": 1400,
+        "ratio": 1.0,
+        "minimum_rows_per_value": 1,
+        "maximum_rows_per_value": 1,
+        "most_frequent_share": 0.0007142857142857143
+      },
+      "distribution": {
+        "per_shard": [
+          {
+            "shard": "c11-shard1-rs",
+            "owned_documents": 700,
+            "storage_size_bytes": 180224,
+            "logical_size_bytes": 147000,
+            "index_size_bytes": 204800
+          },
+          {
+            "shard": "c11-shard2-rs",
+            "owned_documents": 700,
+            "storage_size_bytes": 118784,
+            "logical_size_bytes": 147000,
+            "index_size_bytes": 98304
+          }
+        ],
+        "balance_score": 1.0,
+        "imbalance_percent": 0.0
+      },
+      "monotonic_in_input_order": true,
+      "hotspot_risk": "High: input key values increase in insert order; the active upper range is a write hotspot risk.",
+      "query_targeting_score": 0.3,
+      "recommendation_score": 0.41,
+      "query_weights": {
+        "customer_id_equality": 0.45,
+        "order_id_equality": 0.3,
+        "date_range": 0.15,
+        "customer_id_range": 0.1
+      },
+      "range_efficiency": {
+        "date_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "date_range_scatter_gather": true,
+        "date_range_returned": 701,
+        "date_range_examined": 1400,
+        "customer_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "customer_range_scatter_gather": true
+      },
+      "per_shard": [
+        {
+          "shard": "c11-shard1-rs",
+          "owned_documents": 700,
+          "storage_size_bytes": 180224,
+          "logical_size_bytes": 147000,
+          "index_size_bytes": 204800
+        },
+        {
+          "shard": "c11-shard2-rs",
+          "owned_documents": 700,
+          "storage_size_bytes": 118784,
+          "logical_size_bytes": 147000,
+          "index_size_bytes": 98304
+        }
+      ],
+      "queries": {
+        "customer_id_equality": {
+          "filter": {
+            "customer_id": "DEMO-CUSTOMER-038"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 14,
+          "docs_examined": 1400,
+          "execution_millis": 1
+        },
+        "order_id_equality": {
+          "filter": {
+            "order_id": "DEMO-ORDER-0701"
+          },
+          "targeted_shards": [
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": false,
+          "n_returned": 1,
+          "docs_examined": 1,
+          "execution_millis": 0
+        },
+        "date_range": {
+          "filter": {
+            "order_date": {
+              "$gte": {
+                "$date": "2025-01-05T15:09:00Z"
+              },
+              "$lte": {
+                "$date": "2025-01-14T20:49:00Z"
+              }
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 701,
+          "docs_examined": 1400,
+          "execution_millis": 1
+        },
+        "customer_id_range": {
+          "filter": {
+            "customer_id": {
+              "$gte": "DEMO-CUSTOMER-026",
+              "$lte": "DEMO-CUSTOMER-076"
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 714,
+          "docs_examined": 1400,
+          "execution_millis": 1
+        }
+      },
+      "write_elapsed_seconds": 0.0722,
+      "fit": "Best when order lookups dominate; customer and date filters scatter, and sequential IDs can make the upper range hot."
+    },
+    "transactions_by_customer_id": {
+      "candidate": "customer_id",
+      "shard_key": {
+        "customer_id": 1
+      },
+      "source_collection": "chapter07.demo_financial_activity",
+      "total_documents": 1400,
+      "cardinality": {
+        "distinct_values": 100,
+        "ratio": 0.07142857142857142,
+        "minimum_rows_per_value": 14,
+        "maximum_rows_per_value": 14,
+        "most_frequent_share": 0.01
+      },
+      "distribution": {
+        "per_shard": [
+          {
+            "shard": "c11-shard1-rs",
+            "owned_documents": 700,
+            "storage_size_bytes": 249856,
+            "logical_size_bytes": 147000,
+            "index_size_bytes": 200704
+          },
+          {
+            "shard": "c11-shard2-rs",
+            "owned_documents": 700,
+            "storage_size_bytes": 118784,
+            "logical_size_bytes": 147000,
+            "index_size_bytes": 98304
+          }
+        ],
+        "balance_score": 1.0,
+        "imbalance_percent": 0.0
+      },
+      "monotonic_in_input_order": false,
+      "hotspot_risk": "Low in this dataset: values are not monotonic and the most frequent key represents 1.0% of rows.",
+      "query_targeting_score": 0.45,
+      "recommendation_score": 0.615,
+      "query_weights": {
+        "customer_id_equality": 0.45,
+        "order_id_equality": 0.3,
+        "date_range": 0.15,
+        "customer_id_range": 0.1
+      },
+      "range_efficiency": {
+        "date_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "date_range_scatter_gather": true,
+        "date_range_returned": 701,
+        "date_range_examined": 1400,
+        "customer_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "customer_range_scatter_gather": true
+      },
+      "per_shard": [
+        {
+          "shard": "c11-shard1-rs",
+          "owned_documents": 700,
+          "storage_size_bytes": 249856,
+          "logical_size_bytes": 147000,
+          "index_size_bytes": 200704
+        },
+        {
+          "shard": "c11-shard2-rs",
+          "owned_documents": 700,
+          "storage_size_bytes": 118784,
+          "logical_size_bytes": 147000,
+          "index_size_bytes": 98304
+        }
+      ],
+      "queries": {
+        "customer_id_equality": {
+          "filter": {
+            "customer_id": "DEMO-CUSTOMER-038"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": false,
+          "n_returned": 14,
+          "docs_examined": 14,
+          "execution_millis": 0
+        },
+        "order_id_equality": {
+          "filter": {
+            "order_id": "DEMO-ORDER-0701"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 1,
+          "docs_examined": 1400,
+          "execution_millis": 1
+        },
+        "date_range": {
+          "filter": {
+            "order_date": {
+              "$gte": {
+                "$date": "2025-01-05T15:09:00Z"
+              },
+              "$lte": {
+                "$date": "2025-01-14T20:49:00Z"
+              }
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 701,
+          "docs_examined": 1400,
+          "execution_millis": 1
+        },
+        "customer_id_range": {
+          "filter": {
+            "customer_id": {
+              "$gte": "DEMO-CUSTOMER-026",
+              "$lte": "DEMO-CUSTOMER-076"
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 714,
+          "docs_examined": 714,
+          "execution_millis": 2
+        }
+      },
+      "write_elapsed_seconds": 0.0603,
+      "fit": "Keeps customer equality/range reads local. Check hot-customer skew; this source dataset's frequency counts are measured above."
+    },
+    "transactions_by_order_date": {
+      "candidate": "order_date",
+      "shard_key": {
+        "order_date": 1
+      },
+      "source_collection": "chapter07.demo_financial_activity",
+      "total_documents": 1400,
+      "cardinality": {
+        "distinct_values": 1400,
+        "ratio": 1.0,
+        "minimum_rows_per_value": 1,
+        "maximum_rows_per_value": 1,
+        "most_frequent_share": 0.0007142857142857143
+      },
+      "distribution": {
+        "per_shard": [
+          {
+            "shard": "c11-shard1-rs",
+            "owned_documents": 699,
+            "storage_size_bytes": 180224,
+            "logical_size_bytes": 146790,
+            "index_size_bytes": 204800
+          },
+          {
+            "shard": "c11-shard2-rs",
+            "owned_documents": 701,
+            "storage_size_bytes": 118784,
+            "logical_size_bytes": 147210,
+            "index_size_bytes": 98304
+          }
+        ],
+        "balance_score": 0.9986,
+        "imbalance_percent": 0.14
+      },
+      "monotonic_in_input_order": true,
+      "hotspot_risk": "High: input key values increase in insert order; the active upper range is a write hotspot risk.",
+      "query_targeting_score": 0,
+      "recommendation_score": 0.1997,
+      "query_weights": {
+        "customer_id_equality": 0.45,
+        "order_id_equality": 0.3,
+        "date_range": 0.15,
+        "customer_id_range": 0.1
+      },
+      "range_efficiency": {
+        "date_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "date_range_scatter_gather": true,
+        "date_range_returned": 701,
+        "date_range_examined": 701,
+        "customer_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "customer_range_scatter_gather": true
+      },
+      "per_shard": [
+        {
+          "shard": "c11-shard1-rs",
+          "owned_documents": 699,
+          "storage_size_bytes": 180224,
+          "logical_size_bytes": 146790,
+          "index_size_bytes": 204800
+        },
+        {
+          "shard": "c11-shard2-rs",
+          "owned_documents": 701,
+          "storage_size_bytes": 118784,
+          "logical_size_bytes": 147210,
+          "index_size_bytes": 98304
+        }
+      ],
+      "queries": {
+        "customer_id_equality": {
+          "filter": {
+            "customer_id": "DEMO-CUSTOMER-038"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 14,
+          "docs_examined": 1400,
+          "execution_millis": 1
+        },
+        "order_id_equality": {
+          "filter": {
+            "order_id": "DEMO-ORDER-0701"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 1,
+          "docs_examined": 1400,
+          "execution_millis": 1
+        },
+        "date_range": {
+          "filter": {
+            "order_date": {
+              "$gte": {
+                "$date": "2025-01-05T15:09:00Z"
+              },
+              "$lte": {
+                "$date": "2025-01-14T20:49:00Z"
+              }
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 701,
+          "docs_examined": 701,
+          "execution_millis": 1
+        },
+        "customer_id_range": {
+          "filter": {
+            "customer_id": {
+              "$gte": "DEMO-CUSTOMER-026",
+              "$lte": "DEMO-CUSTOMER-076"
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 714,
+          "docs_examined": 1400,
+          "execution_millis": 2
+        }
+      },
+      "write_elapsed_seconds": 0.064,
+      "fit": "Targets time windows, but increasing dates route new writes to the active upper range."
+    },
+    "transactions_by_hashed_customer_id": {
+      "candidate": "hashed customer_id",
+      "shard_key": {
+        "customer_id": "hashed"
+      },
+      "source_collection": "chapter07.demo_financial_activity",
+      "total_documents": 1400,
+      "cardinality": {
+        "distinct_values": 100,
+        "ratio": 0.07142857142857142,
+        "minimum_rows_per_value": 14,
+        "maximum_rows_per_value": 14,
+        "most_frequent_share": 0.01
+      },
+      "distribution": {
+        "per_shard": [
+          {
+            "shard": "c11-shard1-rs",
+            "owned_documents": 630,
+            "storage_size_bytes": 110592,
+            "logical_size_bytes": 132300,
+            "index_size_bytes": 65536
+          },
+          {
+            "shard": "c11-shard2-rs",
+            "owned_documents": 770,
+            "storage_size_bytes": 126976,
+            "logical_size_bytes": 161700,
+            "index_size_bytes": 98304
+          }
+        ],
+        "balance_score": 0.9,
+        "imbalance_percent": 10.0
+      },
+      "monotonic_in_input_order": false,
+      "hotspot_risk": "Low in this dataset: values are not monotonic and the most frequent key represents 1.0% of rows.",
+      "query_targeting_score": 0.45,
+      "recommendation_score": 0.595,
+      "query_weights": {
+        "customer_id_equality": 0.45,
+        "order_id_equality": 0.3,
+        "date_range": 0.15,
+        "customer_id_range": 0.1
+      },
+      "range_efficiency": {
+        "date_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "date_range_scatter_gather": true,
+        "date_range_returned": 701,
+        "date_range_examined": 1400,
+        "customer_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "customer_range_scatter_gather": true
+      },
+      "per_shard": [
+        {
+          "shard": "c11-shard1-rs",
+          "owned_documents": 630,
+          "storage_size_bytes": 110592,
+          "logical_size_bytes": 132300,
+          "index_size_bytes": 65536
+        },
+        {
+          "shard": "c11-shard2-rs",
+          "owned_documents": 770,
+          "storage_size_bytes": 126976,
+          "logical_size_bytes": 161700,
+          "index_size_bytes": 98304
+        }
+      ],
+      "queries": {
+        "customer_id_equality": {
+          "filter": {
+            "customer_id": "DEMO-CUSTOMER-038"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": false,
+          "n_returned": 14,
+          "docs_examined": 14,
+          "execution_millis": 1
+        },
+        "order_id_equality": {
+          "filter": {
+            "order_id": "DEMO-ORDER-0701"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 1,
+          "docs_examined": 1400,
+          "execution_millis": 1
+        },
+        "date_range": {
+          "filter": {
+            "order_date": {
+              "$gte": {
+                "$date": "2025-01-05T15:09:00Z"
+              },
+              "$lte": {
+                "$date": "2025-01-14T20:49:00Z"
+              }
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 701,
+          "docs_examined": 1400,
+          "execution_millis": 1
+        },
+        "customer_id_range": {
+          "filter": {
+            "customer_id": {
+              "$gte": "DEMO-CUSTOMER-026",
+              "$lte": "DEMO-CUSTOMER-076"
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 714,
+          "docs_examined": 1400,
+          "execution_millis": 2
+        }
+      },
+      "write_elapsed_seconds": 0.0652,
+      "fit": "Can distribute distinct customer keys and targets equality reads, but removes customer/date ordering and scatters range queries."
+    }
+  },
+  "measurement_note": "Dataset cardinality and value frequencies come from the persisted source collection. Placement, storage, write elapsed time, and query plans come from the live Chapter 11 cluster."
+}

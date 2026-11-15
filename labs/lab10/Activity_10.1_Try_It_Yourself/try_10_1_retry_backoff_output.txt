@@ -1,0 +1,28 @@
+ACTIVITY 10.1 - RETRY WITH EXPONENTIAL BACKOFF
+
+Experiment 1: a forced write conflict, retried with backoff
+  +  0.19s  transaction A: Asha (ACC-201) pays ACC-202 100, debit applied, A stays open
+  +  0.19s  transaction B: Asha pays ACC-203 200 from the same account
+  +  0.20s  transaction B attempt 1: OperationFailure code 112 ['TransientTransactionError'] -> retry in 0.1 s
+  +  0.31s  transaction B attempt 2: OperationFailure code 112 ['TransientTransactionError'] -> retry in 0.2 s
+  +  0.52s  transaction B attempt 3: OperationFailure code 112 ['TransientTransactionError'] -> retry in 0.4 s
+  +  0.85s  transaction A commits
+  +  0.93s  transaction B attempt 4: committed
+  +  0.93s  balances: ACC-201 4,700  ACC-202 100  ACC-203 200  (both payments applied once: True)
+
+Experiment 2: double spend - two payments of 700 from a balance of 1,000 at the same moment
+  2a without a transaction (read, check, write)
+    payment to ACC-212: paid
+    payment to ACC-213: paid
+    payer left with 300, payees received 1,400, total 1,700 -> money created out of nothing
+  2b with a transaction and retry
+    payment to ACC-212: insufficient balance in ACC-211 (2 attempts)
+    payment to ACC-213: committed (1 attempt)
+    payer left with 300, payees received 700, total 1,000 -> books balance
+
+Experiment 3: stress - 8 threads x 10 payments around a ring of 4 accounts
+  Mode             Committed  Failed  Attempts  Retries Backoff (s)  Time (s)  Total
+  without retry           16      64        80        0         0.0      0.22  40,000 (conserved)
+  with retry              80       0        97       17         2.7      0.96  40,000 (conserved)
+
+MongoDB commands and replies saved to try_10_1_retry_backoff.json

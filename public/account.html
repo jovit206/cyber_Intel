@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Account | Threat Intelligence Platform</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="account-page auth-pending">
+  <main class="account-shell">
+    <header class="account-header">
+      <div><a id="account-brand" class="eyebrow account-brand-link" href="/">THREAT INTELLIGENCE PLATFORM</a><h1 id="account-page-title">Your Account</h1><p id="account-page-description">Sign in or manage your account access.</p></div>
+    </header>
+
+    <section id="account-auth" class="glass-panel account-panel">
+      <div class="account-section-heading"><div><span class="eyebrow">SECURE ACCESS</span><h2 id="auth-heading">Welcome back</h2><p id="auth-description">Sign in to access the Threat Intelligence Platform.</p></div></div>
+      <div class="account-auth-grid">
+        <form id="account-login" class="account-form">
+          <h3>Sign in</h3>
+          <label>Email or Admin ID<input name="email" type="text" autocomplete="username" required minlength="5" maxlength="254"></label>
+          <label>Password<span class="account-password-control"><input name="password" type="password" autocomplete="current-password" required maxlength="256"><button type="button" class="password-toggle" aria-label="Show password">Show</button></span></label>
+          <button class="account-primary-button" type="submit">Sign in</button>
+          <p class="auth-switch">Don't have an account? <button type="button" data-auth-view="register">Create one</button></p>
+        </form>
+        <form id="account-register" class="account-form" hidden>
+          <h3>Create account</h3>
+          <label>Email<input name="email" type="email" autocomplete="email" required maxlength="254"></label>
+          <label>Password<span class="account-password-control"><input name="password" type="password" autocomplete="new-password" required minlength="12" maxlength="256"><button type="button" class="password-toggle" aria-label="Show password">Show</button></span><small class="field-error" data-error-for="password"></small></label>
+          <small>Use at least 12 characters with upper and lowercase letters, a number, and a symbol.</small>
+          <label>Confirm password<span class="account-password-control"><input name="confirm_password" type="password" autocomplete="new-password" required minlength="12" maxlength="256"><button type="button" class="password-toggle" aria-label="Show password">Show</button></span><small class="field-error" data-error-for="confirm_password"></small></label>
+          <button class="account-secondary-button" type="submit">Create account</button>
+          <p class="auth-switch">Already have an account? <button type="button" data-auth-view="login">Sign in</button></p>
+        </form>
+      </div>
+    </section>
+
+    <div id="account-notice" class="account-notice" role="status" aria-live="polite"></div>
+
+    <section id="account-overview-panel" class="glass-panel account-panel" hidden>
+      <div class="account-section-heading"><div><span class="eyebrow">ACCOUNT DETAILS</span><h2 id="account-email">Your account</h2><span id="account-role-indicator" class="account-admin-indicator" hidden>Administrator</span></div><button id="account-signout" class="account-secondary-button" type="button">Sign out</button></div>
+      <div id="account-overview" class="account-overview-grid"></div>
+      <section class="account-plan-section" id="subscriptions"><div class="account-section-heading"><div><span class="eyebrow">SUBSCRIPTION</span><h2>Your plan and feature access</h2><p id="account-entitlement-period">Loading your entitlements…</p></div></div><div id="account-feature-entitlements" class="account-entitlement-grid"></div><div id="account-plan-cards" class="account-plan-grid"></div></section>
+      <div class="account-actions"><a href="/?view=lab10-banking#financial-activity" class="account-primary-button account-action-link">Open Banking Operations</a><a href="/" class="account-text-link">Return to Threat Intelligence</a></div>
+    </section>
+
+  </main>
+  <script src="/config.js"></script>
+  <script src="account.js"></script>
+</body>
+</html>

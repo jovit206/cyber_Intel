@@ -1,0 +1,6 @@
+FROM python:3.12-slim
+
+RUN pip install --no-cache-dir pymongo==4.15.3
+COPY scripts/test-failover.py /app/test-failover.py
+COPY scripts/verify-exporter.py /app/verify-exporter.py
+ENTRYPOINT ["python", "-u", "/app/test-failover.py"]
