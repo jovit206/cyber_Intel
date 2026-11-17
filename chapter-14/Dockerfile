@@ -18,7 +18,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends mongodb-database-tools \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt monitoring_dashboard.py backup_verify.py ./
+COPY requirements.txt monitoring_dashboard.py backup_verify.py backup_worker.py ./
 
 RUN python -m pip install --no-cache-dir --upgrade pip \
     && python -m pip install --no-cache-dir -r requirements.txt \

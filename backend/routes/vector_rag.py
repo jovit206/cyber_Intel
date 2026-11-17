@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import os
+import json
+import re
 import time
 from datetime import datetime, timezone
 from uuid import uuid4
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
@@ -20,18 +23,20 @@ from backend.services.vector_rag import (
     RAG_PROJECT,
     VectorProjectError,
     build_rag_prompt,
-    create_voyage_embeddings,
+    create_embeddings,
     create_vector_index,
     ensure_rag_indexes,
     inspect_vector_index,
     known_embedding_dimensions,
     provider_configuration,
     rag_database,
+    rag_search_collections,
     record_project_event,
     split_text_into_chunks,
     generate_llm_answer,
     validate_embeddings,
 )
+from backend.services.threat_retrieval import retrieve_structured_threat_evidence
 
 router = APIRouter(prefix="/api/rag", tags=["Lab 17.1 RAG Pipeline"])
 
@@ -45,6 +50,8 @@ class RagQuestion(BaseModel):
     question: str = Field(min_length=1, max_length=4_000)
     conversation_id: str | None = Field(default=None, min_length=1, max_length=64)
     top_k: int = Field(default=5, ge=1, le=10)
+    platform: str | None = Field(default=None, min_length=1, max_length=100)
+    threat_status: str | None = Field(default=None, min_length=1, max_length=64)
 
 
 def _actor_id(actor: dict) -> str:
@@ -227,6 +234,12 @@ def get_rag_status(request: Request, actor: dict = Depends(_admin_user)) -> dict
             "multiple_dimensions": len(dimensions) > 1,
             "average_embedding_ms": average_embedding_ms,
         },
+        "source_collections": [
+            {"collection": collection.name, "database": collection.database.name,
+             "record_count": collection.count_documents({}),
+             "embedded_count": collection.count_documents({"embedding": {"$type": "array"}})}
+            for collection in rag_search_collections(database) if collection.name == "report_chunks"
+        ],
         "limitations": [
             "The application does not store provider keys in MongoDB or return them to the browser.",
             "Vector Search uses MongoDB's managed ANN configuration; custom HNSW parameters and IVF are not represented as supported configurations.",
@@ -277,11 +290,7 @@ def upload_rag_document(
     correlation_id = str(uuid4())
     rag = rag_database(database)
     try:
-        model = provider_configuration()["embedding_model"]
-        expected_dimensions = known_embedding_dimensions(
-            model,
-            os.getenv("VOYAGE_OUTPUT_DIMENSION", "").strip() or None,
-        )
+        expected_dimensions = provider_configuration()["embedding_dimensions"]
     except VectorProjectError as error:
         raise HTTPException(
             status_code=error.status_code,
@@ -355,7 +364,7 @@ def upload_rag_document(
         batch_chunks = chunks[start:start + batch_size]
         batch_docs = chunk_documents[start:start + batch_size]
         try:
-            vectors, dimensions, duration_ms = create_voyage_embeddings(batch_chunks, "document")
+            vectors, dimensions, duration_ms = create_embeddings(batch_chunks, "document")
             if actual_dimensions is not None and dimensions != actual_dimensions:
                 raise VectorProjectError(
                     "embedding_dimension_changed",
@@ -524,6 +533,15 @@ def list_conversations(
     return {"conversations": rows}
 
 
+def forget_conversation_history(request: Request, actor: dict = Depends(_admin_user)) -> dict:
+    """Delete only the signed-in user's conversation messages and metadata."""
+    user_id = _actor_id(actor)
+    rag = rag_database(request.app.state.database)
+    messages = rag[CONVERSATIONS_COLLECTION].delete_many({"user_id": user_id})
+    conversations = rag[CONVERSATION_META_COLLECTION].delete_many({"user_id": user_id})
+    return {"deleted_messages": messages.deleted_count, "deleted_conversations": conversations.deleted_count}
+
+
 @router.get("/conversations/{conversation_id}")
 def get_conversation(
     conversation_id: str,
@@ -606,71 +624,109 @@ def query_rag(
         final_outcome="query stored",
     )
 
+    structured_result: dict[str, Any] = {"items": [], "sources": [], "unavailable_sources": []}
     try:
-        vectors, dimensions, duration_ms = _stage(
-            database,
-            correlation_id,
-            stages,
-            name="Query embedding generated",
-            component="Voyage AI embeddings",
-            operation="Query embedding generated",
-            action=lambda: create_voyage_embeddings([payload.question.strip()], "query"),
+        collections = rag_search_collections(database)
+        filtered_query = bool(payload.platform or payload.threat_status)
+        retrieval_mode = "structured_filtered" if filtered_query else "vector_search+structured"
+        vector_retrieved: list[dict] = []
+        duration_ms: float | None = None
+        try:
+            if filtered_query:
+                raise VectorProjectError(
+                    "vector_filter_not_supported",
+                    "The existing report vector index does not contain validated platform or threat-status filter fields.",
+                    "vector_search",
+                    409,
+                )
+            vectors, dimensions, duration_ms = _stage(
+                database, correlation_id, stages, name="Query embedding generated",
+                component="Configured embedding provider", operation="Query embedding generated",
+                action=lambda: create_embeddings([payload.question.strip()], "query"),
+            )
+            vector_collection = None
+            unavailable_detail = "No matching Vector Search index was found for the configured embedding dimensions."
+            for candidate in collections:
+                index_state = inspect_vector_index(candidate, RAG_INDEX_NAME, dimensions)
+                if index_state.get("supported") and index_state.get("ready") and index_state.get("dimensions") == dimensions:
+                    vector_collection = candidate
+                    break
+                unavailable_detail = index_state.get("detail", unavailable_detail)
+            if vector_collection is None:
+                raise VectorProjectError("vector_search_unavailable", unavailable_detail, "vector_search", 409)
+            vector_retrieved = _stage(
+                database, correlation_id, stages, name="Vector search executed",
+                component="MongoDB Vector Search", operation="Vector search executed",
+                action=lambda: list(vector_collection.aggregate([
+                    {"$vectorSearch": {"index": RAG_INDEX_NAME, "path": "embedding", "queryVector": vectors[0],
+                     "numCandidates": max(50, payload.top_k * 10), "limit": payload.top_k}},
+                    {"$project": {"_id": 0, "text": 1, "content": 1, "chunk_text": 1,
+                                  "source": 1, "source_url": 1, "source_reference": 1, "document_id": 1, "chunk_id": 1,
+                                  "page": 1, "page_number": 1,
+                                  "score": {"$meta": "vectorSearchScore"}}},
+                ], maxTimeMS=5000)),
+            )
+        except VectorProjectError as vector_error:
+            if not filtered_query:
+                retrieval_mode = "structured_fallback"
+            stages.append({"name": "Report vector retrieval unavailable", "status": "completed", "reason": vector_error.code})
+            report_retrieved = []
+            if not filtered_query:
+                terms = list(dict.fromkeys(re.findall(r"[\w.-]{2,}", payload.question.strip(), flags=re.UNICODE)))[:12]
+                query = {"status": "embedded", "$or": [{"text": {"$regex": re.escape(term), "$options": "i"}} for term in terms]} if terms else {"status": "embedded", "_id": {"$exists": False}}
+                if terms:
+                    query["$or"] = [{field: {"$regex": re.escape(term), "$options": "i"}} for term in terms for field in ("text", "content", "chunk_text")]
+                for candidate in collections:
+                    candidate_query = query if candidate.name != "report_chunks" else {"$or": query["$or"]} if terms else {"_id": {"$exists": False}}
+                    rows = list(candidate.find(candidate_query, {"_id": 0, "text": 1, "content": 1, "chunk_text": 1,
+                        "source": 1, "source_url": 1, "source_reference": 1, "chunk_id": 1, "document_id": 1, "page": 1, "page_number": 1}).limit(payload.top_k - len(report_retrieved)))
+                    for item in rows:
+                        item["text"] = item.get("text") or item.get("content") or item.get("chunk_text") or ""
+                        item["source"] = item.get("source") or item.get("source_url") or item.get("source_reference") or item.get("document_id") or candidate.name
+                        item["chunk_id"] = item.get("chunk_id") or item.get("document_id")
+                        item["score"] = None
+                        report_retrieved.append(item)
+                    if len(report_retrieved) >= payload.top_k:
+                        break
+            vector_retrieved = report_retrieved
+            if not filtered_query:
+                stages.append({"name": "Structured report retrieval fallback", "status": "completed", "source_count": len(report_retrieved)})
+        structured_result = _stage(
+            database, correlation_id, stages,
+            name="Threat intelligence records searched",
+            component="Existing structured CTI collections",
+            operation="Structured threat intelligence retrieval completed",
+            action=lambda: retrieve_structured_threat_evidence(
+                database,
+                payload.question.strip(),
+                limit=payload.top_k,
+                platform=payload.platform,
+                threat_status=payload.threat_status,
+            ),
         )
-        if dimensions != len(vectors[0]):
-            raise VectorProjectError(
-                "embedding_dimension_mismatch",
-                "The query embedding does not match the provider response dimensions.",
-                "embedding",
-                502,
-            )
-
-        collection = rag[DOCUMENTS_COLLECTION]
-        index_state = inspect_vector_index(collection, RAG_INDEX_NAME, dimensions)
-        if not index_state.get("supported"):
-            raise VectorProjectError(
-                "vector_search_not_supported",
-                index_state["detail"],
-                "vector_search",
-                503,
-            )
-        if not index_state.get("ready"):
-            raise VectorProjectError(
-                "vector_index_not_ready",
-                index_state["detail"],
-                "vector_search",
-                409,
-            )
-        if index_state.get("dimensions") != dimensions:
-            raise VectorProjectError(
-                "vector_index_dimension_mismatch",
-                "The Vector Search index dimensions do not match the query embedding.",
-                "vector_search",
-                409,
-            )
-        retrieved = _stage(
-            database,
-            correlation_id,
-            stages,
-            name="Vector search executed",
-            component="MongoDB Vector Search",
-            operation="Vector search executed",
-            action=lambda: list(collection.aggregate([
-                {"$vectorSearch": {
-                    "index": RAG_INDEX_NAME,
-                    "path": "embedding",
-                    "queryVector": vectors[0],
-                    "numCandidates": max(50, payload.top_k * 10),
-                    "limit": payload.top_k,
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "text": 1,
-                    "source": 1,
-                    "chunk_id": 1,
-                    "score": {"$meta": "vectorSearchScore"},
-                }},
-            ], maxTimeMS=5000)),
-        )
+        # Interleave semantic report chunks and structured CTI records so neither
+        # evidence class can starve the other when the top-k limit is small.
+        retrieved = []
+        vector_items = iter(vector_retrieved)
+        structured_items = iter(structured_result["items"])
+        while len(retrieved) < payload.top_k:
+            added = False
+            for iterator in (vector_items, structured_items):
+                try:
+                    item = next(iterator)
+                except StopIteration:
+                    continue
+                if not any(existing.get("chunk_id") == item.get("chunk_id") for existing in retrieved):
+                    retrieved.append(item)
+                    added = True
+                    if len(retrieved) >= payload.top_k:
+                        break
+            if not added:
+                break
+        for item in retrieved:
+            item["text"] = item.get("text") or item.get("content") or item.get("chunk_text") or ""
+            item["source"] = item.get("source") or item.get("source_url") or item.get("source_reference") or item.get("document_id") or "Unknown source"
+            item["chunk_id"] = item.get("chunk_id") or item.get("document_id")
         stages.append({
             "name": "Relevant chunks retrieved",
             "status": "completed",
@@ -681,7 +737,7 @@ def query_rag(
             project_name=RAG_PROJECT,
             correlation_id=correlation_id,
             operation="Relevant chunks retrieved",
-            component="MongoDB Vector Search",
+            component="MongoDB retrieval",
             status="success",
             final_outcome=f"{len(retrieved)} chunks retrieved",
         )
@@ -696,19 +752,32 @@ def query_rag(
             action=lambda: list(rag[CONVERSATIONS_COLLECTION].find(
                 {"conversation_id": conversation_id, "user_id": user_id, "message_id": {"$ne": user_message_id}},
                 {"_id": 0, "role": 1, "content": 1},
-            ).sort("timestamp", DESCENDING).limit(5)),
+            ).sort("timestamp", DESCENDING).limit(10)),
         )
         memory.reverse()
-        system_prompt, user_prompt = build_rag_prompt(payload.question.strip(), retrieved, memory)
-        answer, generation_ms = _stage(
-            database,
-            correlation_id,
-            stages,
-            name="LLM response generated",
-            component="OpenAI-compatible LLM",
-            operation="LLM response generated",
-            action=lambda: generate_llm_answer(system_prompt, user_prompt),
-        )
+        question_with_filters = payload.question.strip()
+        active_filters = {key: value for key, value in {
+            "platform": payload.platform.strip() if payload.platform else None,
+            "threat_status": payload.threat_status.strip() if payload.threat_status else None,
+        }.items() if value}
+        if active_filters:
+            question_with_filters += "\n\nApply these exact retrieval filters: " + json.dumps(active_filters, ensure_ascii=False)
+        system_prompt, user_prompt = build_rag_prompt(question_with_filters, retrieved, memory)
+        if not retrieved:
+            answer, generation_ms, response_mode = "The available indexed documents do not contain evidence for this question.", 0.0, "insufficient_evidence"
+        else:
+            try:
+                answer, generation_ms = _stage(
+                    database, correlation_id, stages, name="LLM response generated",
+                    component="Configured LLM provider", operation="LLM response generated",
+                    action=lambda: generate_llm_answer(system_prompt, user_prompt),
+                )
+                response_mode = "grounded_llm"
+            except VectorProjectError as generation_error:
+                excerpts = [f"[S{index}] {item.get('text', '')[:1200]}" for index, item in enumerate(retrieved, start=1)]
+                answer = "Extractive fallback from retrieved documents (the configured LLM was unavailable):\n\n" + "\n\n".join(excerpts)
+                generation_ms, response_mode = 0.0, "extractive_fallback"
+                stages.append({"name": "Extractive answer fallback", "status": "completed", "reason": generation_error.code})
         def save_answer() -> None:
             answer_id = str(uuid4())
             rag[CONVERSATIONS_COLLECTION].insert_one({
@@ -772,15 +841,22 @@ def query_rag(
         "chunk_id": item.get("chunk_id"),
         "score": item.get("score"),
         "text": item.get("text"),
+        "page": item.get("page") or item.get("page_number"),
+        "source_reference": item.get("source_reference") or item.get("source_url"),
     } for item in retrieved]
     return {
         "answer": answer,
+        "response_mode": response_mode,
+        "retrieval_mode": retrieval_mode,
+        "filters": active_filters,
+        "structured_sources": structured_result["sources"],
+        "unavailable_sources": structured_result["unavailable_sources"],
         "conversation_id": conversation_id,
         "sources": sources,
         "stages": stages,
         "correlation_id": correlation_id,
         "metrics": {
-            "query_embedding_ms": round(duration_ms, 2),
+            "query_embedding_ms": round(duration_ms, 2) if duration_ms is not None else None,
             "llm_generation_ms": round(generation_ms, 2),
             "retrieved_chunks": len(sources),
         },

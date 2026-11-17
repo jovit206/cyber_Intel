@@ -41,8 +41,19 @@ from backend.routes.vector_benchmark import router as vector_benchmark_router
 from backend.routes.chapter18 import router as chapter18_router
 from backend.routes.cases import router as cases_router
 from backend.routes.chapter16 import router as chapter16_router
+from backend.routes.chapter16_compat import router as chapter16_compat_router
+from backend.routes.chapter18_compat import router as chapter18_compat_router
+from backend.routes.chapter17_compat import router as chapter17_compat_router
+from backend.routes.course_tour import router as course_tour_router
+from backend.routes.chapter13_ops import router as chapter13_ops_router
+from backend.routes.chapter14_ops import router as chapter14_ops_router
+from backend.routes.chapter15_api import router as chapter15_api_router
 from backend.services.subscriptions import ensure_indexes as ensure_subscription_indexes
 from backend.services.operations import ensure_indexes as ensure_operations_indexes
+from backend.services.chapter13_ops import ensure_indexes as ensure_chapter13_ops_indexes
+from backend.services.chapter13_ops import sample_deployment_metrics
+from backend.services.chapter14_ops import ensure_indexes as ensure_chapter14_ops_indexes
+from backend.services.chapter14_ops import sample_monitoring_metrics
 from backend.services.operations import track_api_request
 from backend.services.cross_source import ensure_built as ensure_cross_source
 from backend.services.cross_source import rebuild as rebuild_cross_source
@@ -211,6 +222,8 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     _ensure_indexes(database)
     ensure_subscription_indexes(database)
     ensure_operations_indexes(database)
+    ensure_chapter13_ops_indexes(database)
+    ensure_chapter14_ops_indexes(database)
     database["wallets"].update_one({"user_id": "platform"}, {"$setOnInsert": {
         "user_id": "platform", "balance": 0, "currency": "INR",
         "updated_at": datetime.now(timezone.utc),
@@ -228,6 +241,28 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         seconds=10,
         args=[database],
         id="wiredtiger-cache-sampler",
+        replace_existing=True,
+        next_run_time=datetime.now(timezone.utc),
+        max_instances=1,
+        coalesce=True,
+    )
+    scheduler.add_job(
+        sample_deployment_metrics,
+        "interval",
+        seconds=10,
+        args=[database],
+        id="chapter13-deployment-metrics-sampler",
+        replace_existing=True,
+        next_run_time=datetime.now(timezone.utc),
+        max_instances=1,
+        coalesce=True,
+    )
+    scheduler.add_job(
+        sample_monitoring_metrics,
+        "interval",
+        seconds=30,
+        args=[database],
+        id="chapter14-monitoring-sampler",
         replace_existing=True,
         next_run_time=datetime.now(timezone.utc),
         max_instances=1,
@@ -285,6 +320,14 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     except Exception as error:
         logger.error("[METRICS] Initial WiredTiger cache sample failed: %s", error)
     try:
+        sample_deployment_metrics(database)
+    except Exception as error:
+        logger.error("[Chapter 13] Initial deployment sample failed: %s", error)
+    try:
+        sample_monitoring_metrics(database)
+    except Exception as error:
+        logger.error("[Chapter 14] Initial monitoring sample failed (%s)", type(error).__name__)
+    try:
         yield
     finally:
         scheduler.shutdown(wait=True)
@@ -331,6 +374,13 @@ app.include_router(vector_benchmark_router)
 app.include_router(chapter18_router)
 app.include_router(cases_router)
 app.include_router(chapter16_router)
+app.include_router(chapter16_compat_router)
+app.include_router(chapter18_compat_router)
+app.include_router(chapter17_compat_router)
+app.include_router(course_tour_router)
+app.include_router(chapter13_ops_router)
+app.include_router(chapter14_ops_router)
+app.include_router(chapter15_api_router)
 
 
 @app.middleware("http")
@@ -341,6 +391,8 @@ async def require_platform_session(request: Request, call_next):
         "/api/subscriptions/plans", "/api/subscriptions/register",
         "/api/subscriptions/login", "/api/subscriptions/logout",
         "/api/demo-transactions/health",
+        "/api/moderation/alerts/webhook",
+        "/api/labs/jwks",
     }
     guarded_api = path.startswith("/api/") and path not in public_api
     guarded_page = path in {"/", "/index.html"}
@@ -474,7 +526,7 @@ async def handle_not_found(request: Request, error) -> JSONResponse:
 
 # Local assets referenced by index.html. Their URLs get a content hash appended so that a browser can
 # never combine a new page with an older cached script or stylesheet.
-_VERSIONED_ASSETS = ("style.css", "portfolio.css", "operations.css", "vector-projects.css", "chapter18.css", "labs-operations.css", "app.js", "cross-source.js", "reliability.js", "lab10.js", "lab11.js", "admin.js", "manager.js", "account.js", "banking-finance.js", "demo-transactions.js", "shard-distribution.js", "portfolio.js", "operations.js", "vector-projects.js", "chapter18.js", "labs-operations.js")
+_VERSIONED_ASSETS = ("style.css", "portfolio.css", "operations.css", "vector-projects.css", "chapter18.css", "labs-operations.css", "course-tour.css", "course-tour.js", "app.js", "cross-source.js", "reliability.js", "lab10.js", "lab11.js", "admin.js", "manager.js", "account.js", "banking-finance.js", "demo-transactions.js", "shard-distribution.js", "portfolio.js", "operations.js", "vector-projects.js", "chapter18.js", "labs-operations.js")
 _ASSET_REFERENCE = re.compile(r'(?P<attr>href|src)="(?P<name>' + "|".join(re.escape(n) for n in _VERSIONED_ASSETS) + r')"')
 
 

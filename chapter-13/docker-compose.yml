@@ -114,6 +114,54 @@ services:
     mem_limit: 128m
     cpus: 0.25
 
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    profiles: ["observability"]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.enable-lifecycle
+    ports:
+      - "127.0.0.1:${PROMETHEUS_BIND_PORT:-19090}:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      - mongodb-exporter
+    networks:
+      - mongo-net
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 0.5
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    profiles: ["observability"]
+    entrypoint: ["/bin/sh", "-ec"]
+    command: >-
+      test -n "$$GF_SECURITY_ADMIN_USER" && test -n "$$GF_SECURITY_ADMIN_PASSWORD"
+      || { echo 'Set GRAFANA_ADMIN_USER and GRAFANA_ADMIN_PASSWORD in chapter-13/.env.' >&2; exit 1; }
+      ; exec /run.sh
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: http://localhost:${GRAFANA_BIND_PORT:-13000}/
+    ports:
+      - "127.0.0.1:${GRAFANA_BIND_PORT:-13000}:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - mongo-net
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 0.5
+
   failover-test:
     image: chapter13-failover-test:local
     build:
@@ -142,6 +190,8 @@ volumes:
   mongo1-data:
   mongo2-data:
   mongo3-data:
+  prometheus-data:
+  grafana-data:
 
 networks:
   mongo-net:

@@ -173,11 +173,14 @@ def run_backup(
     *,
     database: str | None = None,
     collection: str | None = None,
+    oplog: bool = False,
     logger: logging.Logger | None = None,
     run_process: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
 ) -> BackupResult:
-    if (database is None) != (collection is None):
-        raise ValueError("Specify both database and collection, or neither.")
+    if collection is not None and database is None:
+        raise ValueError("Specify a database when selecting a collection.")
+    if oplog and (database is not None or collection is not None):
+        raise ValueError("Oplog capture requires a full replica-set dump; database and collection filters are not supported.")
     if database and not re.fullmatch(r"[A-Za-z0-9_-]+", database):
         raise ValueError("Database name contains unsupported characters.")
     if collection and not re.fullmatch(r"[A-Za-z0-9_$-]+", collection):
@@ -190,7 +193,11 @@ def run_backup(
     log.info("Backup started at %s.", started_at.isoformat())
     options: list[str] = []
     if database:
-        options.extend(["--db", database, "--collection", collection or ""])
+        options.extend(["--db", database])
+    if collection:
+        options.extend(["--collection", collection])
+    if oplog:
+        options.append("--oplog")
     options.append("--out")
     try:
         command, tool_uri = _tool_command(

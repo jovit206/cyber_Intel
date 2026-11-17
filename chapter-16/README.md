@@ -306,3 +306,18 @@ docker volume rm chapter16_mongo_data chapter16_cassandra_data chapter16_neo4j_d
 
 Do not use `docker compose down -v` if the lab data should be retained. No prior-chapter container,
 database, or volume is selected by these commands.
+
+## Main application integration
+
+The root application's Chapter 16 routes are admin-only read probes and fraud evidence queries.
+They read separate `CHAPTER16_*` connection settings and do not infer health from the Chapter 18
+databases. Cassandra is pinned to the requested 4.1 release in this Compose file. To attach the
+root backend to the Chapter 16 services, start the Chapter 16 Compose project and then use
+`docker-compose.integration.yml` as an override with the root Compose file. Configure
+`CHAPTER16_NEO4J_PASSWORD` in the root `.env`; do not commit credentials.
+
+The root API intentionally refuses Chapter 16 start/stop requests with HTTP 409 because no
+allowlisted service orchestrator is installed. The audit timeline is explicitly labelled as the
+existing MongoDB platform audit log; Cassandra audit outbox delivery and exactly-once recovery are
+not integrated into the root deployment. The standalone labs remain available without claiming
+that those background operations are running.

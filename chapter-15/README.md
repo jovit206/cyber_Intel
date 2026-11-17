@@ -55,6 +55,19 @@ $env:JWT_SECRET = "<random-secret-at-least-32-characters>"
 Do not commit real `.env` files, passwords, signing secrets, or connection strings. `.env.example`
 contains placeholders only.
 
+## Main application tenant workflow
+
+The main AEGIS application also exposes cookie-session-authenticated case routes under
+`/api/cases`. It uses organization memberships and additive `tenant_id` fields on new case records;
+legacy documents remain query-scoped by their existing `organization_id`. This is separate from
+the standalone chapter's bearer-token task API. The main application's case limit is 30 requests
+per user per rolling minute, enforced by MongoDB and returned as HTTP 429 with `Retry-After`.
+
+An optional compatibility migration is provided at `scripts/migrate_cases_tenant_id.py`. It reports
+eligible legacy cases by default and writes only when explicitly invoked with `--apply`. It was not
+run as part of this implementation. Review the dry-run count and take a database backup before
+applying it; it does not delete or replace existing fields or documents.
+
 ## Run the API (Lab 15.1)
 
 From `chapter-15`:

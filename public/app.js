@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Aegis-CTI Command Center Client Logic
  * Handles navigation, threat intelligence views, and system monitoring.
  */
@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Navigation Links
   const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
   const views = document.querySelectorAll('.content-view');
+  let restoringHistory = false;
   let entitlementState = null;
   let entitlementRequest = null;
   const featureLabels = {reports:'Report Corpus',search:'Search & Enrich',cross_source:'Cross-Source Analysis',working_set:'Working Set Monitor',write_concern:'Write Concern Latency',network_reliability:'Network Reliability',sharding:'Sharding & Horizontal Scalability',inventory:'Reliability & Inventory'};
@@ -40,8 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const left = detail.remaining ?? state.remaining;
     const period = detail.period || state.period || entitlementState?.period;
     byId('upgrade-usage').textContent = left === undefined || left === null
-      ? `Plus ₹299/month · Pro ₹799/month${period ? ` · Usage resets ${period}` : ''}`
-      : `${left} uses remaining${period ? ` · Monthly period ${period}` : ''} · ${detail.required_plan === 'pro' ? 'Pro ₹799/month for unlimited access' : 'Plus ₹299/month · Pro ₹799/month'}`;
+      ? `Plus â‚¹299/month Â· Pro â‚¹799/month${period ? ` Â· Usage resets ${period}` : ''}`
+      : `${left} uses remaining${period ? ` Â· Monthly period ${period}` : ''} Â· ${detail.required_plan === 'pro' ? 'Pro â‚¹799/month for unlimited access' : 'Plus â‚¹299/month Â· Pro â‚¹799/month'}`;
     byId('upgrade-dialog').hidden = false;
     byId('upgrade-dismiss').focus();
   }
@@ -52,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
       link.classList.toggle('feature-locked', locked);
       link.setAttribute('aria-disabled', String(locked));
       let icon = link.querySelector('.feature-lock-icon');
-      if (locked && !icon) { icon = document.createElement('span'); icon.className='feature-lock-icon'; icon.textContent='🔒'; icon.setAttribute('aria-hidden','true'); link.append(icon); }
+      if (locked && !icon) { icon = document.createElement('span'); icon.className='feature-lock-icon'; icon.textContent='ðŸ”’'; icon.setAttribute('aria-hidden','true'); link.append(icon); }
       if (!locked) icon?.remove();
     });
   }
@@ -64,13 +65,21 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(response => response.ok ? response.json() : null)
     .then(data => {
       const adminLink = byId('admin-nav');
-      if (adminLink) adminLink.hidden = data?.user?.role !== 'admin';
+      const isAdmin = data?.user?.role === 'admin';
+      if (adminLink) adminLink.hidden = !isAdmin;
+      const adminExercisesHeading = byId('admin-exercises-heading');
+      if (adminExercisesHeading) adminExercisesHeading.hidden = !isAdmin;
+      document.querySelectorAll('[data-admin-exercise]').forEach(link => { link.hidden = !isAdmin; });
       const managerLink = byId('manager-nav');
       if (managerLink) managerLink.hidden = data?.user?.role !== 'manager';
       const requestedView = new URLSearchParams(window.location.search);
-      if (data?.user?.role === 'admin' && requestedView.get('view') === 'admin') {
+      const requestedExercise = requestedView.get('exercise');
+      if (data?.user?.role === 'admin' && /^(13|14|15|16|17|18)$/.test(requestedExercise || '')) {
+        document.querySelector(`[data-admin-exercise="${requestedExercise}"]`)?.click();
+      } else if (data?.user?.role === 'admin' && requestedView.get('view') === 'admin') {
         adminLink?.click();
-        if (requestedView.get('tab') === 'labs') document.querySelector('[data-admin-tab="labs"]')?.click();
+      } else if (data?.user?.role === 'admin' && /^exercise-(13|14|15|16|17|18)$/.test(requestedView.get('view') || '')) {
+        document.querySelector(`[data-admin-exercise="${requestedView.get('view').slice(9)}"]`)?.click();
       }
     })
     .catch(() => { const adminLink = byId('admin-nav'); if (adminLink) adminLink.hidden = true; });
@@ -95,12 +104,33 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
       }
-      navLinks.forEach(l => l.classList.remove('active'));
+      navLinks.forEach(l => { l.classList.remove('active'); l.removeAttribute('aria-current'); });
       views.forEach(v => v.classList.remove('active'));
 
       link.classList.add('active');
+      link.setAttribute('aria-current', 'page');
       const targetView = document.getElementById(`view-${viewId}`);
       if (targetView) targetView.classList.add('active');
+
+      if (link.dataset.adminExercise) {
+        window.moveLabsWorkspaceToExercise?.(link.dataset.adminExercise);
+        window.openLabsChapter?.(link.dataset.adminExercise);
+      } else if (viewId === 'admin') {
+        window.moveLabsWorkspaceToAdmin?.();
+      }
+      if (!restoringHistory && (link.dataset.adminExercise || viewId === 'admin')) {
+        const params = new URLSearchParams(window.location.search);
+        if (link.dataset.adminExercise) {
+          params.set('view', `exercise-${link.dataset.adminExercise}`);
+          params.set('exercise', link.dataset.adminExercise);
+          params.delete('tab');
+        } else {
+          params.set('view', 'admin');
+          params.delete('exercise');
+        }
+        const nextUrl = `${window.location.pathname}?${params.toString()}`;
+        if (`${window.location.pathname}${window.location.search}` !== nextUrl) window.history.pushState({}, '', nextUrl);
+      }
 
       // Lazy load view data
       if (viewId === 'feed') loadThreatStream();
@@ -117,6 +147,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       // latency / partition views are loaded by reliability.js (its own nav listeners).
     });
+  });
+
+  window.addEventListener('popstate', () => {
+    const params = new URLSearchParams(window.location.search);
+    const exercise = params.get('exercise');
+    restoringHistory = true;
+    try {
+      if (/^(13|14|15|16|17|18)$/.test(exercise || '')) document.querySelector(`[data-admin-exercise="${exercise}"]`)?.click();
+      else if (params.get('view') === 'admin') byId('admin-nav')?.click();
+      else document.querySelector(`.sidebar-nav .nav-link[data-view="${CSS.escape(params.get('view') || 'feed')}"]`)?.click();
+    } finally { restoringHistory = false; }
   });
 
   // Drawer handlers
@@ -497,8 +538,8 @@ document.addEventListener('DOMContentLoaded', () => {
       panel.setAttribute('aria-busy', 'false');
       if (label) label.hidden = true;
       state.textContent = 'Threat intelligence is temporarily unavailable.';
-      updated.textContent = '—';
-      count.textContent = '—';
+      updated.textContent = 'â€”';
+      count.textContent = 'â€”';
     };
 
     Promise.all([
@@ -524,7 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.textContent = 'Active';
         updated.textContent = lastSuccessfulSync
           ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(lastSuccessfulSync)
-          : '—';
+          : 'â€”';
         count.textContent = Number(events.total).toLocaleString();
       })
       .catch(unavailable);
@@ -616,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const inCache = finite(data.bytes_in_cache);
       const cachePct = maxBytes && inCache !== null ? Math.min(100, (inCache / maxBytes) * 100) : 0;
       const hit = finite(data.hit_ratio_interval);
-      byId('wt-hit-ratio').textContent = hit === null ? '—' : `${(hit * 100).toFixed(2)}%`;
+      byId('wt-hit-ratio').textContent = hit === null ? 'â€”' : `${(hit * 100).toFixed(2)}%`;
       byId('wt-bytes-cache').textContent = bytesOrNA(data.bytes_in_cache);
       byId('wt-cache-pct').textContent = maxBytes ? `${cachePct.toFixed(2)}% of ${formatBytes(maxBytes)}` : 'Cache limit not reported';
       byId('wt-cache-capacity').textContent = `Cache limit: ${maxBytes ? formatBytes(maxBytes) : 'N/A'}`;
@@ -629,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const points = renderCacheChart(data);
       report(points === 0
         ? 'No historical cache samples are available yet; live cache values are shown above.'
-        : `${points} actual sample${points === 1 ? '' : 's'} (one every ${Math.round((finite(data.sampling_interval_seconds) || 10))} s) · updated ${new Date().toLocaleTimeString()}`,
+        : `${points} actual sample${points === 1 ? '' : 's'} (one every ${Math.round((finite(data.sampling_interval_seconds) || 10))} s) Â· updated ${new Date().toLocaleTimeString()}`,
       false);
     } catch (error) {
       console.error(error);
@@ -713,7 +754,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status.classList.add('error');
       status.textContent = `Measurement failed: ${error.message}`;
       if (!randomReadsHaveResult) {
-        byId('ws-read-latency').textContent = '—';
+        byId('ws-read-latency').textContent = 'â€”';
         byId('ws-read-count').textContent = 'No measurement: the last attempt failed';
       }
     } finally {

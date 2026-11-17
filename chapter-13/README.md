@@ -144,6 +144,52 @@ initiates (or validates) `rs0`, waits for all three healthy members, and starts 
 The failover test runs inside the Compose network so the driver's discovered MongoDB hostnames
 remain resolvable.
 
+### Optional Prometheus and Grafana
+
+The exporter remains part of the normal replica-set startup. Prometheus and Grafana are opt-in so
+an existing Chapter 13 deployment does not gain new public listeners or require new credentials
+when it is started. Set unique `GRAFANA_ADMIN_USER` and `GRAFANA_ADMIN_PASSWORD` values in the
+ignored `chapter-13/.env`, then start only the observability profile:
+
+```bash
+docker compose --env-file .env --profile observability up -d prometheus grafana
+```
+
+Prometheus scrapes the existing exporter over the private Compose network. Its UI is bound to
+`127.0.0.1:19090`; Grafana is bound to `127.0.0.1:13000` (change the `*_BIND_PORT` variables if
+those loopback ports are in use). Grafana provisions a Prometheus data source and a Chapter 13
+dashboard. Dashboard panels query exporter metrics; an empty panel means that metric was not
+returned by the configured exporter and is not replaced with sample values.
+
+The Prometheus and Grafana data use separate named volumes. `docker compose down` retains all five
+MongoDB/observability volumes; do not use `down -v` unless you intentionally want to erase them.
+The app's Chapter 13 workspace reports Prometheus/Grafana links only when `LAB13_PROMETHEUS_URL`,
+`LAB13_PROMETHEUS_PUBLIC_URL`, `LAB13_GRAFANA_URL`, and `LAB13_GRAFANA_PUBLIC_URL` are configured
+for the backend runtime. The backend URL must be reachable from the app process; the public URL
+must be reachable from the browser.
+
+### Application operations API
+
+The signed-in administrator workspace uses the existing application session and admin role check.
+The new routes are:
+
+- `GET /api/ops/overview` — latest sampled application replica-set data and configured integration
+  readiness.
+- `GET /api/ops/metrics/deployment?minutes=30` — stored `serverStatus`/replica-set samples and
+  observed election markers for 1–30 minutes.
+- `POST /api/ops/lab13/failover` — requires `{"confirm":true}` and a 5–120 second duration; it
+  records audit intent, requests a non-forced stepdown, and returns success only after observing a
+  different primary.
+- `POST /api/services/lab13/kubernetes` — requires `{"confirm":true}` and runs only the checked-in
+  `scripts/deploy-kubernetes.sh` after verifying local prerequisites. It never accepts a command
+  from the request.
+
+The operations API samples the MongoDB replica set configured for the application. The Chapter 13
+Compose replica set and Kubernetes cluster are separate deployments; their status is not inferred
+from the app cluster. Kubernetes is reported as unavailable unless the backend environment has a
+working `kubectl` context and the ignored Chapter 13 credentials/keyfile. Atlas status reports
+configuration presence only. The application does not run Terraform apply/destroy.
+
 ### Configure and start
 
 After completing the shared secret setup:

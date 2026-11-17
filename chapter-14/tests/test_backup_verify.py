@@ -12,6 +12,45 @@ import backup_verify as backup
 
 
 class BackupTests(unittest.TestCase):
+    def test_full_replica_set_backup_enables_oplog_capture(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            commands = []
+            def fake_run(command, **kwargs):
+                commands.append(command)
+                return Mock(returncode=0, stdout="", stderr="")
+            with patch.object(backup.shutil, "which", side_effect=lambda name: name):
+                result = backup.run_backup("mongodb://example.invalid/?replicaSet=rs0", Path(temp_dir), oplog=True, run_process=fake_run)
+            self.assertTrue(result.success)
+            self.assertIn("--oplog", commands[0])
+            self.assertNotIn("--db", commands[0])
+
+    def test_oplog_capture_rejects_database_filtered_dump(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with self.assertRaises(ValueError):
+                backup.run_backup("mongodb://example.invalid/?replicaSet=rs0", Path(temp_dir), database="chapter07", oplog=True)
+
+    def test_database_backup_can_be_scoped_without_a_collection(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            commands = []
+
+            def fake_run(command, **kwargs):
+                commands.append(command)
+                return Mock(returncode=0, stdout="", stderr="")
+
+            with patch.object(backup.shutil, "which", side_effect=lambda name: name):
+                result = backup.run_backup(
+                    "mongodb://example.invalid/?replicaSet=rs0",
+                    root,
+                    database="chapter07",
+                    run_process=fake_run,
+                )
+            self.assertTrue(result.success)
+            command = commands[0]
+            self.assertIn("--db", command)
+            self.assertIn("chapter07", command)
+            self.assertNotIn("--collection", command)
+
     def test_scoped_backup_command_and_timestamped_directory(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

@@ -177,7 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (activeTab === 'users') loadUsers();
     if (activeTab === 'transactions') loadTransactions();
     if (activeTab === 'subscriptions') loadSubscriptions();
-    if (activeTab === 'labs' && window.loadLabsDashboard) window.loadLabsDashboard();
   }));
   $('admin-user-apply').addEventListener('click', () => { userPage = 1; loadUsers(); });
   $('admin-user-search').addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); userPage = 1; loadUsers(); } });

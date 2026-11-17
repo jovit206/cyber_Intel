@@ -116,6 +116,7 @@ services:
       MONGO_DATABASE: "${MONGO_DATABASE:-chapter07}"
       FRONTEND_ORIGIN: "http://localhost:${APP_PORT:-8000}"
       LAB9_RESULTS_DIR: /app/labs/lab9/results
+      CHAPTER14_BACKUP_DIR: /app/chapter-14/backups
     ports:
       - "${APP_PORT:-8000}:8000"
     depends_on:
@@ -124,6 +125,35 @@ services:
     volumes:
       # Lab 9.1 / 9.2 reports appear here on the host.
       - ./labs/lab9/results:/app/labs/lab9/results
+      - chapter14-backups:/app/chapter-14/backups
+    networks:
+      - mongo-net
+
+  chapter14-backup-worker:
+    image: ${CHAPTER14_WORKER_IMAGE:-aegis-chapter14-backup-worker:local}
+    build:
+      context: ./chapter-14
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      MONGO_URI: "mongodb://mongo1:27017,mongo2:27017,mongo3:27017/?replicaSet=rs0"
+      MONGO_DATABASE: "${MONGO_DATABASE:-chapter07}"
+      CHAPTER14_BACKUP_DIR: /app/chapter14/backups
+    command: ["python", "backup_worker.py"]
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+    volumes:
+      - chapter14-backups:/app/chapter14/backups
+    healthcheck:
+      test: ["CMD", "python", "backup_worker.py", "--health-check"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - mongo-net
 
@@ -131,6 +161,7 @@ volumes:
   mongo1-data:
   mongo2-data:
   mongo3-data:
+  chapter14-backups:
 
 networks:
   mongo-net:

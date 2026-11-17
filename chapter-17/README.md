@@ -13,9 +13,12 @@ Set these values on the FastAPI backend using the deployment's secret-management
 - `VOYAGE_API_KEY` — required for document and query embeddings.
 - `VOYAGE_MODEL` — defaults to `voyage-3`; model dimensions are checked against provider responses.
 - `VOYAGE_OUTPUT_DIMENSION` — optional output dimension where supported by the selected Voyage model.
-- `RAG_LLM_API_KEY` or `OPENAI_API_KEY` — required for answer generation.
+- `LLM_PROVIDER` — `ollama` (preferred for new installs) or `openai-compatible`. When omitted, existing Chapter 17 API-key/endpoint settings continue to select the OpenAI-compatible provider; otherwise Ollama is selected.
+- `OLLAMA_BASE_URL` and `OLLAMA_CHAT_MODEL` — Ollama URL and model; defaults are `http://localhost:11434` and `llama3.1:8b`. Plain HTTP is accepted only for local Ollama addresses or the Compose service hostname `ollama`.
+- `RAG_LLM_API_KEY` or `OPENAI_API_KEY` — required by the OpenAI-compatible provider only.
 - `RAG_LLM_API_URL` — optional OpenAI-compatible chat-completions endpoint; HTTPS is required except for loopback development endpoints.
-- `RAG_LLM_MODEL` — defaults to `gpt-4o-mini`.
+- `RAG_LLM_MODEL` — OpenAI-compatible model; defaults to `gpt-4o-mini`.
+- `LLM_TIMEOUT_SECONDS` — provider request timeout from 1 to 600 seconds; defaults to 90.
 
 The browser never receives provider keys. The service stores chunks in `rag_demo.documents`, and messages in `rag_demo.conversations`; conversation reads and writes are scoped to the signed-in administrator. A MongoDB Vector Search index must be created after the first successful embedding batch. A local replica set does not establish that Vector Search is available; the status endpoint checks the actual deployment capability.
 
@@ -67,3 +70,25 @@ All routes below require a valid administrator session:
 - `GET /api/vector-benchmark/runs/{run_id}`
 
 No RAG answer, benchmark metric, or project capability is represented as available until the corresponding provider, database feature, model, input data, and operation have actually succeeded.
+
+### Main application integration and retrieval modes
+
+The root application's original administrator routes remain available, with course-specification
+aliases `POST /api/ask`, `GET/DELETE /api/ask/history`, and `GET/POST /api/ops/ask-index`.
+Conversation retrieval is scoped to the current administrator identity; prompt memory includes at
+most five recent user/assistant exchanges. The RAG prompt treats retrieved passages as untrusted
+evidence and constrains citations to the supplied source labels.
+
+Voyage embeddings remain the compatibility default. To use the 384-dimensional
+`sentence-transformers/all-MiniLM-L6-v2` provider, install the optional vector-lab requirements,
+preload the model in the backend's local cache, and set `RAG_EMBEDDING_PROVIDER=local`. Requests do
+not download model weights. If the model or a queryable MongoDB Vector Search index is unavailable,
+the question path uses bounded structured text matching over embedded report chunks; answers then
+identify that retrieval mode. If the chat provider is unavailable but evidence was retrieved, the
+API returns a clearly labelled extractive fallback. This does not implement custom HNSW/IVF tuning;
+Atlas support and measured retrieval results remain deployment-dependent.
+
+`LLM_PROVIDER=nvidia-nim` selects the OpenAI-compatible NVIDIA NIM endpoint through backend-only
+`NVIDIA_NIM_API_KEY`, `NVIDIA_NIM_MODEL`, and optional `NVIDIA_NIM_BASE_URL`. `LLM_PROVIDER=ollama`
+supports local Ollama without a key and Ollama Cloud through HTTPS plus `OLLAMA_API_KEY`. Provider
+selection is explicit; the API does not silently fail over between providers.

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Literal
 
 from bson import ObjectId
-from fastapi import APIRouter, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from pymongo import ReturnDocument
 from typing_extensions import Annotated
@@ -14,12 +14,16 @@ from typing_extensions import Annotated
 from backend.database import get_database
 from backend.routes.subscriptions import _session_user
 
-router = APIRouter(prefix="/api/cases", tags=["Multi-tenant cases"])
+def _enforce_case_rate_limit(request: Request) -> None:
+    _rate_limit(_db(), "platform", _actor(request))
+
+
+router = APIRouter(prefix="/api/cases", tags=["Multi-tenant cases"], dependencies=[Depends(_enforce_case_rate_limit)])
 CaseTitle = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=180)]
 CaseDescription = Annotated[str, StringConstraints(max_length=8000)]
 OrgRole = Literal["org_admin", "analyst", "viewer"]
 CaseStatus = Literal["open", "in_progress", "closed"]
-RATE_LIMIT = 120
+RATE_LIMIT = 30
 RATE_WINDOW = timedelta(minutes=1)
 _INDEXED_DATABASE_IDS: set[int] = set()
 
@@ -57,7 +61,8 @@ def _db():
     if id(db) not in _INDEXED_DATABASE_IDS:
         db.organizations.create_index("name_key", unique=True, name="uq_case_organization_name")
         db.organization_memberships.create_index([("organization_id", 1), ("user_id", 1)], unique=True, name="uq_organization_member")
-        db.cases.create_index([("organization_id", 1), ("status", 1), ("updated_at", -1)], name="ix_cases_org_status_updated")
+        db.cases.create_index([("tenant_id", 1), ("status", 1), ("updated_at", -1)], name="ix_cases_tenant_status_updated")
+        db.case_audit_log.create_index([("tenant_id", 1), ("created_at", -1)], name="ix_case_audit_tenant_created")
         db.case_rate_limits.create_index("expires_at", expireAfterSeconds=0, name="ttl_case_rate_limits")
         _INDEXED_DATABASE_IDS.add(id(db))
     return db
@@ -98,7 +103,7 @@ def _require_org_role(db, organization_id: str, actor: dict, allowed: set[str]):
 
 def _rate_limit(db, organization_id: str, actor: dict) -> None:
     now = datetime.now(timezone.utc)
-    key = hashlib.sha256(f"{organization_id}\0{actor['user_id']}".encode()).hexdigest()
+    key = hashlib.sha256(f"case-user:{actor['user_id']}".encode()).hexdigest()
     reset_before = now - RATE_WINDOW
     expired = {"$or": [
         {"$eq": [{"$type": "$window_start"}, "missing"]},
@@ -132,7 +137,8 @@ def _rate_limit(db, organization_id: str, actor: dict) -> None:
 def _case_summary(row: dict) -> dict:
     return {
         "case_id": str(row["_id"]),
-        "organization_id": row["organization_id"],
+        "organization_id": row.get("organization_id", row.get("tenant_id")),
+        "tenant_id": row.get("tenant_id", row.get("organization_id")),
         "title": row["title"],
         "status": row["status"],
         "assigned_to": row.get("assigned_to"),
@@ -141,6 +147,43 @@ def _case_summary(row: dict) -> dict:
         "updated_at": row["updated_at"],
         "linked_threat_count": len(row.get("linked_threat_ids", [])),
     }
+
+
+def _tenant_case_query(actor: dict, database, case_id: ObjectId) -> dict:
+    query: dict = {"_id": case_id}
+    if _is_admin(actor):
+        return query
+    memberships = list(database.organization_memberships.find(
+        {"user_id": actor["user_id"]}, {"organization_id": 1, "_id": 0},
+    ))
+    allowed = [row["organization_id"] for row in memberships]
+    if not allowed:
+        return {"_id": case_id, "tenant_id": "__no_membership__"}
+    query["$or"] = [
+        {"tenant_id": {"$in": allowed}},
+        {"tenant_id": {"$exists": False}, "organization_id": {"$in": allowed}},
+    ]
+    return query
+
+
+def _audit_case(database, actor: dict, action: str, tenant_id: str, case_id: str, details: dict | None = None) -> None:
+    database.case_audit_log.insert_one({
+        "action": action,
+        "actor_user_id": actor["user_id"],
+        "actor_role": actor.get("role", "user"),
+        "tenant_id": tenant_id,
+        "case_id": case_id,
+        "created_at": datetime.now(timezone.utc),
+        "details": details or {},
+    })
+
+
+def _tenant_filter(tenant_id: str) -> dict:
+    """Support the additive tenant_id migration while keeping pre-migration rows isolated."""
+    return {"$or": [
+        {"tenant_id": tenant_id},
+        {"tenant_id": {"$exists": False}, "organization_id": tenant_id},
+    ]}
 
 
 @router.get("/me")
@@ -166,7 +209,7 @@ def organization_overview(request: Request):
     summary = []
     for org in organizations:
         org_id = str(org["_id"])
-        counts = {state: db.cases.count_documents({"organization_id": org_id, "status": state}) for state in ("open", "in_progress", "closed")}
+        counts = {state: db.cases.count_documents({"$and": [_tenant_filter(org_id), {"status": state}]}) for state in ("open", "in_progress", "closed")}
         summary.append({"organization_id": org_id, "name": org["name"], "created_at": org.get("created_at"),
                         "members": db.organization_memberships.count_documents({"organization_id": org_id}),
                         "cases": sum(counts.values()), "case_status_counts": counts})
@@ -215,18 +258,39 @@ def organization_members(organization_id: str, request: Request):
     return {"members": [{**row, "name": users.get(row["user_id"], {}).get("name"), "email": users.get(row["user_id"], {}).get("email")} for row in members]}
 
 
+@router.get("/org/members")
+def my_organization_members(request: Request, organization_id: str | None = None):
+    actor = _actor(request)
+    db = _db()
+    if organization_id:
+        _require_org_role(db, organization_id, actor, {"platform_admin", "org_admin", "analyst", "viewer"})
+        organization_ids = [organization_id]
+    else:
+        organization_ids = [row["organization_id"] for row in db.organization_memberships.find(
+            {"user_id": actor["user_id"]}, {"organization_id": 1, "_id": 0},
+        )]
+    rows = list(db.organization_memberships.find({"organization_id": {"$in": organization_ids}},
+        {"_id": 0, "organization_id": 1, "user_id": 1, "role": 1, "created_at": 1}))
+    user_ids = [row["user_id"] for row in rows]
+    users = {row["user_id"]: row for row in db.subscription_users.find(
+        {"user_id": {"$in": user_ids}}, {"user_id": 1, "name": 1, "email": 1},
+    )}
+    return {"members": [{**row, "name": users.get(row["user_id"], {}).get("name"),
+                          "email": users.get(row["user_id"], {}).get("email")} for row in rows]}
+
+
 @router.post("/org/{organization_id}/members", status_code=201)
 def add_organization_member(organization_id: str, payload: MemberAdd, request: Request):
     actor = _actor(request)
-    if not _is_admin(actor):
-        raise HTTPException(status_code=403, detail="Platform administrator access is required to add organisation members.")
     db = _db()
+    _require_org_role(db, organization_id, actor, {"platform_admin", "org_admin"})
     if not db.organizations.find_one({"_id": _object_id(organization_id)}):
         raise HTTPException(status_code=404, detail="Organisation not found.")
     if not db.subscription_users.find_one({"user_id": payload.user_id}, {"_id": 1}):
         raise HTTPException(status_code=404, detail="Platform user not found.")
     db.organization_memberships.update_one({"organization_id": organization_id, "user_id": payload.user_id},
         {"$set": {"role": payload.role, "updated_at": datetime.now(timezone.utc)}, "$setOnInsert": {"created_at": datetime.now(timezone.utc)}}, upsert=True)
+    _audit_case(db, actor, "user.update", organization_id, payload.user_id, {"membership_role": payload.role})
     return {"organization_id": organization_id, "user_id": payload.user_id, "role": payload.role}
 
 
@@ -240,14 +304,16 @@ def list_cases(request: Request, organization_id: str | None = None, status: Cas
         allowed = [row["organization_id"] for row in memberships]
         if not allowed:
             return {"cases": [], "message": "Ask an administrator to add you to an organisation."}
-        query["organization_id"] = {"$in": allowed}
+        query["$or"] = [
+            {"tenant_id": {"$in": allowed}},
+            {"tenant_id": {"$exists": False}, "organization_id": {"$in": allowed}},
+        ]
     if organization_id:
         _require_org_role(db, organization_id, actor, {"platform_admin", "org_admin", "analyst", "viewer"})
-        query["organization_id"] = organization_id
+        tenant_match = _tenant_filter(organization_id)
+        query = {"$and": [query, tenant_match]} if query else tenant_match
     if status:
         query["status"] = status
-    rate_scope = organization_id or (query.get("organization_id", {}).get("$in", ["platform"])[0] if isinstance(query.get("organization_id"), dict) else "platform")
-    _rate_limit(db, rate_scope, actor)
     rows = db.cases.find(query).sort("updated_at", -1).limit(limit)
     return {"cases": [_case_summary(row) for row in rows]}
 
@@ -260,12 +326,12 @@ def create_case(payload: CaseCreate, request: Request):
     _require_org_role(db, org_id, actor, {"platform_admin", "org_admin", "analyst"})
     if not db.organizations.find_one({"_id": _object_id(org_id)}):
         raise HTTPException(status_code=404, detail="Organisation not found.")
-    _rate_limit(db, org_id, actor)
     now = datetime.now(timezone.utc)
-    row = {"_id": ObjectId(), "organization_id": org_id, "title": payload.title, "description": payload.description,
+    row = {"_id": ObjectId(), "tenant_id": org_id, "organization_id": org_id, "title": payload.title, "description": payload.description,
            "linked_threat_ids": payload.linked_threat_ids, "status": "open", "assigned_to": None,
            "created_by": actor["user_id"], "created_at": now, "updated_at": now}
     db.cases.insert_one(row)
+    _audit_case(db, actor, "case.create", org_id, str(row["_id"]), {"title": payload.title})
     return _case_summary(row)
 
 
@@ -273,11 +339,10 @@ def create_case(payload: CaseCreate, request: Request):
 def get_case(case_id: str, request: Request):
     actor = _actor(request)
     db = _db()
-    row = db.cases.find_one({"_id": _object_id(case_id)})
+    row = db.cases.find_one(_tenant_case_query(actor, db, _object_id(case_id)))
     if not row:
         raise HTTPException(status_code=404, detail="Case not found.")
     _require_org_role(db, row["organization_id"], actor, {"platform_admin", "org_admin", "analyst", "viewer"})
-    _rate_limit(db, row["organization_id"], actor)
     return {**_case_summary(row), "description": row.get("description", ""), "linked_threat_ids": row.get("linked_threat_ids", [])}
 
 
@@ -285,7 +350,8 @@ def get_case(case_id: str, request: Request):
 def update_case(case_id: str, payload: CaseUpdate, request: Request):
     actor = _actor(request)
     db = _db()
-    row = db.cases.find_one({"_id": _object_id(case_id)})
+    scoped_query = _tenant_case_query(actor, db, _object_id(case_id))
+    row = db.cases.find_one(scoped_query)
     if not row:
         raise HTTPException(status_code=404, detail="Case not found.")
     role = _require_org_role(db, row["organization_id"], actor, {"platform_admin", "org_admin", "analyst"})
@@ -297,9 +363,9 @@ def update_case(case_id: str, payload: CaseUpdate, request: Request):
             raise HTTPException(status_code=403, detail="Only organisation administrators can assign cases.")
         if not db.organization_memberships.find_one({"organization_id": row["organization_id"], "user_id": changes["assigned_to"]}):
             raise HTTPException(status_code=422, detail="Assignee must be an active member of this organisation.")
-    _rate_limit(db, row["organization_id"], actor)
     changes["updated_at"] = datetime.now(timezone.utc)
-    updated = db.cases.find_one_and_update({"_id": row["_id"], "organization_id": row["organization_id"]}, {"$set": changes}, return_document=ReturnDocument.AFTER)
+    updated = db.cases.find_one_and_update(scoped_query, {"$set": changes}, return_document=ReturnDocument.AFTER)
+    _audit_case(db, actor, "case.update", row.get("tenant_id", row["organization_id"]), case_id, {"fields": sorted(changes)})
     return _case_summary(updated)
 
 
@@ -307,10 +373,11 @@ def update_case(case_id: str, payload: CaseUpdate, request: Request):
 def delete_case(case_id: str, request: Request):
     actor = _actor(request)
     db = _db()
-    row = db.cases.find_one({"_id": _object_id(case_id)})
+    scoped_query = _tenant_case_query(actor, db, _object_id(case_id))
+    row = db.cases.find_one(scoped_query)
     if not row:
         raise HTTPException(status_code=404, detail="Case not found.")
     _require_org_role(db, row["organization_id"], actor, {"platform_admin", "org_admin"})
-    _rate_limit(db, row["organization_id"], actor)
-    db.cases.delete_one({"_id": row["_id"], "organization_id": row["organization_id"]})
+    db.cases.delete_one(scoped_query)
+    _audit_case(db, actor, "case.delete", row.get("tenant_id", row["organization_id"]), case_id)
     return Response(status_code=204)

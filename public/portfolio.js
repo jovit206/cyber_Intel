@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status: { tested: false },
       docker: 'https://hub.docker.com/r/jovit206/lab-13',
       resources: [
-        ['Project README', 'readme'],
+        ['Technical guide', 'readme'],
         ['Kubernetes deployment guide', 'kubernetes-guide'],
         ['Failover test source', 'failover-script'],
       ],
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
       architectureRows: [[0], [1], [2, 3], [4]],
       detail: {
         problem: 'A database that depends on one server can stop serving requests when that server becomes unavailable.',
-        solution: 'Run three authenticated MongoDB members, verify replication, and exercise an election while a PyMongo client continues its read-and-write checks.',
+        solution: 'Run three authenticated MongoDB members, verify replication, and test an election while a PyMongo client continues its read-and-write checks.',
         howItWorks: 'The application discovers the current primary from the replica set. MongoDB replicates committed writes to secondary members. If the primary steps down, eligible members elect a replacement and the client reconnects.',
         database: 'MongoDB replica set rs0 uses three members with separate persistent volumes. Majority write checks and member health are verified by the included scripts.',
         implementation: 'Docker Compose and Kubernetes configurations are provided. The Kubernetes deployment uses a headless Service, StatefulSet, and per-pod persistent volume claims. A dedicated exporter account is used for metrics.',
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status: { tested: true },
       docker: 'https://hub.docker.com/r/jovit206/lab-14',
       resources: [
-        ['Project README', 'readme'],
+        ['Technical guide', 'readme'],
         ['Execution report', 'execution-report'],
         ['Backup and restore benchmarks', 'benchmarks'],
         ['Recovery objectives report', 'recovery-report'],
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         database: 'The tools inspect MongoDB server and replica-set status. Backup data is stored in timestamped directories with ownership markers; restore checks use an isolated verification database.',
         implementation: 'The repository includes monitoring and backup scripts, Docker packaging, a retention policy, restore verification, and optional webhook notifications. Secrets are supplied at runtime through environment variables.',
         testing: 'The execution report records 17 unit tests, live replica-set checks, backup and restore runs, and verification benchmarks at 1,000, 10,000 and 100,000 documents. Webhook delivery was not run because no endpoint credentials were supplied.',
-        deployment: 'A Docker image with tag 1.0 is available. The project documentation describes runtime MongoDB and optional alert settings; no webhook credentials are embedded in the image.',
+        deployment: 'A Docker image with tag 1.0 is available. The deployment documentation describes runtime MongoDB and optional alert settings; no webhook credentials are embedded in the image.',
       },
     },
     {
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status: { tested: true },
       docker: 'https://hub.docker.com/r/jovit206/lab-15',
       resources: [
-        ['Project README', 'readme'],
+        ['Technical guide', 'readme'],
         ['Execution report', 'execution-report'],
         ['Architecture recommendation', 'architecture'],
         ['Migration validation report', 'migration-report'],
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status: { tested: true },
       docker: 'https://hub.docker.com/r/jovit206/lab-16',
       resources: [
-        ['Project README', 'readme'],
+        ['Technical guide', 'readme'],
         ['Execution report', 'execution-report'],
         ['Hybrid architecture document', 'architecture'],
         ['Latency comparison', 'benchmarks'],
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         database: 'MongoDB stores transaction documents; Cassandra partitions user events by user and orders them by event time; Neo4j models users and transfers as a graph. The separate enrollment example also compares document, query-table and graph models.',
         implementation: 'The service uses pooled MongoDB, Cassandra and Neo4j connections, bounded graph queries, independent circuit breakers, and cleanup for every backend connection.',
         testing: 'The execution report records 20 passing tests, consistent query results across the three data stores, a live merged fraud-analysis run, and latency measurements. Docker image build and Compose workflow were also recorded as successful.',
-        deployment: 'A Docker image with tag 1.0 is available. The project includes an isolated Compose deployment for the three database services and runtime configuration through environment variables.',
+        deployment: 'A Docker image with tag 1.0 is available. The deployment includes an isolated Compose configuration for the three database services and runtime configuration through environment variables.',
       },
     },
     {
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
       docker: null,
       interactive: 'rag',
       resources: [
-        ['Project README', 'readme'],
+        ['Technical guide', 'readme'],
         ['RAG API source', 'api-source'],
         ['RAG service source', 'service-source'],
       ],
@@ -173,9 +173,9 @@ document.addEventListener('DOMContentLoaded', () => {
         solution: 'The service chunks uploaded text, creates Voyage embeddings, stores document vectors in MongoDB, retrieves matching chunks with Vector Search, and asks a configured chat-completion provider to answer from that context.',
         howItWorks: 'Uploads are split into 100-word windows with 20-word overlap. The app persists chunks and vectors, and an administrator creates a MongoDB Vector Search index after the first successful embedding. A question runs through query embedding, vector retrieval, conversation-memory lookup and LLM generation; each completed stage is correlated in System Activity.',
         database: 'The rag_demo database stores document chunks and vectors in documents. Conversation messages and metadata are scoped by the authenticated administrator user_id and conversation_id. Embedding model and actual dimensions are stored with each embedded chunk.',
-        implementation: 'Voyage AI and an OpenAI-compatible chat-completion endpoint are called by the backend only. Provider keys are read from runtime environment configuration, never returned to the browser or written into project events. Source chunks are shown with the answer.',
+        implementation: 'Voyage AI and an OpenAI-compatible chat-completion endpoint are called by the backend only. Provider keys are read from runtime environment configuration, never returned to the browser or written into operational events. Source chunks are shown with the answer.',
         testing: 'RAG availability depends on an embedding key, an LLM key and a MongoDB deployment that supports Vector Search. The workspace reports missing configuration and unsupported database capabilities instead of showing invented answers or measurements.',
-        deployment: 'Configure VOYAGE_API_KEY, RAG_LLM_API_KEY (or OPENAI_API_KEY), and an HTTPS RAG_LLM_API_URL on the backend. Create the Vector Search index from the project page after adding documents. The local replica set does not automatically imply Atlas Vector Search support.',
+        deployment: 'Configure VOYAGE_API_KEY, RAG_LLM_API_KEY (or OPENAI_API_KEY), and an HTTPS RAG_LLM_API_URL on the backend. Create the Vector Search index from the workspace after adding documents. The local replica set does not automatically imply Atlas Vector Search support.',
       },
     },
     {
@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
       docker: null,
       interactive: 'benchmark',
       resources: [
-        ['Project README', 'readme'],
+        ['Technical guide', 'readme'],
         ['Benchmark API source', 'api-source'],
         ['Benchmark service source', 'service-source'],
         ['Optional benchmark dependencies', 'optional-requirements'],
@@ -211,14 +211,14 @@ document.addEventListener('DOMContentLoaded', () => {
         database: 'A new dataset ID scopes its records in rag_demo.vector_benchmark_documents. Earlier datasets are retained. The currently active dataset pointer changes only after all 5,000 vectors are stored and validated.',
         implementation: 'The implementation uses bounded JSONL uploads, optional Sentence Transformers dependencies, 500-record MongoDB insert batches, duplicate-job protection and progress polling. MongoDB-managed ANN is measured as ANN; IVF and user-controlled HNSW M / efConstruction variants are reported as unsupported.',
         testing: 'No benchmark numbers are present until the optional model dependencies are installed, a real dataset is uploaded, a MongoDB Atlas Vector Search index becomes queryable, and a run finishes. Index build duration is reported as the first-observed readiness interval, not an exact server-side build metric.',
-        deployment: 'Install chapter-17/requirements-vector-lab.txt in the backend image to enable the embedding job. MongoDB Atlas Vector Search is required for ANN and ENN database measurements. The application preserves prior dataset records and does not fabricate unsupported IVF results.',
+        deployment: 'Install the vector-search requirements file in the backend image to enable the embedding job. MongoDB Atlas Vector Search is required for ANN and ENN database measurements. The application preserves prior dataset records and does not fabricate unsupported IVF results.',
       },
     },
     {
       id: 'comparative-threat-intelligence',
       mark: 'CTI',
       title: 'Multi-Database Threat Intelligence Comparison',
-      shortDescription: 'Project 7 compares MongoDB, Cassandra and Neo4j against one normalized threat dataset, with admin review and measured query benchmarks.',
+      shortDescription: 'Compare MongoDB, Cassandra and Neo4j using one normalized threat dataset, with analyst review and measured query benchmarks.',
       application: 'Analysts can review source-provided threat data, inspect explicit relationships and compare database query behavior without treating shared indicators as proof.',
       stack: ['MongoDB', 'Apache Cassandra', 'Neo4j', 'FastAPI', 'Pydantic', 'Docker'],
       capabilities: ['Idempotent normalized imports', 'Four measured query patterns with ten repetitions', 'Explicit-link investigations and analyst decisions', 'Availability-aware database comparison'],
@@ -226,14 +226,14 @@ document.addEventListener('DOMContentLoaded', () => {
       docker: null,
       interactive: 'chapter18',
       resources: [
-        ['Chapter 18 setup and report', 'readme'],
+        ['Setup guide and report', 'readme'],
         ['Cassandra schema', 'cassandra-schema'],
         ['Neo4j schema', 'neo4j-schema'],
         ['Optional database dependencies', 'optional-requirements'],
       ],
       architecture: [
         ['Normalized threat records', 'Validated records preserve source provenance, UTC time and explicit relationship identifiers.'],
-        ['MongoDB', 'Stores the isolated Chapter 18 document collection, import history, reviews and benchmark history.'],
+        ['MongoDB', 'Stores the isolated threat intelligence document collection, import history, reviews and benchmark history.'],
         ['Apache Cassandra', 'Stores query tables partitioned by source, type, target, indicator and day.'],
         ['Neo4j', 'Stores threats and their explicit source-provided relationship edges.'],
         ['FastAPI comparison service', 'Runs bounded queries, reports unavailable adapters and records only observed timings.'],
@@ -242,12 +242,12 @@ document.addEventListener('DOMContentLoaded', () => {
       architectureRows: [[0], [1, 2, 3], [4], [5]],
       detail: {
         problem: 'Threat records need document retrieval, time-series access and relationship exploration; comparisons are only useful when they use the same data and honest measurements.',
-        solution: 'Project 7 normalizes imported records once and writes them to isolated Chapter 18 structures in each configured database.',
+        solution: 'Imported records are normalized once and written to isolated threat intelligence structures in each configured database.',
         howItWorks: 'Administrators import validated JSON records, inspect adapter readiness, query records, build bounded investigations from explicit related-threat identifiers, and run four database operations ten times each.',
-        database: 'MongoDB uses the threat_intel_lab18 database; Cassandra uses the threat_intel_lab18 keyspace; Neo4j uses Chapter 18 Threat labels and relationships. Existing application records remain separate.',
+        database: 'MongoDB and Cassandra use isolated threat-intelligence namespaces; Neo4j stores threat labels and relationships. Existing application records remain separate.',
         implementation: 'The API is administrator-only. Adapter failures are returned as unavailable or not tested. Similar indicators and transaction IDs are evidence for review, never automatic false-positive classifications.',
         testing: 'Live timings are generated only by database operations. A missing service or schema is reported without fabricated latency. Integration requires the matching database service and credentials.',
-        deployment: 'See Chapter 18 README for optional LAB18_* configuration and Docker build arguments. Cassandra and Neo4j drivers are installed through chapter-18/requirements-chapter18.txt.',
+        deployment: 'See the deployment guide for optional database configuration and container build arguments. Cassandra and Neo4j drivers must be available in the backend image.',
       },
     },
   ];
@@ -288,8 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderStats() {
     const databaseCount = technologies.filter(technology => technology.category === 'database').length;
     byId('portfolio-stat-grid').innerHTML = [
-      ['Total projects', projects.length, 'Documented and interactive projects'],
-      ['Technologies explored', technologies.length, 'Across the project set'],
+      ['Capabilities', projects.length, 'Documented and interactive capabilities'],
+      ['Technology stack', technologies.length, 'Across platform capabilities'],
       ['Database technologies', databaseCount, 'Document, wide-column and graph'],
       ['Engineering domains', journey.length, 'Reliability through data intelligence'],
     ].map(([label, value, note]) => `
@@ -314,8 +314,8 @@ document.addEventListener('DOMContentLoaded', () => {
           ${project.docker ? `<a class="portfolio-verified portfolio-badge-link" href="${escapeHtml(project.docker)}" target="_blank" rel="noopener noreferrer">Docker image 1.0 available <span aria-hidden="true">↗</span></a>` : ''}
         </div>
         <div class="portfolio-card-actions">
-          <button type="button" class="portfolio-primary-button" data-portfolio-project="${escapeHtml(project.id)}">View Project <span aria-hidden="true">→</span></button>
-          <a href="${documentUrl(project, 'readme')}" class="portfolio-text-link">Project documentation</a>
+          <button type="button" class="portfolio-primary-button" data-portfolio-project="${escapeHtml(project.id)}">View details <span aria-hidden="true">→</span></button>
+          <a href="${documentUrl(project, 'readme')}" class="portfolio-text-link">Technical documentation</a>
         </div>
       </article>
     `).join('');
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="portfolio-tech-name">${escapeHtml(technology.name)}</span>
           <span class="portfolio-tech-description">${escapeHtml(technology.description)}</span>
           <span class="portfolio-tech-projects"><strong>Used in</strong>${relatedProjects.map(project => escapeHtml(project.title)).join(' · ')}</span>
-          <span class="portfolio-tech-open">Explore a related project <span aria-hidden="true">→</span></span>
+          <span class="portfolio-tech-open">View a related capability <span aria-hidden="true">→</span></span>
         </button>
       `;
     }).join('');
@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderResources() {
     byId('portfolio-resource-grid').innerHTML = projects.map(project => `
       <article class="portfolio-resource-card">
-        <div><span class="portfolio-kicker">PROJECT RESOURCES</span><h3>${escapeHtml(project.title)}</h3></div>
+        <div><span class="portfolio-kicker">TECHNICAL RESOURCES</span><h3>${escapeHtml(project.title)}</h3></div>
         <div class="portfolio-resource-links">
           ${project.resources.map(([label, resource]) => `<a href="${documentUrl(project, resource)}">${escapeHtml(label)} <span aria-hidden="true">↗</span></a>`).join('')}
           ${project.docker ? `<a href="${escapeHtml(project.docker)}" target="_blank" rel="noopener noreferrer">Docker Hub image 1.0 <span aria-hidden="true">↗</span></a>` : ''}
@@ -385,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
     detail.dataset.projectId = project.id;
     const simpleSections = [
       ['Overview', escapeHtml(project.shortDescription)],
-      ['Problem Statement', escapeHtml(project.detail.problem)],
+      ['Operational Challenge', escapeHtml(project.detail.problem)],
       ['Solution', escapeHtml(project.detail.solution)],
       ['How It Works', escapeHtml(project.detail.howItWorks)],
       ['Key Features', `<ul>${project.capabilities.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`],
@@ -399,9 +399,9 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     detail.innerHTML = `
-      <button type="button" class="portfolio-back-button" data-portfolio-back>← All projects</button>
+      <button type="button" class="portfolio-back-button" data-portfolio-back>← All capabilities</button>
       <header class="portfolio-detail-header">
-        <span class="portfolio-kicker">ENGINEERING PROJECT</span>
+        <span class="portfolio-kicker">PLATFORM CAPABILITY</span>
         <h1 tabindex="-1">${escapeHtml(project.title)}</h1>
         <p>${escapeHtml(project.shortDescription)}</p>
         <div class="portfolio-badges"><span class="portfolio-verified${project.status.label ? ' portfolio-status-config' : ''}">${escapeHtml(project.status.label || (project.status.tested ? 'Tested' : 'Implemented'))}</span><span class="portfolio-verified">Documentation available</span>${project.status.tested ? '<span class="portfolio-verified">Tested</span>' : ''}</div>
@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <article class="portfolio-detail-card"><h2>${escapeHtml(title)}</h2><div>${content}</div></article>
       `).join('')}</div>
       <section class="portfolio-detail-section">
-        <div class="portfolio-section-heading"><div><span class="portfolio-kicker">TECHNICAL EXPLORATION</span><h2>Technical details</h2></div><span class="portfolio-section-note">Expand a section for implementation context</span></div>
+        <div class="portfolio-section-heading"><div><span class="portfolio-kicker">IMPLEMENTATION DETAILS</span><h2>Technical details</h2></div><span class="portfolio-section-note">Expand a section for implementation context</span></div>
         <div class="portfolio-advanced-list">${advancedSections.map(([title, content]) => `
           <details class="portfolio-advanced"><summary>${escapeHtml(title)}</summary><div>${escapeHtml(content)}</div></details>
         `).join('')}</div>
@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ${project.docker ? `<a href="${escapeHtml(project.docker)}" target="_blank" rel="noopener noreferrer">Docker Hub image 1.0 <span aria-hidden="true">↗</span></a>` : ''}
         </div>
       </section>
-      ${project.interactive ? `<section class="portfolio-detail-section vector-project-section" aria-label="Interactive ${escapeHtml(project.title)} workspace"><div id="vector-project-workspace" data-vector-project="${escapeHtml(project.interactive)}"><p class="ops-empty">Loading project configuration and live capabilities…</p></div></section>` : ''}
+      ${project.interactive ? `<section class="portfolio-detail-section vector-project-section" aria-label="Interactive ${escapeHtml(project.title)} workspace"><div id="vector-project-workspace" data-vector-project="${escapeHtml(project.interactive)}"><p class="ops-empty">Loading capability configuration and live capabilities…</p></div></section>` : ''}
     `;
     byId('portfolio-dashboard').hidden = true;
     detail.hidden = false;

@@ -112,3 +112,19 @@ The final unit suite and the live 1k/10k/100k workflows passed after these fixes
    required; this lab did not leave a scheduler process running.
 4. Review the generated `chapter14_restore_test_...` databases before removing them. The scripts
    intentionally retain test data and never drop a database as cleanup.
+
+## Application API and workspace integration update
+
+The repository now also contains an authenticated Chapter 14 web workspace, persistent 30-second
+monitoring samples, threshold alert acknowledgement and signed webhook ingestion, plus a queued
+backup/restore worker integration. Hourly and manual backups use a full replica-set dump with
+`--oplog`; MongoDB Database Tools prohibit combining `--oplog` with database or collection filters.
+The restore drill remains isolated to a uniquely named test namespace. Backups use a separate
+`chapter14-backups` volume in the existing Compose configuration. See the **Application workspace
+integration** section in the README for routes and configuration.
+
+In the current source pass, the isolated Chapter 14 monitoring and backup test files passed (20
+tests). Python compileall, JavaScript syntax, and `git diff --check` also passed. The integrated
+worker/API was not started, no full replica-set dump or restore was run, and the updated application
+was not browser-verified. Docker approval review was unavailable because of its usage limit; this
+report does not treat the earlier standalone runtime results above as evidence for the new worker.

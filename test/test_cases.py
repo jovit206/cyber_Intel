@@ -27,13 +27,16 @@ def test_case_routes_require_an_authenticated_platform_session():
 def test_case_detail_is_scoped_to_organization_membership():
     app, client = make_client()
     database = MagicMock()
+    database.case_rate_limits.find_one_and_update.return_value = {
+        "counter": 1, "window_start": datetime.now(timezone.utc),
+    }
     database.cases.find_one.return_value = {"_id": ObjectId(), "organization_id": str(ObjectId()), "title": "Private", "description": "private case text"}
     database.organization_memberships.find_one.return_value = None
     with patch.object(cases, "_session_user", return_value={"user_id": "outsider", "role": "user"}), \
          patch.object(cases, "get_database", return_value=database):
         response = client.get(f"/api/cases/{database.cases.find_one.return_value['_id']}")
     client.close()
-    assert response.status_code == 403
+    assert response.status_code == 404
     assert "private case text" not in response.text
 
 

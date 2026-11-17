@@ -194,6 +194,21 @@ body {
   width: 100%;
 }
 
+.admin-exercises-nav .admin-exercise-link {
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.admin-exercises-nav .admin-exercise-link svg {
+  flex: 0 0 18px;
+  margin-top: 1px;
+}
+
+.admin-exercises-nav .admin-exercise-link span {
+  min-width: 0;
+  line-height: 1.35;
+}
+
 .nav-link:hover {
   background-color: rgba(121, 83, 111, 0.07);
   color: var(--text-white);
@@ -371,6 +386,13 @@ body {
 .content-view.active {
   display: block;
   animation: fadeIn 0.25s ease-out;
+}
+
+.exercise-view-header { align-items: center; gap: 16px; }
+.exercise-view-header > div { min-width: 0; }
+.exercise-view-header h1 { overflow-wrap: anywhere; }
+@media (max-width: 720px) {
+  .exercise-view-header { align-items: flex-start; flex-direction: column; }
 }
 
 @keyframes fadeIn {
@@ -2088,7 +2110,7 @@ select {
 .subscription-message:empty { display: none; }
 .subscription-message.error { color: #8b2626; background: #ffefec; }
 .subscription-message.success { color: #28633c; background: #edf8ed; }
-.nav-link[hidden], .nav-section-title[hidden], #subscription-account[hidden], #subscription-admin[hidden] { display: none !important; }
+.nav-link[hidden], .nav-section-title[hidden], .admin-exercises-nav[hidden], #subscription-account[hidden], #subscription-admin[hidden] { display: none !important; }
 .account-page { min-height: 100vh; height: auto; overflow: auto; background: var(--bg-darkest); }
 .account-shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 42px 0 64px; }
 .account-header, .account-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
@@ -2304,3 +2326,4 @@ body.auth-pending .account-header { margin-bottom: 18px; }
 /* Security Center */
 .security-toolbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:.4rem 0 1rem}.security-muted{color:var(--text-muted);font-size:.86rem}.security-section{margin:1.15rem 0;padding:1.25rem;border:1px solid var(--border-subtle);border-radius:var(--radius-lg);background:var(--bg-panel);box-shadow:0 6px 22px rgba(78,57,43,.045)}.security-section-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1rem}.security-section-heading h2{margin:.2rem 0;color:var(--text-white);font-size:1.2rem}.security-section-heading p,.security-card>p{max-width:76ch;margin:.35rem 0;color:var(--text-secondary);font-size:.9rem}.security-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.security-card{min-width:0;padding:1rem;border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--bg-card)}.security-card h3{color:var(--text-white);font-size:1rem}.security-card-heading{display:flex;align-items:center;justify-content:space-between;gap:.7rem}.security-grid-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:1rem}.security-table-wrap{max-width:100%;overflow-x:auto}.security-table{width:100%;border-collapse:collapse;font-size:.84rem}.security-table th,.security-table td{padding:.7rem .65rem;border-bottom:1px solid var(--border-subtle);text-align:left;vertical-align:top}.security-table th{color:var(--text-muted);font-size:.73rem;text-transform:uppercase;letter-spacing:.04em}.security-table td{color:var(--text-secondary);overflow-wrap:anywhere}.security-user-role-form{display:flex;gap:.45rem;align-items:center;min-width:190px}.security-user-role-form select,.security-form input,.security-form select{width:100%;min-width:0;padding:.62rem .7rem;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);background:#fffdf9;color:var(--text-primary);font:inherit}.security-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem;align-items:end;margin:1rem 0;padding:1rem;border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:rgba(255,253,249,.62)}.security-form>label{display:grid;gap:.35rem;color:var(--text-secondary);font-size:.84rem;font-weight:600}.security-form label small{color:var(--text-muted);font-size:.75rem;font-weight:400}.security-form>button{justify-self:start}.security-form h3,.security-form>p{grid-column:1/-1}.security-form-compact{margin:.5rem 0 0;padding:0;border:0;background:transparent}.security-form input:focus,.security-form select:focus,.security-user-role-form select:focus{outline:2px solid var(--border-focus);outline-offset:1px}.security-form :disabled{opacity:.55;cursor:not-allowed}.security-native-lists{display:grid;gap:.5rem;margin-top:.65rem}.security-native-lists>div{display:grid;gap:.18rem;color:var(--text-secondary);font-size:.85rem;overflow-wrap:anywhere}.security-message,.security-result{margin:.7rem 0;padding:.75rem .9rem;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:var(--text-secondary);background:#f7f0e4;font-size:.86rem}.security-message.success,.security-result.success{border-color:#9db59f;color:#31533b;background:#edf5ec}.security-message.warning,.security-result.warning{border-color:#dfc49c;color:#745122;background:#fbf4e7}.security-message.error,.security-result.error{border-color:#d7a6a4;color:#842f36;background:#fcf0ef}.security-result:empty{display:none}.security-guide{margin-top:1rem;padding:1rem;border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--bg-card)}.security-guide summary{color:var(--text-white);font-weight:700;cursor:pointer}.security-guide ol{display:grid;gap:.55rem;margin:1rem 0;padding-left:1.4rem;color:var(--text-secondary);font-size:.88rem}.security-guide pre{max-width:100%;margin:.8rem 0;padding:1rem;border-radius:var(--radius-sm);overflow:auto;background:#302a33;color:#f4ede2;font-size:.78rem}.security-guide p,.security-troubleshooting{margin:.65rem 0;color:var(--text-secondary);font-size:.85rem}.security-troubleshooting{padding:.8rem;border-left:3px solid var(--amber-accent);background:#faf4e8}.security-native-lists .empty-prompt{margin:0}
 @media(max-width:800px){.security-card-grid,.security-grid-two{grid-template-columns:1fr}.security-section{padding:1rem}.security-toolbar{align-items:flex-start;flex-direction:column}.security-form{grid-template-columns:1fr}.security-form h3,.security-form>p{grid-column:auto}.security-form>button{width:100%}}
+.admin-header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}

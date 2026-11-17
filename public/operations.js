@@ -132,9 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const daily = overview.operations_over_time || [];
     const series = key => daily.map(item => item[key] || 0);
     const cards = [
-      { title: 'Total operations', value: summary.total_operations, note: 'Recorded API and project events in the 30-day retention window.', status: 'unknown', values: daily.map(item => (item.success || 0) + (item.failed || 0) + (item.warning || 0)), color: '#427cb4' },
-      { title: 'Successful', value: summary.successful_operations, note: 'Recorded API and project stages completed successfully.', status: 'success', values: series('success'), color: '#377c4d' },
-      { title: 'Failed', value: summary.failed_operations, note: 'Recorded API errors and failed project stages.', status: summary.failed_operations ? 'failed' : 'success', values: series('failed'), color: '#b64e47' },
+      { title: 'Total operations', value: summary.total_operations, note: 'Recorded API and platform events in the 30-day retention window.', status: 'unknown', values: daily.map(item => (item.success || 0) + (item.failed || 0) + (item.warning || 0)), color: '#427cb4' },
+      { title: 'Successful', value: summary.successful_operations, note: 'Recorded API and workflow stages completed successfully.', status: 'success', values: series('success'), color: '#377c4d' },
+      { title: 'Failed', value: summary.failed_operations, note: 'Recorded API errors and failed workflow stages.', status: summary.failed_operations ? 'failed' : 'success', values: series('failed'), color: '#b64e47' },
       { title: 'Currently running', value: summary.running_operations, note: 'In-flight tracked API requests in this process.', status: 'running', color: '#427cb4' },
       { title: 'Recovered operations', value: summary.recovery_data_available ? summary.recovered_operations : 'Not recorded', note: 'No verified recovery history is available.', status: 'unknown' },
       { title: 'Recovery attempts', value: summary.recovery_data_available ? summary.total_recovery_attempts : 'Not recorded', note: 'Recovery instrumentation is not present yet.', status: 'unknown' },
@@ -157,8 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const note = !tracking.tracking_enabled
       ? 'Durable operation tracking is currently unavailable. The dashboard will not invent operation history.'
       : tracking.historical_data_available
-      ? `Showing retained API and project events since ${oldestEvent}. New records are retained for ${tracking.retention_days} days. ${tracking.historical_note}`
-      : `No API or project event history is recorded yet. Tracking has been enabled since ${processStart}; earlier history is unavailable. Existing audited admin actions are listed separately in System Activity. New records are retained for ${tracking.retention_days} days.`;
+      ? `Showing retained API and platform events since ${oldestEvent}. New records are retained for ${tracking.retention_days} days. ${tracking.historical_note}`
+      : `No API or platform event history is recorded yet. Tracking has been enabled since ${processStart}; earlier history is unavailable. Existing audited admin actions are listed separately in System Activity. New records are retained for ${tracking.retention_days} days.`;
     setMessage('ops-tracking-note', note, !tracking.tracking_enabled);
 
     const recent = [
@@ -290,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fields = [
         ['Event ID', event.event_id], ['Correlation ID', event.correlation_id],
         ['Timestamp', localDate(event.timestamp)], ['Component', event.component],
-        ['Project', event.project_name || 'Not applicable'],
+        ['Service', event.project_name || 'Not applicable'],
         ['Operation', event.operation], ['Status', statusLabel(event.status)],
         ['HTTP status', event.http_status_code], ['Execution duration', duration(event.duration_ms)],
         ['Error type', event.error_type || 'Not recorded'],
@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <section class="ops-detail-block"><strong>Simple explanation</strong><p>${escapeHtml(result.simple_explanation)}</p></section>
         <section class="ops-detail-block"><strong>Recorded event fields</strong><dl>${fields.map(([name, value]) => `<dt>${escapeHtml(name)}</dt><dd>${escapeHtml(value ?? 'Not recorded')}</dd>`).join('')}</dl></section>
         <section class="ops-detail-block"><strong>Technical details</strong><p>${result.technical_details_available ? `Recorded error type: ${escapeHtml(event.error_type)}.` : 'No technical error detail was recorded for this event.'} ${result.technical_logs_available ? '' : 'Raw server logs are not exposed through this dashboard.'}</p></section>
-        <section class="ops-detail-block"><strong>Related events</strong><p>${(result.related_events || []).length} event${(result.related_events || []).length === 1 ? '' : 's'} share this correlation ID. Project stage events share one ID; recovery actions are shown only when explicitly recorded.</p></section>
+        <section class="ops-detail-block"><strong>Related events</strong><p>${(result.related_events || []).length} event${(result.related_events || []).length === 1 ? '' : 's'} share this correlation ID. Workflow stage events share one ID; recovery actions are shown only when explicitly recorded.</p></section>
         <section class="ops-detail-block"><strong>Privacy</strong><p>${escapeHtml(result.privacy_note)}</p></section>`;
     }).catch(error => {
       byId('ops-event-detail-content').innerHTML = `<p class="ops-empty">${escapeHtml(error.message)}</p>`;
@@ -445,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderLineChart('ops-chart-operations', days, [
       { key: 'success', label: 'Successful', color: '#377c4d' },
       { key: 'failed', label: 'Failed', color: '#b64e47' },
-    ], 'Successful and failed API and project operations per day');
+    ], 'Successful and failed API and workflow operations per day');
     const distribution = overview.status_distribution || {};
     renderDonut('ops-chart-status', [
       { label: 'Successful', value: distribution.success || 0, color: '#377c4d' },
@@ -456,9 +456,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderBars('ops-chart-failures', overview.failure_categories || [], 'name', 'count', '#b64e47', 'No server failures have been recorded.');
     renderLineChart('ops-chart-duration', overview.duration_series || [], [
       { key: 'duration_ms', label: 'Duration (ms)', color: '#427cb4' },
-    ], 'Recorded API and project operation duration over time');
+    ], 'Recorded API and workflow operation duration over time');
     renderBars('ops-chart-components', overview.component_performance || [], 'component', 'average_duration_ms', '#427cb4', 'No component duration history is available yet.');
-    renderBars('ops-chart-projects', overview.project_performance || [], 'project_name', 'average_duration_ms', '#a65349', 'No project execution events have been recorded yet.');
+    renderBars('ops-chart-projects', overview.project_performance || [], 'project_name', 'average_duration_ms', '#a65349', 'No workflow execution events have been recorded yet.');
     const cache = overview.cache_metrics?.history || [];
     renderLineChart('ops-chart-cache', cache.map(item => ({
       timestamp: item.timestamp,

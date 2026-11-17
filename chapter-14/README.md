@@ -269,3 +269,47 @@ RTO components for each dataset; they exclude application restart and service-le
 
 The local Kubernetes/Atlas environment is not used by these labs. A real webhook endpoint is
 optional; tests use mocked HTTP responses so no credentials are required.
+
+## Application workspace integration
+
+The authenticated Chapter 14 workspace is served by the main application and uses these routes:
+
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/api/ops/metrics/monitoring?minutes=60` | Stored live samples, open-alert count, latest backup, restore result, and worker heartbeat. `minutes` accepts 30–720. |
+| POST | `/api/ops/lab14/backup` | Queue a full replica-set backup with oplog capture. Body: `{"confirm":true}`. |
+| POST | `/api/ops/lab14/verify` | Queue the existing isolated restore drill. Body: `{"confirm":true}`. |
+| GET | `/api/ops/lab14/backups` | Recorded backup and restore runs. |
+| GET | `/api/ops/lab14/jobs/{job_id}` | Poll an authorized backup job. |
+| GET | `/api/moderation/alerts` | Active, acknowledged, and resolved alert records. |
+| POST | `/api/moderation/alerts/ack` | Acknowledge an alert with an optional operator note. |
+| POST | `/api/moderation/alerts/webhook` | Ingest a signed external event. |
+
+The web workspace uses the application session and the existing administrator dependency. The webhook
+is excluded from cookie-session authentication only because it uses a required HMAC-SHA256 signature
+in `X-Chapter14-Signature` (`sha256=<hex>`). Configure `CH14_ALERT_WEBHOOK_SECRET` in the application
+environment; without it, webhook ingestion returns `503`. Sign the exact request body bytes. Payloads
+are limited to 16 KiB and values stored from the event are length-bounded.
+
+The application samples the configured MongoDB every 30 seconds. Monitoring history and alerts use
+new `chapter14_*` collections; existing threat, account, and billing records are not repurposed.
+Threshold alerts open below 80% cache hit ratio and above 10 seconds replication lag, remain
+acknowledged until measured recovery resolves them, and reopen as a new event after a later breach.
+No sample or benchmark is synthesized when MongoDB is unavailable.
+
+Backup and restore actions are queued in MongoDB and executed by the separate
+`chapter14-backup-worker` Compose service. The worker image contains MongoDB Database Tools, uses
+the same application MongoDB network, and writes to a new `chapter14-backups` named volume. Hourly
+backups use full replica-set `mongodump --oplog`; MongoDB Database Tools reject `--oplog` with `--db`
+or `--collection` filters. Each archive therefore includes every database reachable through the
+configured replica-set URI. Restrict access to the backup volume accordingly. Seven-day
+ownership-marker retention runs in the worker. Restore verification retains its uniquely
+named test database for inspection and never targets the application database. The API refuses to
+queue operations unless a recent worker heartbeat is present. Start the app and worker together
+with the existing Compose file when deploying; do not use `down -v`, which would remove all named
+volumes including the existing MongoDB data volumes.
+
+This repository change adds these integrations but does not start the worker, create a backup,
+perform a restore, or alter MongoDB data during implementation. The existing execution report above
+records the earlier standalone script tests; it is not evidence that the new application API or
+worker has run in the current deployment.

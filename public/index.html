@@ -33,7 +33,7 @@
 
       <div class="nav-section-title">THREAT INTELLIGENCE</div>
       <nav class="sidebar-nav">
-        <button class="nav-link active" data-view="feed">
+        <button class="nav-link active" data-view="feed" aria-current="page">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
           <span>Live Threat Stream</span>
         </button>
@@ -84,13 +84,31 @@
         <button class="nav-link admin-nav-link" id="manager-nav" data-view="manager" aria-controls="view-manager" hidden><span>Manager Dashboard</span></button>
       </nav>
 
-      <div class="nav-section-title" style="margin-top: 24px;">ENGINEERING</div>
-      <nav class="sidebar-nav">
-        <button class="nav-link" data-view="portfolio" aria-controls="view-portfolio">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18M15 3v18M3 9h6m-6 6h6m6-6h6m-6 6h6"/>
-          </svg>
-          <span>Technology &amp; Innovation</span>
+      <div class="nav-section-title" id="admin-exercises-heading" style="margin-top: 24px;" hidden>ADMIN</div>
+      <nav class="sidebar-nav admin-exercises-nav" aria-label="Admin workspaces">
+        <button class="nav-link admin-nav-link admin-exercise-link" data-view="exercise-13" data-admin-exercise="13" aria-controls="view-exercise-13" hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01M11 7h6M11 17h6"/></svg>
+          <span>Deployment &amp; Infrastructure</span>
+        </button>
+        <button class="nav-link admin-nav-link admin-exercise-link" data-view="exercise-14" data-admin-exercise="14" aria-controls="view-exercise-14" hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 14 4-4 4 3 5-7"/><circle cx="7" cy="14" r="1"/><circle cx="11" cy="10" r="1"/><circle cx="15" cy="13" r="1"/></svg>
+          <span>Monitoring &amp; Backup</span>
+        </button>
+        <button class="nav-link admin-nav-link admin-exercise-link" data-view="exercise-15" data-admin-exercise="15" aria-controls="view-exercise-15" hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20v-1a6 6 0 0 1 12 0v1M16 15a5 5 0 0 1 5 5"/></svg>
+          <span>Enterprise Management</span>
+        </button>
+        <button class="nav-link admin-nav-link admin-exercise-link" data-view="exercise-16" data-admin-exercise="16" aria-controls="view-exercise-16" hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7"/><path d="M9 9h6"/></svg>
+          <span>Database Operations</span>
+        </button>
+        <button class="nav-link admin-nav-link admin-exercise-link" data-view="exercise-17" data-admin-exercise="17" aria-controls="view-exercise-17" hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="m10.6 10.6-4.2-4.2m7.2 4.2 4.2-4.2m-7.2 7.2-4.2 4.2m7.2-4.2 4.2 4.2"/></svg>
+          <span>AI Research &amp; Intelligence</span>
+        </button>
+        <button class="nav-link admin-nav-link admin-exercise-link" data-view="exercise-18" data-admin-exercise="18" aria-controls="view-exercise-18" hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/><circle cx="18" cy="18" r="3"/><path d="m20.2 20.2 1.3 1.3"/></svg>
+          <span>Threat Intelligence</span>
         </button>
       </nav>
 
@@ -559,11 +577,11 @@
           <section class="glass-panel lab11-section">
             <div class="lab10-feature-heading"><div><span class="eyebrow">CLUSTER OVERVIEW</span><h2>Sharded cluster readiness</h2></div><span id="lab11-cluster-state" class="rel-pill warn">Checking</span></div>
             <div id="lab11-cluster-status" class="lab11-status-grid"><div class="loading-state">Checking mongos and replica-set status…</div></div>
-            <div class="lab11-overview-copy"><div><h3>Objectives</h3><p>Evaluate shard keys by cardinality, distribution, query targeting, range efficiency, and hotspot risk. Compare a monotonically increasing timestamp key with a hashed entity key using actual cluster measurements.</p></div><div><h3>Prerequisites</h3><p>Docker Desktop running; the isolated sharding cluster config-server replica set, two shards, and mongos router healthy. The application reaches the router through its sharding cluster endpoint.</p></div></div>
+            <div class="lab11-overview-copy"><div><h3>Analysis goals</h3><p>Evaluate shard keys by cardinality, distribution, query targeting, range efficiency, and hotspot risk. Compare a monotonically increasing timestamp key with a hashed entity key using actual cluster measurements.</p></div><div><h3>Service requirements</h3><p>Docker Desktop running; the isolated sharding cluster config-server replica set, two shards, and mongos router healthy. The application reaches the router through its sharding cluster endpoint.</p></div></div>
             <div class="lab11-objective-grid"><article><h3>Shard-key choices</h3><p>Compare order ID, customer ID, order date, and hashed customer ID for a customer-centric order workload.</p></article><article><h3>Hotspot analysis</h3><p>Load 10,000 reproducible records into each sharded collection, then measure placement, storage, and explain plans.</p></article></div>
           </section>
 
-          <nav class="lab11-experiment-tabs" role="tablist" aria-label="Sharding analyses">
+          <nav class="lab11-experiment-tabs" role="tablist" aria-label="Sharding analysis views">
             <button id="lab11-tab-button-1" class="lab11-tab-button is-active" role="tab" aria-selected="true" aria-controls="lab11-tab-1" type="button">Shard Key Evaluation</button>
             <button id="lab11-tab-button-2" class="lab11-tab-button" role="tab" aria-selected="false" aria-controls="lab11-tab-2" type="button">Hotspot Analysis</button>
           </nav>
@@ -622,13 +640,12 @@
 
 
         <section id="view-admin" class="content-view" aria-labelledby="admin-title">
-          <header class="view-header"><div><span class="eyebrow">ADMINISTRATION</span><h1 id="admin-title">Admin Dashboard</h1><p>Current account, wallet, and transaction records.</p></div><span class="rel-pill info">Administrator</span></header>
+          <header class="view-header"><div><span class="eyebrow">ADMINISTRATION</span><h1 id="admin-title">Admin Dashboard</h1><p>Current account, wallet, and transaction records.</p></div><div class="admin-header-actions"><a class="xs-btn secondary" href="/tour">Platform Integrations</a><span class="rel-pill info">Administrator</span></div></header>
           <nav class="admin-tabs" aria-label="Administration sections">
             <button type="button" class="admin-tab is-active" data-admin-tab="overview">Overview</button>
             <button type="button" class="admin-tab" data-admin-tab="users">Users</button>
             <button type="button" class="admin-tab" data-admin-tab="transactions">Transactions</button>
             <button type="button" class="admin-tab" data-admin-tab="subscriptions">Subscriptions</button>
-            <button type="button" class="admin-tab" data-admin-tab="labs">Labs &amp; Database Operations</button>
           </nav>
           <div id="admin-message" class="admin-message" role="status" aria-live="polite" hidden></div>
           <section class="admin-panel" data-admin-panel="overview">
@@ -668,23 +685,42 @@
             <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Transaction ID</th><th>User</th><th>Date</th><th>Type</th><th>Amount</th><th>Status</th><th>Description</th><th>Balance after</th></tr></thead><tbody id="admin-transactions-body"><tr><td colspan="8" class="loading-state">Loading transactions…</td></tr></tbody></table></div>
             <div class="admin-pagination"><button id="admin-tx-prev" class="xs-btn secondary" type="button">Previous</button><span id="admin-tx-page">Page 1</span><button id="admin-tx-next" class="xs-btn secondary" type="button">Next</button></div>
           </section>
-          <section class="admin-panel" data-admin-panel="labs" hidden>
-            <div id="labs-operations" class="labs-operations">
-              <header class="labs-hero"><div><span class="eyebrow">ADMIN CONTROL ROOM · CHAPTERS 13–18</span><h2>Labs &amp; Database Operations</h2><p>Monitor infrastructure, manage database services, inspect system performance, and investigate threat intelligence across Chapters 13–18.</p></div><button type="button" class="xs-btn secondary" data-labs-refresh>Refresh status</button></header>
-              <div class="labs-summary" data-labs-summary><article><span>Service checks</span><strong>Loading…</strong><small>Live registered APIs</small></article><article><span>Online</span><strong>Loading…</strong><small>Confirmed healthy responses</small></article><article><span>Unavailable</span><strong>Loading…</strong><small>Failed or unconfigured checks</small></article><article><span>Latest activity</span><strong>Loading…</strong><small>From system operations</small></article></div>
-              <div class="labs-message" data-labs-message role="status" aria-live="polite"></div>
-              <div class="labs-hub" data-labs-hub>
-                <div class="labs-card-grid" data-labs-cards></div>
-                <p class="labs-footnote">Values appear only when returned by a registered API. “Not configured” means this application has no integrated service endpoint for that capability.</p>
-              </div>
-              <section class="labs-workspace" data-labs-workspace hidden>
-                <button type="button" class="labs-back" data-labs-back>← All chapters</button>
-                <header class="labs-workspace-head" data-labs-heading></header>
-                <nav class="labs-chapter-tabs" data-labs-tabs aria-label="Chapter workspace sections"></nav>
-                <div class="labs-chapter-content" data-labs-content></div>
-              </section>
-            </div>
-          </section>
+        </section>
+
+        <div id="exercise-labs-shell" hidden>
+          <div id="labs-operations" class="labs-operations is-exercise-standalone">
+            <div class="labs-message" data-labs-message role="status" aria-live="polite" hidden></div>
+            <section class="labs-workspace" data-labs-workspace hidden>
+              <header class="labs-workspace-head" data-labs-heading></header>
+              <nav class="labs-chapter-tabs" data-labs-tabs aria-label="Workspace sections"></nav>
+              <div class="labs-chapter-content" data-labs-content></div>
+            </section>
+          </div>
+        </div>
+
+        <section id="view-exercise-13" class="content-view exercise-view" aria-labelledby="exercise-title-13">
+          <header class="view-header exercise-view-header"><div><span class="eyebrow">INFRASTRUCTURE OPERATIONS</span><h1 id="exercise-title-13">Deployment &amp; Infrastructure</h1></div></header>
+          <div class="exercise-labs-mount" id="exercise-labs-mount-13"></div>
+        </section>
+        <section id="view-exercise-14" class="content-view exercise-view" aria-labelledby="exercise-title-14">
+          <header class="view-header exercise-view-header"><div><span class="eyebrow">RESILIENCE OPERATIONS</span><h1 id="exercise-title-14">Monitoring &amp; Backup</h1></div></header>
+          <div class="exercise-labs-mount" id="exercise-labs-mount-14"></div>
+        </section>
+        <section id="view-exercise-15" class="content-view exercise-view" aria-labelledby="exercise-title-15">
+          <header class="view-header exercise-view-header"><div><span class="eyebrow">TENANT SERVICES</span><h1 id="exercise-title-15">Enterprise Management</h1></div></header>
+          <div class="exercise-labs-mount" id="exercise-labs-mount-15"></div>
+        </section>
+        <section id="view-exercise-16" class="content-view exercise-view" aria-labelledby="exercise-title-16">
+          <header class="view-header exercise-view-header"><div><span class="eyebrow">DATA PLATFORM</span><h1 id="exercise-title-16">Database Operations</h1></div></header>
+          <div class="exercise-labs-mount" id="exercise-labs-mount-16"></div>
+        </section>
+        <section id="view-exercise-17" class="content-view exercise-view" aria-labelledby="exercise-title-17">
+          <header class="view-header exercise-view-header"><div><span class="eyebrow">AI-POWERED RESEARCH</span><h1 id="exercise-title-17">AI Research &amp; Intelligence</h1></div></header>
+          <div class="exercise-labs-mount" id="exercise-labs-mount-17"></div>
+        </section>
+        <section id="view-exercise-18" class="content-view exercise-view" aria-labelledby="exercise-title-18">
+          <header class="view-header exercise-view-header"><div><span class="eyebrow">THREAT OPERATIONS</span><h1 id="exercise-title-18">Threat Intelligence</h1></div></header>
+          <div class="exercise-labs-mount" id="exercise-labs-mount-18"></div>
         </section>
 
         <section id="view-manager" class="content-view" aria-labelledby="manager-title">
@@ -741,7 +777,7 @@
 
             <section class="ops-panel" role="tabpanel" data-ops-panel="activity" aria-label="System activity" hidden>
               <div class="ops-card">
-                <div class="ops-card-heading"><div><span class="portfolio-kicker">RECORDED API AND PROJECT EVENTS</span><h2>System Activity</h2><p>Project pipeline stages are correlated without storing questions, document text, credentials, or raw provider errors.</p></div><span id="ops-event-total" class="ops-total-pill">0 events</span></div>
+                <div class="ops-card-heading"><div><span class="portfolio-kicker">RECORDED API AND PLATFORM EVENTS</span><h2>System Activity</h2><p>Service workflow stages are correlated without storing questions, document text, credentials, or raw provider errors.</p></div><span id="ops-event-total" class="ops-total-pill">0 events</span></div>
                 <div class="ops-filter-bar">
                   <label>Search<input id="ops-search" type="search" maxlength="120" placeholder="Operation, component, event ID, error type"></label>
                   <label>Status<select id="ops-status-filter"><option value="">All statuses</option><option value="success">Successful</option><option value="warning">Warnings</option><option value="failed">Failed</option></select></label>
@@ -757,7 +793,7 @@
 
             <section class="ops-panel" role="tabpanel" data-ops-panel="timeline" aria-label="Execution timeline" hidden>
               <div class="ops-card">
-                <div class="ops-card-heading"><div><span class="portfolio-kicker">CORRELATED OPERATIONS</span><h2>Execution Timeline</h2><p>Project pipeline stages share a correlation ID. Ordinary HTTP telemetry is skipped for these routes to avoid duplicate activity records.</p></div></div>
+                <div class="ops-card-heading"><div><span class="portfolio-kicker">CORRELATED OPERATIONS</span><h2>Execution Timeline</h2><p>Service workflow stages share a correlation ID. Ordinary HTTP telemetry is skipped for these routes to avoid duplicate activity records.</p></div></div>
                 <div id="ops-timeline-list" class="ops-timeline"><p class="ops-empty">Loading recorded events…</p></div>
               </div>
             </section>
@@ -794,7 +830,7 @@
                 <article class="ops-card ops-chart-card"><span class="portfolio-kicker">RECORDED FAILURE TYPES</span><h2>Failure categories</h2><div id="ops-chart-failures" class="ops-chart"></div></article>
                 <article class="ops-card ops-chart-card"><span class="portfolio-kicker">RECORDED OPERATIONS</span><h2>Execution duration</h2><div id="ops-chart-duration" class="ops-chart"></div></article>
                 <article class="ops-card ops-chart-card"><span class="portfolio-kicker">MEASURED COMPONENTS</span><h2>Component performance</h2><div id="ops-chart-components" class="ops-chart"></div></article>
-                <article class="ops-card ops-chart-card"><span class="portfolio-kicker">CORRELATED PROJECT EVENTS</span><h2>Project operation duration</h2><div id="ops-chart-projects" class="ops-chart"></div></article>
+                <article class="ops-card ops-chart-card"><span class="portfolio-kicker">CORRELATED PLATFORM EVENTS</span><h2>Workflow operation duration</h2><div id="ops-chart-projects" class="ops-chart"></div></article>
                 <article class="ops-card ops-chart-card"><span class="portfolio-kicker">MONGODB WIREDTIGER</span><h2>Cache performance</h2><div id="ops-chart-cache" class="ops-chart"></div></article>
               </div>
               <div id="ops-recovery-analytics" class="ops-notice">Recovery performance is unavailable because recovery attempts and outcomes are not currently recorded.</div>
@@ -836,8 +872,8 @@
 
                 <section class="portfolio-section" aria-labelledby="portfolio-projects-title">
                   <div class="portfolio-section-heading">
-                    <div><span class="portfolio-kicker">SELECTED WORK</span><h3 id="portfolio-projects-title">Featured engineering projects</h3></div>
-                    <span class="portfolio-section-note">Seven projects · source-backed documentation</span>
+                    <div><span class="portfolio-kicker">PLATFORM CAPABILITIES</span><h3 id="portfolio-projects-title">Featured capabilities</h3></div>
+                    <span class="portfolio-section-note">Seven capabilities · source-backed documentation</span>
                   </div>
                   <div class="portfolio-project-grid" id="portfolio-project-grid"></div>
                 </section>

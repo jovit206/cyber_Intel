@@ -1,0 +1,37 @@
+{
+  "id": null,
+  "uid": "chapter13-infrastructure",
+  "title": "Chapter 13 Infrastructure",
+  "tags": ["chapter-13", "mongodb", "replica-set"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "15s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "MongoDB exporter availability", "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "chapter13-prometheus" },
+      "targets": [{ "refId": "A", "expr": "mongodb_up", "legendFormat": "{{instance}}" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto" }
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "MongoDB operations per second", "gridPos": { "h": 8, "w": 12, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "chapter13-prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum(rate({__name__=~\"mongodb_ss_opcounters_.*\"}[5m]))", "legendFormat": "{{__name__}}" }],
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] }, "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "WiredTiger cache telemetry", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "chapter13-prometheus" },
+      "targets": [{ "refId": "A", "expr": "{__name__=~\"mongodb_ss_wt_cache_.*\"}", "legendFormat": "{{__name__}} · {{instance}}" }],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }, "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Replica-set telemetry", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "chapter13-prometheus" },
+      "targets": [{ "refId": "A", "expr": "{__name__=~\"mongodb_mongod_replset_.*\"}", "legendFormat": "{{__name__}} · {{instance}}" }],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }, "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    }
+  ]
+}

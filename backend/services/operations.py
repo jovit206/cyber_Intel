@@ -52,6 +52,10 @@ def active_request_count() -> int:
 
 
 def _component_for(route_path: str) -> str:
+    if route_path.startswith("/api/ops/lab14/") or route_path.startswith("/api/ops/metrics/monitoring") or route_path.startswith("/api/moderation/alerts"):
+        return "Chapter 14 monitoring and backup"
+    if route_path.startswith("/api/ops/") or route_path.startswith("/api/services/lab13/"):
+        return "Chapter 13 infrastructure operations"
     if route_path.startswith("/api/lab8"):
         return "MongoDB replica-set monitor"
     if route_path.startswith("/api/lab9"):

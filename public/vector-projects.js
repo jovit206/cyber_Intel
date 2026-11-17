@@ -53,16 +53,16 @@
 
   function ragTemplate() {
     return `
-      <div class="vector-workspace">
+      <div class="vector-workspace rag-research">
         <div class="vector-workspace-heading">
-          <div><span class="portfolio-kicker">LAB 17.1 · LIVE CAPABILITIES</span><h2>Interactive RAG pipeline</h2><p>Document ingestion, source-backed retrieval, private conversation memory and observed pipeline stages.</p></div>
+          <div><span class="portfolio-kicker">AI RESEARCH / LIVE CAPABILITIES</span><h2>Intelligence research desk</h2><p>Ask questions across indexed threat reports, then inspect the source evidence behind each response.</p></div>
           <button type="button" class="xs-btn secondary" data-rag-refresh>Refresh status</button>
         </div>
         <div class="vector-status-grid" data-rag-status><p class="ops-empty">Checking provider and database configuration…</p></div>
         <div class="vector-notice" data-rag-notice></div>
-        <div class="vector-workspace-grid">
+        <div class="vector-workspace-grid rag-research-layout">
           <section class="vector-panel">
-            <div class="vector-panel-heading"><div><span class="portfolio-kicker">DOCUMENT INGESTION</span><h3>Add a source</h3></div></div>
+            <div class="vector-panel-heading"><div><span class="portfolio-kicker">OPTIONAL ADMIN TOOL</span><h3>Add a supplemental source</h3></div></div>
             <form data-rag-upload>
               <label>Source name<input name="source" maxlength="255" required placeholder="e.g. Engineering guide"></label>
               <label>Document text<textarea name="text" maxlength="200000" rows="8" required placeholder="Paste text to chunk and embed (up to 200,000 characters)."></textarea></label>
@@ -74,17 +74,18 @@
               <div><strong>MongoDB Vector Search index</strong><small data-rag-index-note>Index readiness has not been checked.</small></div>
               <button type="button" class="xs-btn" data-rag-create-index disabled>Create index</button>
             </div>
+            <div data-rag-index-result aria-live="polite"></div>
           </section>
           <section class="vector-panel">
-            <div class="vector-panel-heading"><div><span class="portfolio-kicker">ADMIN-ONLY PLAYGROUND</span><h3>Ask your documents</h3></div></div>
+            <div class="vector-panel-heading"><div><span class="portfolio-kicker">PRIVATE CONVERSATION</span><h3>Ask the intelligence corpus</h3></div><button type="button" class="xs-btn secondary" data-rag-forget>Forget my history</button></div>
             <div class="vector-conversation-tools">
               <label>Conversation<select data-rag-conversations><option value="">New conversation</option></select></label>
               <button type="button" class="xs-btn secondary" data-rag-new-conversation>New</button>
             </div>
             <div class="vector-chat-history" data-rag-history aria-live="polite"><p class="ops-empty">Choose or start a conversation.</p></div>
             <form data-rag-question>
-              <label>Question<textarea name="question" maxlength="4000" rows="3" required placeholder="Ask a question grounded in your uploaded sources."></textarea></label>
-              <button class="portfolio-primary-button" type="submit">Retrieve and answer</button>
+              <label>Research question<textarea name="question" minlength="3" maxlength="500" rows="3" required placeholder="Ask about a threat, vulnerability, campaign or report."></textarea></label>
+              <button class="portfolio-primary-button" type="submit">Search evidence and answer</button>
             </form>
             <div data-rag-answer-result aria-live="polite"></div>
           </section>
@@ -97,25 +98,27 @@
     const note = root.querySelector('[data-rag-notice]');
     const indexButton = root.querySelector('[data-rag-create-index]');
     try {
-      const status = await api('/api/rag/status');
+      const status = await api('/api/ops/ask-index');
       const config = status.configuration || {};
       const vectors = status.vector_search || {};
       const documents = status.documents || {};
+      const reportIndex = status.report_index || {};
+      const reportVector = reportIndex.vector_search || {};
       statusRoot.innerHTML = [
         statusCard('Embedding provider', config.embedding_configured ? config.embedding_model : 'Not configured',
-          config.embedding_configured ? `Voyage AI · ${config.embedding_dimensions || 'dimensions validated per response'}` : 'Set VOYAGE_API_KEY on the backend.', config.embedding_configured ? 'ready' : 'warning'),
-        statusCard('LLM provider', config.llm_configured ? config.llm_model : 'Not configured',
-          config.llm_configured ? 'Server-side OpenAI-compatible endpoint' : 'Set RAG_LLM_API_KEY and a secure endpoint.', config.llm_configured ? 'ready' : 'warning'),
-        statusCard('MongoDB Vector Search', vectors.ready ? 'Query-ready' : vectors.supported === false ? 'Unsupported' : vectors.status || 'Not indexed',
-          vectors.detail || 'Index status is not available.', vectors.ready ? 'ready' : vectors.supported === false ? 'warning' : 'neutral'),
-        statusCard('Stored vectors', `${documents.embedded_chunks || 0} chunks`,
-          `${documents.document_count || 0} documents · ${documents.dimensions || 'dimension pending'} dimensions · ${documents.failed_chunks || 0} failed`, 'neutral'),
+          config.embedding_configured ? `${config.embedding_provider || 'Configured provider'} · ${config.embedding_dimensions || 'dimensions validated per response'}` : 'Configure the server-side embedding provider.', config.embedding_configured ? 'ready' : 'warning'),
+        statusCard('LLM provider', config.llm_configured ? `${config.llm_provider} · ${config.llm_model}` : 'Not configured',
+          config.llm_configured ? 'Configured on the backend; provider credentials are never sent to the browser.' : 'Configure Ollama or the legacy OpenAI-compatible provider on the backend.', config.llm_configured ? 'ready' : 'warning'),
+        statusCard('Report corpus', `${reportIndex.indexed_chunks || 0} indexed chunks`,
+          `${reportIndex.collection || 'report index'} · ${reportIndex.dimensions || 'dimensions pending'} dimensions`, reportIndex.multiple_dimensions ? 'warning' : 'neutral'),
+        statusCard('MongoDB Vector Search', reportVector.ready ? 'Query-ready' : reportVector.supported === false ? 'Unsupported' : reportVector.status || 'Not indexed',
+          reportVector.detail || 'Structured retrieval remains available when semantic search is unavailable.', reportVector.ready ? 'ready' : reportVector.supported === false ? 'warning' : 'neutral'),
       ].join('');
       setMessage(note, (status.configuration_error?.message ? `${status.configuration_error.message} ` : '')
         + (status.limitations || []).join(' '), vectors.supported === false ? 'warning' : 'info');
-      root.querySelector('[data-rag-index-note]').textContent = vectors.detail || 'Index status is not available.';
-      indexButton.disabled = !documents.embedded_chunks || !vectors.supported || vectors.ready || vectors.exists || documents.multiple_dimensions;
-      indexButton.dataset.ready = String(vectors.ready);
+      root.querySelector('[data-rag-index-note]').textContent = reportVector.detail || 'Index readiness has not been confirmed.';
+      indexButton.disabled = !config.embedding_configured || reportVector.ready || reportIndex.multiple_dimensions;
+      indexButton.dataset.ready = String(reportVector.ready);
       await renderRagDocuments(root);
     } catch (error) {
       statusRoot.innerHTML = `<p class="ops-empty">${escapeHtml(error.message)}</p>`;
@@ -142,7 +145,7 @@
     const select = root.querySelector('[data-rag-conversations]');
     const priorSelection = selectedConversation;
     try {
-      const result = await api('/api/rag/conversations?limit=20');
+      const result = await api('/api/ask/history?limit=20');
       select.innerHTML = `<option value="">New conversation</option>${result.conversations.map(item => `
         <option value="${escapeHtml(item.conversation_id)}">${escapeHtml(item.title || 'Conversation')} · ${escapeHtml(new Date(item.updated_at).toLocaleString())}</option>`).join('')}`;
       if (priorSelection && result.conversations.some(item => item.conversation_id === priorSelection)) {
@@ -163,7 +166,7 @@
       return;
     }
     try {
-      const result = await api(`/api/rag/conversations/${encodeURIComponent(conversationId)}`);
+      const result = await api(`/api/ask/history/${encodeURIComponent(conversationId)}`);
       history.innerHTML = result.messages.length ? result.messages.map(message => `
         <article class="vector-message-row is-${escapeHtml(message.role)}">
           <strong>${message.role === 'assistant' ? 'Assistant' : 'You'}</strong>
@@ -183,15 +186,22 @@
     root.querySelector('[data-rag-refresh]').addEventListener('click', () => renderRagStatus(root));
     root.querySelector('[data-rag-conversations]').addEventListener('change', event => loadConversation(root, event.target.value));
     root.querySelector('[data-rag-new-conversation]').addEventListener('click', async () => {
+      selectedConversation = null;
+      root.querySelector('[data-rag-conversations]').value = '';
+      await loadConversation(root, null);
+    });
+    root.querySelector('[data-rag-forget]').addEventListener('click', async event => {
+      const button = event.currentTarget;
+      button.disabled = true;
       try {
-        const result = await api('/api/rag/conversations', { method: 'POST', body: '{}' });
-        selectedConversation = result.conversation_id;
+        await api('/api/ask/history', { method: 'DELETE' });
+        selectedConversation = null;
         await renderConversations(root);
-        root.querySelector('[data-rag-conversations]').value = result.conversation_id;
-        await loadConversation(root, result.conversation_id);
+        await loadConversation(root, null);
+        setMessage(root.querySelector('[data-rag-answer-result]'), 'Your conversation history was deleted.', 'success');
       } catch (error) {
         setMessage(root.querySelector('[data-rag-answer-result]'), error.message, 'error');
-      }
+      } finally { button.disabled = false; }
     });
     root.querySelector('[data-rag-upload]').addEventListener('submit', async event => {
       event.preventDefault();
@@ -217,11 +227,11 @@
       const button = event.currentTarget;
       button.disabled = true;
       try {
-        const result = await api('/api/rag/index', { method: 'POST', body: '{}' });
-        setMessage(root.querySelector('[data-rag-upload-result]'), result.message, 'success');
+        const result = await api('/api/ops/ask-index', { method: 'POST', body: '{}' });
+        setMessage(root.querySelector('[data-rag-index-result]'), `Indexed ${result.indexed_chunks} report chunks. Vector Search status: ${result.index_status}.`, result.ready ? 'success' : 'info');
         await renderRagStatus(root);
       } catch (error) {
-        setMessage(root.querySelector('[data-rag-upload-result]'), error.message, 'error');
+        setMessage(root.querySelector('[data-rag-index-result]'), error.message, 'error');
       }
     });
     root.querySelector('[data-rag-question]').addEventListener('submit', async event => {
@@ -232,12 +242,11 @@
       button.disabled = true;
       target.innerHTML = '<p class="ops-empty">Embedding query, retrieving sources and generating an answer…</p>';
       try {
-        const result = await api('/api/rag/query', {
+        const result = await api('/api/ask', {
           method: 'POST',
           body: JSON.stringify({
             question: new FormData(form).get('question'),
             conversation_id: selectedConversation,
-            top_k: 5,
           }),
         });
         selectedConversation = result.conversation_id;
@@ -245,10 +254,10 @@
         root.querySelector('[data-rag-conversations]').value = selectedConversation;
         await loadConversation(root, selectedConversation);
         target.innerHTML = `
-          <div class="vector-message is-success" role="status">Answer generated · ${escapeHtml(result.metrics.retrieved_chunks)} retrieved chunks · embedding ${formatMs(result.metrics.query_embedding_ms)} · generation ${formatMs(result.metrics.llm_generation_ms)}</div>
+          <div class="vector-message is-success" role="status">${escapeHtml(result.mode || result.response_mode || 'Answer')} · ${escapeHtml(result.retrieval_mode || 'retrieval mode unreported')} · ${escapeHtml(result.metrics.retrieved_chunks)} retrieved chunks · embedding ${formatMs(result.metrics.query_embedding_ms)} · generation ${formatMs(result.metrics.llm_generation_ms)}</div>
           ${stageList(result.stages)}
           <div class="vector-source-list"><h4>Retrieved source chunks</h4>${result.sources.length ? result.sources.map((source, index) => `
-            <details><summary>[S${index + 1}] ${escapeHtml(source.source)} · score ${escapeHtml(Number(source.score).toFixed(4))}</summary><p>${escapeHtml(source.text)}</p><small>${escapeHtml(source.chunk_id)}</small></details>`).join('') : '<p class="ops-empty">No source chunks were retrieved.</p>'}</div>`;
+            <details><summary>[S${index + 1}] ${escapeHtml(source.source)}${source.page ? ` · page ${escapeHtml(source.page)}` : ''}${Number.isFinite(Number(source.score)) ? ` · score ${escapeHtml(Number(source.score).toFixed(4))}` : ''}</summary><p>${escapeHtml(source.text)}</p><small>${escapeHtml(source.chunk_id)}${source.source_reference ? ` · ${escapeHtml(source.source_reference)}` : ''}</small></details>`).join('') : '<p class="ops-empty">No source chunks were retrieved.</p>'}</div>`;
         form.reset();
       } catch (error) {
         target.innerHTML = `${stageList(error.detail?.stages || [])}<div class="vector-message is-error" role="alert">${escapeHtml(error.message)}</div>`;
@@ -286,7 +295,7 @@
     return `
       <div class="vector-workspace">
         <div class="vector-workspace-heading">
-          <div><span class="portfolio-kicker">LAB 17.2 · REAL MEASUREMENTS ONLY</span><h2>HNSW &amp; IVF vector search benchmark</h2><p>Prepare a real text dataset, build a supported Atlas Vector Search index, then measure ANN against exact-search baselines.</p></div>
+          <div><span class="portfolio-kicker">PERFORMANCE EVALUATION / MEASURED RESULTS</span><h2>HNSW &amp; IVF vector search benchmark</h2><p>Prepare a real text dataset, build a supported Atlas Vector Search index, then measure ANN against exact-search baselines.</p></div>
           <button type="button" class="xs-btn secondary" data-bench-refresh>Refresh benchmark</button>
         </div>
         <div class="vector-status-grid" data-bench-status><p class="ops-empty">Checking model, dataset and Vector Search capabilities…</p></div>

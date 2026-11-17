@@ -1,0 +1,20 @@
+# Optional network attachment for the root AEGIS backend. Start Chapter 16's services first;
+# this file does not start, stop, or recreate them and does not alter their persistent volumes.
+services:
+  lab7-backend:
+    environment:
+      CHAPTER16_MONGO_URI: mongodb://mongo16:27017
+      CHAPTER16_MONGO_DATABASE: fraud_detection
+      CHAPTER16_CASSANDRA_HOSTS: cassandra16
+      CHAPTER16_CASSANDRA_PORT: "9042"
+      CHAPTER16_NEO4J_URI: bolt://neo4j16:7687
+      CHAPTER16_NEO4J_USERNAME: ${NEO4J_USERNAME:-neo4j}
+      CHAPTER16_NEO4J_PASSWORD: ${NEO4J_PASSWORD:?Set NEO4J_PASSWORD in chapter-16/.env}
+      CHAPTER16_NEO4J_DATABASE: neo4j
+    networks:
+      - chapter16-net
+
+networks:
+  chapter16-net:
+    external: true
+    name: chapter16-net
