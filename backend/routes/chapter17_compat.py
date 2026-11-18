@@ -5,6 +5,7 @@ import hashlib
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from pymongo import UpdateOne
+from typing import Literal
 from typing_extensions import Annotated
 
 from backend.database import get_database
@@ -30,6 +31,7 @@ class AskRequest(BaseModel):
     conversation_id: Annotated[str, StringConstraints(min_length=1, max_length=64)] | None = None
     platform: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)] | None = None
     threat_status: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=64)] | None = None
+    client: Literal["ai-threat-assistant"] | None = None
 
 
 def _source_chunk(row: dict) -> tuple[str, str, int | None] | None:
@@ -50,7 +52,8 @@ def ask(payload: AskRequest, request: Request, actor: dict = Depends(_session_us
     if not payload.question.strip():
         raise HTTPException(422, "Question must contain 3 to 500 characters.")
     legacy = RagQuestion(question=payload.question, conversation_id=payload.conversation_id, top_k=5,
-                         platform=payload.platform, threat_status=payload.threat_status)
+                         platform=payload.platform, threat_status=payload.threat_status,
+                         client=payload.client)
     result = query_rag(legacy, request, actor)
     try:
         active_model = provider_configuration().get("llm_model")
@@ -61,13 +64,14 @@ def ask(payload: AskRequest, request: Request, actor: dict = Depends(_session_us
 
 
 @router.get("/api/ask/history")
-def history(request: Request, actor: dict = Depends(_session_user), limit: int = Query(20, ge=1, le=50)):
-    return list_conversations(request, actor, limit)
+def history(request: Request, actor: dict = Depends(_session_user), limit: int = Query(20, ge=1, le=50),
+            client: str | None = Query(None, pattern="^ai-threat-assistant$")):
+    return list_conversations(request, actor, limit, client=client)
 
 
 @router.get("/api/ask/history/{conversation_id}")
 def conversation_history(conversation_id: str, request: Request, actor: dict = Depends(_session_user)):
-    return get_conversation(conversation_id, request, actor)
+    return get_conversation(conversation_id, request, actor, limit=50)
 
 
 @router.delete("/api/ask/history")

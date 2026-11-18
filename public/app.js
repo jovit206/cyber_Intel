@@ -65,7 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(response => response.ok ? response.json() : null)
     .then(data => {
       const adminLink = byId('admin-nav');
+      const assistantLink = document.querySelector('[data-ai-threat-assistant]');
       const isAdmin = data?.user?.role === 'admin';
+      if (assistantLink) assistantLink.hidden = !data?.user;
       if (adminLink) adminLink.hidden = !isAdmin;
       const adminExercisesHeading = byId('admin-exercises-heading');
       if (adminExercisesHeading) adminExercisesHeading.hidden = !isAdmin;
@@ -80,6 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
         adminLink?.click();
       } else if (data?.user?.role === 'admin' && /^exercise-(13|14|15|16|17|18)$/.test(requestedView.get('view') || '')) {
         document.querySelector(`[data-admin-exercise="${requestedView.get('view').slice(9)}"]`)?.click();
+      } else if (data?.user && requestedView.get('view') === 'ai-assistant') {
+        assistantLink?.click();
       }
     })
     .catch(() => { const adminLink = byId('admin-nav'); if (adminLink) adminLink.hidden = true; });
@@ -115,12 +119,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (link.dataset.adminExercise) {
         window.moveLabsWorkspaceToExercise?.(link.dataset.adminExercise);
         window.openLabsChapter?.(link.dataset.adminExercise);
+      } else if (link.hasAttribute('data-ai-threat-assistant')) {
+        window.initializeAiThreatAssistant?.();
       } else if (viewId === 'admin') {
         window.moveLabsWorkspaceToAdmin?.();
       }
-      if (!restoringHistory && (link.dataset.adminExercise || viewId === 'admin')) {
+      if (!restoringHistory && (link.dataset.adminExercise || viewId === 'admin' || link.hasAttribute('data-ai-threat-assistant'))) {
         const params = new URLSearchParams(window.location.search);
-        if (link.dataset.adminExercise) {
+        if (link.hasAttribute('data-ai-threat-assistant')) {
+          params.set('view', 'ai-assistant');
+          params.delete('exercise');
+          params.delete('tab');
+        } else if (link.dataset.adminExercise) {
           params.set('view', `exercise-${link.dataset.adminExercise}`);
           params.set('exercise', link.dataset.adminExercise);
           params.delete('tab');
@@ -155,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     restoringHistory = true;
     try {
       if (/^(13|14|15|16|17|18)$/.test(exercise || '')) document.querySelector(`[data-admin-exercise="${exercise}"]`)?.click();
+      else if (params.get('view') === 'ai-assistant') document.querySelector('[data-ai-threat-assistant]')?.click();
       else if (params.get('view') === 'admin') byId('admin-nav')?.click();
       else document.querySelector(`.sidebar-nav .nav-link[data-view="${CSS.escape(params.get('view') || 'feed')}"]`)?.click();
     } finally { restoringHistory = false; }

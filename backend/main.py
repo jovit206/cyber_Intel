@@ -526,7 +526,7 @@ async def handle_not_found(request: Request, error) -> JSONResponse:
 
 # Local assets referenced by index.html. Their URLs get a content hash appended so that a browser can
 # never combine a new page with an older cached script or stylesheet.
-_VERSIONED_ASSETS = ("style.css", "portfolio.css", "operations.css", "vector-projects.css", "chapter18.css", "labs-operations.css", "course-tour.css", "course-tour.js", "app.js", "cross-source.js", "reliability.js", "lab10.js", "lab11.js", "admin.js", "manager.js", "account.js", "banking-finance.js", "demo-transactions.js", "shard-distribution.js", "portfolio.js", "operations.js", "vector-projects.js", "chapter18.js", "labs-operations.js")
+_VERSIONED_ASSETS = ("style.css", "portfolio.css", "operations.css", "vector-projects.css", "chapter18.css", "labs-operations.css", "course-tour.css", "course-tour.js", "app.js", "cross-source.js", "reliability.js", "lab10.js", "lab11.js", "admin.js", "manager.js", "account.js", "banking-finance.js", "demo-transactions.js", "shard-distribution.js", "portfolio.js", "operations.js", "vector-projects.js", "ai-threat-assistant.js", "ai-threat-assistant.css", "chapter18.js", "labs-operations.js")
 _ASSET_REFERENCE = re.compile(r'(?P<attr>href|src)="(?P<name>' + "|".join(re.escape(n) for n in _VERSIONED_ASSETS) + r')"')
 
 

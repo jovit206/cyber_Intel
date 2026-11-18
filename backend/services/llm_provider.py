@@ -65,6 +65,21 @@ def _timeout_seconds() -> int:
     return value
 
 
+def _ollama_max_tokens() -> int:
+    raw = os.getenv("OLLAMA_MAX_TOKENS", "256").strip()
+    try:
+        value = int(raw)
+    except ValueError as error:
+        raise LLMProviderError(
+            "invalid_ollama_max_tokens", "OLLAMA_MAX_TOKENS must be an integer from 32 to 1024.", 503
+        ) from error
+    if not 32 <= value <= 1024:
+        raise LLMProviderError(
+            "invalid_ollama_max_tokens", "OLLAMA_MAX_TOKENS must be an integer from 32 to 1024.", 503
+        )
+    return value
+
+
 def get_llm_configuration() -> LLMConfiguration:
     explicit_provider = os.getenv("LLM_PROVIDER", "").strip().lower()
     legacy_endpoint = os.getenv("RAG_LLM_API_URL", "").strip()
@@ -149,7 +164,7 @@ def generate_chat_answer(system_prompt: str, user_prompt: str) -> tuple[str, flo
         payload = {
             "model": config.model,
             "stream": False,
-            "options": {"temperature": 0.1},
+            "options": {"temperature": 0.1, "num_predict": _ollama_max_tokens()},
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},

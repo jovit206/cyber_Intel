@@ -183,6 +183,19 @@
   gap: 12px;
 }
 
+.vector-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.vector-filter-note {
+  margin-top: -5px;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
 .vector-panel label {
   color: var(--text-secondary);
   font-size: 11px;
@@ -528,6 +541,10 @@
 }
 
 @media (max-width: 760px) {
+  .vector-filter-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .vector-workspace-grid,
   .vector-benchmark-grid,
   .vector-config-grid {

@@ -214,3 +214,8 @@ def enqueue_job(database: Database, job_type: str, actor_id: str, document_count
     }
     database[BACKUP_JOBS].insert_one(job)
     return {"job_id": job["job_id"], "job_type": job_type, "status": "queued", "created_at": now.isoformat()}
+
+
+def sample_monitoring_metrics(database: Database) -> dict[str, Any]:
+    """Compatibility name used by the application scheduler for live sampling."""
+    return collect_sample(database)

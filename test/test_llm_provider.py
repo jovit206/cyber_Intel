@@ -16,6 +16,7 @@ def _clear_provider_environment(monkeypatch):
         "LLM_TIMEOUT_SECONDS",
         "OLLAMA_BASE_URL",
         "OLLAMA_CHAT_MODEL",
+        "OLLAMA_MAX_TOKENS",
         "RAG_LLM_API_URL",
         "RAG_LLM_API_KEY",
         "RAG_LLM_MODEL",
@@ -85,6 +86,32 @@ def test_ollama_chat_uses_native_api_without_auth_header(monkeypatch):
     assert kwargs["json"]["stream"] is False
     assert kwargs["json"]["model"] == "local-model:latest"
     assert "Authorization" not in kwargs["headers"]
+
+
+def test_ollama_generation_uses_bounded_configurable_token_limit(monkeypatch):
+    _clear_provider_environment(monkeypatch)
+    monkeypatch.setenv("LLM_PROVIDER", "ollama")
+    monkeypatch.setenv("OLLAMA_MAX_TOKENS", "128")
+    response = MagicMock(status_code=200)
+    response.json.return_value = {"message": {"content": "Grounded answer"}}
+
+    with patch("backend.services.llm_provider.httpx.post", return_value=response) as post:
+        generate_chat_answer("system", "question")
+
+    assert post.call_args.kwargs["json"]["options"]["num_predict"] == 128
+
+
+def test_invalid_ollama_token_limit_is_rejected_before_provider_request(monkeypatch):
+    _clear_provider_environment(monkeypatch)
+    monkeypatch.setenv("LLM_PROVIDER", "ollama")
+    monkeypatch.setenv("OLLAMA_MAX_TOKENS", "2048")
+
+    with patch("backend.services.llm_provider.httpx.post") as post:
+        with pytest.raises(LLMProviderError) as error:
+            generate_chat_answer("system", "question")
+
+    assert error.value.code == "invalid_ollama_max_tokens"
+    post.assert_not_called()
 
 
 def test_openai_compatible_chat_keeps_legacy_endpoint_and_bearer_auth(monkeypatch):

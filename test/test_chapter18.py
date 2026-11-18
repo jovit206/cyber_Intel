@@ -9,7 +9,7 @@ from backend.routes.chapter18 import router
 from backend.services.chapter18_benchmark import MEASURED_RUNS, _measure, _percentile
 from backend.services.chapter18_connections import Chapter18Connections
 from backend.services.chapter18_adapters import _cassandra_args, _shard_for
-from backend.services.chapter18_ingestion import _confirmed_mongo_records, ThreatIdConflictError
+from backend.services.chapter18_ingestion import _confirmed_mongo_records, normalize_existing_event, ThreatIdConflictError
 
 
 def test_threat_record_normalizes_time_confidence_and_identifiers():
@@ -22,6 +22,20 @@ def test_threat_record_normalizes_time_confidence_and_identifiers():
     assert record.confidence == 0.75
     assert record.timestamp.tzinfo == timezone.utc
     assert record.related_threats == ["t-2", "t-3"]
+
+
+def test_existing_feed_event_uses_source_date_when_timestamp_is_absent():
+    record, error = normalize_existing_event({
+        "_id": "feed-event", "source": "MISP", "source_id": "misp-123",
+        "source_feed_name": "CIRCL", "date": "2025-04-03", "info": "Public feed event",
+        "source_reference": "https://feed.example.test/event/123",
+    })
+
+    assert error is None
+    assert record is not None
+    assert record.timestamp == datetime(2025, 4, 3, tzinfo=timezone.utc)
+    assert record.provenance == "imported"
+    assert record.source_reference == "https://feed.example.test/event/123"
 
 
 def test_threat_record_rejects_unpaired_coordinates_and_extra_fields():

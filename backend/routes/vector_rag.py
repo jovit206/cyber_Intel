@@ -6,7 +6,7 @@ import re
 import time
 from datetime import datetime, timezone
 from uuid import uuid4
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
@@ -35,6 +35,9 @@ from backend.services.vector_rag import (
     split_text_into_chunks,
     generate_llm_answer,
     validate_embeddings,
+    validate_grounded_answer,
+    extract_ioc_evidence_answer,
+    normalize_citation_labels,
 )
 from backend.services.threat_retrieval import retrieve_structured_threat_evidence
 
@@ -52,6 +55,7 @@ class RagQuestion(BaseModel):
     top_k: int = Field(default=5, ge=1, le=10)
     platform: str | None = Field(default=None, min_length=1, max_length=100)
     threat_status: str | None = Field(default=None, min_length=1, max_length=64)
+    client: Literal["ai-threat-assistant"] | None = None
 
 
 def _actor_id(actor: dict) -> str:
@@ -520,12 +524,22 @@ def list_conversations(
     request: Request,
     actor: dict = Depends(_admin_user),
     limit: int = Query(20, ge=1, le=50),
+    client: str | None = None,
 ) -> dict:
     user_id = _actor_id(actor)
-    rows = list(rag_database(request.app.state.database)[CONVERSATION_META_COLLECTION].find(
-        {"user_id": user_id},
+    rag = rag_database(request.app.state.database)
+    query = {"user_id": user_id}
+    if client == "ai-threat-assistant":
+        query["client"] = client
+    rows = list(rag[CONVERSATION_META_COLLECTION].find(
+        query,
         {"_id": 0, "conversation_id": 1, "title": 1, "created_at": 1, "updated_at": 1},
     ).sort("updated_at", DESCENDING).limit(limit))
+    # Empty metadata rows from older clients and explicit conversation creation
+    # are not recent conversations. Keep them in MongoDB; just omit them here.
+    rows = [row for row in rows if rag[CONVERSATIONS_COLLECTION].count_documents({
+        "conversation_id": row.get("conversation_id"), "user_id": user_id,
+    }, limit=1)]
     for row in rows:
         for field in ("created_at", "updated_at"):
             if isinstance(row.get(field), datetime):
@@ -570,6 +584,62 @@ def get_conversation(
     return {"conversation": metadata, "messages": messages}
 
 
+def _is_general_assistant_question(question: str) -> bool:
+    """Allow model knowledge only for general concepts and product workflow questions."""
+    text = question.casefold()
+    if re.search(r"\bcve-\d{4}-\d{4,}\b|\b(?:https?://|[a-f0-9]{32,})", text):
+        return False
+    return bool(re.search(
+        r"\bwhat\s+is\s+(?:an?\s+)?(?:cve|ioc|indicator\s+of\s+compromise)\b"
+        r"|\bwhat\s+does\s+(?:this|the)\s+(?:platform|application|app)\s+do\b"
+        r"|\bfeatures?\s+of\s+(?:this|the)\s+(?:platform|application|app)\b"
+        r"|\bhow\s+does\s+threat\s+intelligence\s+work\s+(?:in|with|on)\s+(?:this|the)\s+(?:platform|application|app)\b"
+        r"|\bhow\s+(?:can|do)\s+(?:i|we)\s+(?:investigate|check|look\s+into)\s+(?:a\s+)?suspicious\s+ip\b"
+        r"|\b(?:what\s+are\s+)?(?:the\s+)?(?:different\s+)?threat\s+statuses\b",
+        text,
+    )) or bool(re.search(
+        r"\b(?:threat\s+)?statuses\b.*\b(?:platform|application|threat)\b",
+        text,
+    ))
+
+
+def _build_general_assistant_prompt(question: str, memory: list[dict]) -> tuple[str, str]:
+    """Use the configured real LLM for general help, explicitly separate it from CTI evidence."""
+    try:
+        configuration = provider_configuration()
+        active_model = f"{configuration['llm_provider']} ({configuration['llm_model']})"
+    except VectorProjectError:
+        active_model = "the configured server-side language model"
+    product_context = (
+        "General definitions for this request: CVE stands for Common Vulnerabilities and Exposures; a CVE identifier is a "
+        "standardized identifier assigned to a publicly disclosed cybersecurity vulnerability or exposure. An IOC (indicator "
+        "of compromise) is an observable artifact used to help identify or investigate possible malicious activity; an indicator "
+        "is evidence to assess, not proof by itself. These definitions are general cybersecurity knowledge, not evidence that a "
+        "specific CVE or IOC exists in the platform. "
+        "Verified application facts: this authenticated Threat Intelligence Platform exposes an AI assistant at /api/ask. "
+        "The assistant searches the existing MongoDB events, attributes, threats, reports, passages, and imported full_threats "
+        "collections using structured queries. When a compatible MongoDB Vector Search index is available, it also searches "
+        "indexed report chunks; otherwise it falls back to structured retrieval. The assistant supports platform and threat-status "
+        "filters and stores conversation messages per signed-in user. The interface offers the statuses unreviewed, anticipated, "
+        "active, evolving, and resolved. The configured model for this request is " + active_model + "."
+    )
+    system = (
+        "You are the Threat Intelligence Platform's assistant. Answer general cybersecurity definitions and questions about the "
+        "application using the verified facts below. General definitions are general cybersecurity knowledge, not verified threat "
+        "intelligence. Clearly state that distinction. Do not claim that a specific CVE, indicator, actor, incident, mitigation, "
+        "or current threat is present in this platform unless retrieved evidence supports it. For application questions, do not "
+        "claim runtime services or records beyond the verified facts. Do not say that the platform lacks all CVE information when "
+        "answering a general definition. If the question asks for a specific threat record and no "
+        "evidence was retrieved, say the platform has no matching evidence available for this question. Do not invent citations.\n\n"
+        + product_context
+    )
+    history = "\n".join(
+        f"{item['role'].upper()}: {str(item.get('content', ''))[:600]}"
+        for item in memory[-6:] if item.get("role") in {"user", "assistant"}
+    ) or "(No earlier messages.)"
+    return system, f"Conversation memory:\n{history}\n\nCurrent question:\n{question}"
+
+
 @router.post("/query")
 def query_rag(
     payload: RagQuestion,
@@ -588,27 +658,14 @@ def query_rag(
         "conversation_id": conversation_id,
         "user_id": user_id,
     })
-    if payload.conversation_id and not metadata:
+    if payload.conversation_id and not metadata and payload.client != "ai-threat-assistant":
+        raise HTTPException(status_code=404, detail="Conversation not found.")
+    if payload.conversation_id and not metadata and rag[CONVERSATION_META_COLLECTION].find_one({
+        "conversation_id": conversation_id,
+    }, {"_id": 1}):
         raise HTTPException(status_code=404, detail="Conversation not found.")
     now = datetime.now(timezone.utc)
-    if not metadata:
-        rag[CONVERSATION_META_COLLECTION].insert_one({
-            "conversation_id": conversation_id,
-            "user_id": user_id,
-            "title": payload.question.strip()[:80],
-            "created_at": now,
-            "updated_at": now,
-        })
     user_message_id = str(uuid4())
-    rag[CONVERSATIONS_COLLECTION].insert_one({
-        "message_id": user_message_id,
-        "conversation_id": conversation_id,
-        "user_id": user_id,
-        "role": "user",
-        "content": payload.question.strip(),
-        "timestamp": now,
-        "correlation_id": correlation_id,
-    })
     stages: list[dict] = [{
         "name": "User query received",
         "status": "completed",
@@ -624,14 +681,45 @@ def query_rag(
         final_outcome="query stored",
     )
 
+    memory: list[dict] = []
+    general_question = False
+    retrieval_question = payload.question.strip()
     structured_result: dict[str, Any] = {"items": [], "sources": [], "unavailable_sources": []}
     try:
-        collections = rag_search_collections(database)
+        memory = _stage(
+            database,
+            correlation_id,
+            stages,
+            name="Conversation memory retrieved",
+            component="MongoDB conversation memory",
+            operation="Conversation memory retrieved",
+            action=lambda: list(rag[CONVERSATIONS_COLLECTION].find(
+                {"conversation_id": conversation_id, "user_id": user_id, "message_id": {"$ne": user_message_id}},
+                {"_id": 0, "role": 1, "content": 1},
+            ).sort("timestamp", DESCENDING).limit(10)),
+        )
+        memory.reverse()
+        last_user_question = next((item.get("content", "") for item in reversed(memory) if item.get("role") == "user"), "")
+        is_followup = bool(re.search(r"\b(?:it|this|that|previous|above|same|earlier|those|them|they)\b", payload.question, re.IGNORECASE))
+        if is_followup and last_user_question:
+            retrieval_question = f"{last_user_question}\nFollow-up: {retrieval_question}"
+        general_question = _is_general_assistant_question(payload.question) or bool(
+            is_followup and last_user_question and _is_general_assistant_question(last_user_question)
+        )
+        collections = [] if general_question else rag_search_collections(database)
         filtered_query = bool(payload.platform or payload.threat_status)
-        retrieval_mode = "structured_filtered" if filtered_query else "vector_search+structured"
+        retrieval_mode = ("general_assistant" if general_question else
+                          "structured_filtered" if filtered_query else "vector_search+structured")
         vector_retrieved: list[dict] = []
         duration_ms: float | None = None
         try:
+            if general_question:
+                raise VectorProjectError(
+                    "general_question_no_retrieval",
+                    "This general platform or cybersecurity question does not require threat-record retrieval.",
+                    "retrieval",
+                    409,
+                )
             if filtered_query:
                 raise VectorProjectError(
                     "vector_filter_not_supported",
@@ -642,7 +730,7 @@ def query_rag(
             vectors, dimensions, duration_ms = _stage(
                 database, correlation_id, stages, name="Query embedding generated",
                 component="Configured embedding provider", operation="Query embedding generated",
-                action=lambda: create_embeddings([payload.question.strip()], "query"),
+                action=lambda: create_embeddings([retrieval_question], "query"),
             )
             vector_collection = None
             unavailable_detail = "No matching Vector Search index was found for the configured embedding dimensions."
@@ -667,12 +755,13 @@ def query_rag(
                 ], maxTimeMS=5000)),
             )
         except VectorProjectError as vector_error:
-            if not filtered_query:
+            if not general_question and not filtered_query:
                 retrieval_mode = "structured_fallback"
-            stages.append({"name": "Report vector retrieval unavailable", "status": "completed", "reason": vector_error.code})
+            stages.append({"name": "Threat record retrieval skipped" if general_question else "Report vector retrieval unavailable",
+                           "status": "completed", "reason": vector_error.code})
             report_retrieved = []
-            if not filtered_query:
-                terms = list(dict.fromkeys(re.findall(r"[\w.-]{2,}", payload.question.strip(), flags=re.UNICODE)))[:12]
+            if not general_question and not filtered_query:
+                terms = list(dict.fromkeys(re.findall(r"[\w.-]{2,}", retrieval_question, flags=re.UNICODE)))[:12]
                 query = {"status": "embedded", "$or": [{"text": {"$regex": re.escape(term), "$options": "i"}} for term in terms]} if terms else {"status": "embedded", "_id": {"$exists": False}}
                 if terms:
                     query["$or"] = [{field: {"$regex": re.escape(term), "$options": "i"}} for term in terms for field in ("text", "content", "chunk_text")]
@@ -689,21 +778,24 @@ def query_rag(
                     if len(report_retrieved) >= payload.top_k:
                         break
             vector_retrieved = report_retrieved
-            if not filtered_query:
+            if not general_question and not filtered_query:
                 stages.append({"name": "Structured report retrieval fallback", "status": "completed", "source_count": len(report_retrieved)})
-        structured_result = _stage(
-            database, correlation_id, stages,
-            name="Threat intelligence records searched",
-            component="Existing structured CTI collections",
-            operation="Structured threat intelligence retrieval completed",
-            action=lambda: retrieve_structured_threat_evidence(
-                database,
-                payload.question.strip(),
-                limit=payload.top_k,
-                platform=payload.platform,
-                threat_status=payload.threat_status,
-            ),
-        )
+        if general_question:
+            structured_result = {"items": [], "sources": [], "unavailable_sources": []}
+        else:
+            structured_result = _stage(
+                database, correlation_id, stages,
+                name="Threat intelligence records searched",
+                component="Existing structured CTI collections",
+                operation="Structured threat intelligence retrieval completed",
+                action=lambda: retrieve_structured_threat_evidence(
+                    database,
+                    retrieval_question,
+                    limit=payload.top_k,
+                    platform=payload.platform,
+                    threat_status=payload.threat_status,
+                ),
+            )
         # Interleave semantic report chunks and structured CTI records so neither
         # evidence class can starve the other when the top-k limit is small.
         retrieved = []
@@ -742,19 +834,6 @@ def query_rag(
             final_outcome=f"{len(retrieved)} chunks retrieved",
         )
 
-        memory = _stage(
-            database,
-            correlation_id,
-            stages,
-            name="Conversation memory retrieved",
-            component="MongoDB conversation memory",
-            operation="Conversation memory retrieved",
-            action=lambda: list(rag[CONVERSATIONS_COLLECTION].find(
-                {"conversation_id": conversation_id, "user_id": user_id, "message_id": {"$ne": user_message_id}},
-                {"_id": 0, "role": 1, "content": 1},
-            ).sort("timestamp", DESCENDING).limit(10)),
-        )
-        memory.reverse()
         question_with_filters = payload.question.strip()
         active_filters = {key: value for key, value in {
             "platform": payload.platform.strip() if payload.platform else None,
@@ -763,8 +842,16 @@ def query_rag(
         if active_filters:
             question_with_filters += "\n\nApply these exact retrieval filters: " + json.dumps(active_filters, ensure_ascii=False)
         system_prompt, user_prompt = build_rag_prompt(question_with_filters, retrieved, memory)
-        if not retrieved:
-            answer, generation_ms, response_mode = "The available indexed documents do not contain evidence for this question.", 0.0, "insufficient_evidence"
+        if not retrieved and general_question:
+            system_prompt, user_prompt = _build_general_assistant_prompt(payload.question, memory)
+            answer, generation_ms = _stage(
+                database, correlation_id, stages, name="LLM response generated",
+                component="Configured LLM provider", operation="General assistant response generated",
+                action=lambda: generate_llm_answer(system_prompt, user_prompt),
+            )
+            response_mode = "platform_llm"
+        elif not retrieved:
+            answer, generation_ms, response_mode = "The available threat-intelligence records and indexed reports do not contain evidence for this question.", 0.0, "insufficient_evidence"
         else:
             try:
                 answer, generation_ms = _stage(
@@ -772,14 +859,84 @@ def query_rag(
                     component="Configured LLM provider", operation="LLM response generated",
                     action=lambda: generate_llm_answer(system_prompt, user_prompt),
                 )
-                response_mode = "grounded_llm"
+                answer = normalize_citation_labels(answer)
+                rejection_reason = validate_grounded_answer(answer, retrieved)
+                if rejection_reason in {"invalid_or_missing_citations", "citation_only_answer"}:
+                    retry_system = (
+                        system_prompt + "\n\nCitation format correction: rewrite the answer as a concise response. "
+                        "Every factual statement must end with one or more exact allowed citation labels in square brackets, "
+                        "such as [S1]. Use only labels supplied in the retrieved context. If the excerpt does not document the "
+                        "requested action or fact, say that explicitly and cite the excerpt. Do not add unsupported facts."
+                    )
+                    retry_user = user_prompt + "\n\nYour previous draft failed citation-format validation. Rewrite it with substantive text and valid citations:\n" + answer
+                    try:
+                        repaired, retry_ms = _stage(
+                            database, correlation_id, stages, name="Citation-format response retried",
+                            component="Configured LLM provider", operation="Citation-format response retried",
+                            action=lambda: generate_llm_answer(retry_system, retry_user),
+                        )
+                        repaired = normalize_citation_labels(repaired)
+                        retry_rejection = validate_grounded_answer(repaired, retrieved)
+                        generation_ms += retry_ms
+                        if retry_rejection is None:
+                            answer = repaired
+                            rejection_reason = None
+                            stages.append({"name": "Evidence citation repair", "status": "completed"})
+                        else:
+                            stages.append({"name": "Evidence citation repair", "status": "failed", "reason": retry_rejection})
+                    except VectorProjectError as retry_error:
+                        stages.append({"name": "Evidence citation repair", "status": "failed", "reason": retry_error.code})
+                if rejection_reason:
+                    is_ioc_question = bool(re.search(r"\biocs?\b|indicators? of compromise", payload.question, flags=re.IGNORECASE))
+                    if is_ioc_question:
+                        answer = extract_ioc_evidence_answer(retrieved)
+                        response_mode = "extractive_fallback"
+                    else:
+                        labels = ", ".join(f"[S{index}]" for index in range(1, len(retrieved) + 1))
+                        answer = (
+                            "The generated answer did not pass evidence citation checks, so it was withheld. "
+                            f"Review the retrieved source excerpts: {labels}."
+                        )
+                        response_mode = "citation_validation_fallback"
+                    stages.append({
+                        "name": "Evidence citation validation",
+                        "status": "completed",
+                        "reason": rejection_reason,
+                    })
+                else:
+                    response_mode = "grounded_llm"
             except VectorProjectError as generation_error:
                 excerpts = [f"[S{index}] {item.get('text', '')[:1200]}" for index, item in enumerate(retrieved, start=1)]
                 answer = "Extractive fallback from retrieved documents (the configured LLM was unavailable):\n\n" + "\n\n".join(excerpts)
                 generation_ms, response_mode = 0.0, "extractive_fallback"
                 stages.append({"name": "Extractive answer fallback", "status": "completed", "reason": generation_error.code})
         def save_answer() -> None:
+            if not metadata:
+                rag[CONVERSATION_META_COLLECTION].insert_one({
+                    "conversation_id": conversation_id,
+                    "user_id": user_id,
+                    "title": payload.question.strip()[:80],
+                    "client": payload.client,
+                    "created_at": now,
+                    "updated_at": datetime.now(timezone.utc),
+                })
+            rag[CONVERSATIONS_COLLECTION].insert_one({
+                "message_id": user_message_id,
+                "conversation_id": conversation_id,
+                "user_id": user_id,
+                "role": "user",
+                "content": payload.question.strip(),
+                "timestamp": now,
+                "correlation_id": correlation_id,
+            })
             answer_id = str(uuid4())
+            saved_sources = [{
+                "source": item.get("source"),
+                "chunk_id": item.get("chunk_id"),
+                "source_reference": item.get("source_reference") or item.get("source_url"),
+                "page": item.get("page") or item.get("page_number"),
+                "text": str(item.get("text", ""))[:1200],
+            } for item in retrieved]
             rag[CONVERSATIONS_COLLECTION].insert_one({
                 "message_id": answer_id,
                 "conversation_id": conversation_id,
@@ -789,10 +946,11 @@ def query_rag(
                 "timestamp": datetime.now(timezone.utc),
                 "correlation_id": correlation_id,
                 "source_chunk_ids": [item.get("chunk_id") for item in retrieved],
+                "sources": saved_sources,
             })
             rag[CONVERSATION_META_COLLECTION].update_one(
                 {"conversation_id": conversation_id, "user_id": user_id},
-                {"$set": {"updated_at": datetime.now(timezone.utc)}},
+                {"$set": {"updated_at": datetime.now(timezone.utc), **({"client": payload.client} if payload.client else {})}},
             )
 
         _stage(

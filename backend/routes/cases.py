@@ -1,4 +1,4 @@
-"""Session-authenticated, membership-scoped multi-tenant case operations."""
+﻿"""Session-authenticated, membership-scoped multi-tenant case operations."""
 from __future__ import annotations
 
 import hashlib
@@ -15,7 +15,8 @@ from backend.database import get_database
 from backend.routes.subscriptions import _session_user
 
 def _enforce_case_rate_limit(request: Request) -> None:
-    _rate_limit(_db(), "platform", _actor(request))
+    actor = _actor(request)
+    _rate_limit(_db(), "platform", actor)
 
 
 router = APIRouter(prefix="/api/cases", tags=["Multi-tenant cases"], dependencies=[Depends(_enforce_case_rate_limit)])
@@ -342,7 +343,11 @@ def get_case(case_id: str, request: Request):
     row = db.cases.find_one(_tenant_case_query(actor, db, _object_id(case_id)))
     if not row:
         raise HTTPException(status_code=404, detail="Case not found.")
-    _require_org_role(db, row["organization_id"], actor, {"platform_admin", "org_admin", "analyst", "viewer"})
+    role = _org_role(db, row["organization_id"], actor)
+    if role is None:
+        raise HTTPException(status_code=404, detail="Case not found.")
+    if role not in {"platform_admin", "org_admin", "analyst", "viewer"}:
+        raise HTTPException(status_code=403, detail="Your organisation role does not allow this action.")
     return {**_case_summary(row), "description": row.get("description", ""), "linked_threat_ids": row.get("linked_threat_ids", [])}
 
 

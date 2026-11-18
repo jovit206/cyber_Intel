@@ -20,7 +20,7 @@ def test_monitoring_window_derives_operations_rate_from_actual_counter_samples()
     database = MagicMock()
     database[service.METRICS].find.return_value = history
     database[service.ALERTS].count_documents.return_value = 2
-    database[service.BACKUP_RUNS].find_one.side_effect = [None, None]
+    database[service.BACKUP_RUNS].find_one.side_effect = [None, None, None]
     database[service.WORKER_STATUS].find_one.return_value = None
 
     result = service.metric_window(database, 60)
@@ -90,3 +90,10 @@ def test_signed_webhook_accepts_only_valid_hmac_and_records_event():
     assert response.status_code == 200
     assert response.json()["accepted"] is True
     app.state.database[service.ALERTS].update_one.assert_called_once()
+
+def test_scheduler_compatibility_name_delegates_to_existing_sampler(monkeypatch):
+    database = object()
+    expected = {"source": "live_mongodb_server_status"}
+    monkeypatch.setattr(service, "collect_sample", lambda supplied: expected if supplied is database else None)
+
+    assert service.sample_monitoring_metrics(database) is expected

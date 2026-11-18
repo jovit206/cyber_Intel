@@ -84,6 +84,15 @@
             </div>
             <div class="vector-chat-history" data-rag-history aria-live="polite"><p class="ops-empty">Choose or start a conversation.</p></div>
             <form data-rag-question>
+              <div class="vector-filter-grid">
+                <label>Platform filter<select name="platform">
+                  <option value="">All platforms</option><option value="Windows">Windows</option><option value="Linux">Linux</option><option value="macOS">macOS</option><option value="Android">Android</option><option value="iOS">iOS</option>
+                </select></label>
+                <label>Threat status<select name="threat_status">
+                  <option value="">All statuses</option><option value="unreviewed">Unreviewed</option><option value="anticipated">Anticipated</option><option value="active">Active</option><option value="evolving">Evolving</option><option value="resolved">Resolved</option>
+                </select></label>
+              </div>
+              <small class="vector-filter-note">Status filters match imported threat records that include a status field. Platform filters use stored metadata and evidence text.</small>
               <label>Research question<textarea name="question" minlength="3" maxlength="500" rows="3" required placeholder="Ask about a threat, vulnerability, campaign or report."></textarea></label>
               <button class="portfolio-primary-button" type="submit">Search evidence and answer</button>
             </form>
@@ -247,18 +256,26 @@
           body: JSON.stringify({
             question: new FormData(form).get('question'),
             conversation_id: selectedConversation,
+            platform: new FormData(form).get('platform') || null,
+            threat_status: new FormData(form).get('threat_status') || null,
           }),
         });
         selectedConversation = result.conversation_id;
         await renderConversations(root);
         root.querySelector('[data-rag-conversations]').value = selectedConversation;
         await loadConversation(root, selectedConversation);
+        const platformFilter = form.elements.platform.selectedOptions[0]?.textContent;
+        const statusFilter = form.elements.threat_status.selectedOptions[0]?.textContent;
+        const activeFilters = [
+          platformFilter && form.elements.platform.value ? platformFilter : null,
+          statusFilter && form.elements.threat_status.value ? statusFilter : null,
+        ].filter(Boolean);
         target.innerHTML = `
           <div class="vector-message is-success" role="status">${escapeHtml(result.mode || result.response_mode || 'Answer')} · ${escapeHtml(result.retrieval_mode || 'retrieval mode unreported')} · ${escapeHtml(result.metrics.retrieved_chunks)} retrieved chunks · embedding ${formatMs(result.metrics.query_embedding_ms)} · generation ${formatMs(result.metrics.llm_generation_ms)}</div>
           ${stageList(result.stages)}
           <div class="vector-source-list"><h4>Retrieved source chunks</h4>${result.sources.length ? result.sources.map((source, index) => `
             <details><summary>[S${index + 1}] ${escapeHtml(source.source)}${source.page ? ` · page ${escapeHtml(source.page)}` : ''}${Number.isFinite(Number(source.score)) ? ` · score ${escapeHtml(Number(source.score).toFixed(4))}` : ''}</summary><p>${escapeHtml(source.text)}</p><small>${escapeHtml(source.chunk_id)}${source.source_reference ? ` · ${escapeHtml(source.source_reference)}` : ''}</small></details>`).join('') : '<p class="ops-empty">No source chunks were retrieved.</p>'}</div>`;
-        form.reset();
+        form.elements.question.value = '';
       } catch (error) {
         target.innerHTML = `${stageList(error.detail?.stages || [])}<div class="vector-message is-error" role="alert">${escapeHtml(error.message)}</div>`;
         if (error.detail?.conversation_id) {

@@ -22,8 +22,8 @@ MAX_EVIDENCE_CHARS = 4_000
 _SOURCES = (
     ("events", ("info", "tags", "threat_level", "source_feed_name", "source"),
      ("info", "tags", "threat_level", "source_feed_name", "timestamp"), ("_id", "source_id")),
-    ("attributes", ("indicator", "normalized_indicator", "indicator_type", "category", "comment"),
-     ("indicator", "normalized_indicator", "indicator_type", "category", "comment", "source_feed_name", "timestamp"), ("_id", "event_id")),
+    ("attributes", ("indicator", "normalized_indicator", "value", "references", "indicator_type", "category", "comment"),
+     ("indicator", "normalized_indicator", "value", "references", "indicator_type", "category", "comment", "source_feed_name", "timestamp"), ("_id", "event_id")),
     ("threats", ("name", "aliases", "description", "type", "country", "meta.platform"),
      ("name", "aliases", "description", "type", "country", "source_url"), ("_id", "cluster_uuid")),
     ("reports", ("title", "name", "description", "source_repository", "source_pdf"),
@@ -40,6 +40,11 @@ _TEXT_FIELDS = ("info", "tags", "text", "description", "indicator", "normalized_
 
 
 def _terms(question: str) -> list[str]:
+    # Exact vulnerability identifiers are stronger than prose around them. Search
+    # only those IDs so generic question words cannot outrank the requested CVE.
+    cve_ids = re.findall(r"\bCVE-\d{4}-\d{4,}\b", question, flags=re.IGNORECASE)
+    if cve_ids:
+        return list(dict.fromkeys(cve_ids))[:MAX_TERMS]
     return list(dict.fromkeys(re.findall(r"[\w.-]{2,}", question.strip(), flags=re.UNICODE)))[:MAX_TERMS]
 
 
@@ -93,6 +98,17 @@ def build_source_query(
     fields = next((entry[1] for entry in _SOURCES if entry[0] == collection_name), None)
     if fields is None:
         return {"_id": {"$exists": False}}
+    if collection_name == "attributes" and terms and all(
+        re.fullmatch(r"CVE-\d{4}-\d{4,}", term, flags=re.IGNORECASE) for term in terms
+    ):
+        # MISP CVE attributes are stored as exact indicator values. Use the
+        # indexed identity fields instead of a multi-field regex scan over the
+        # large attributes collection.
+        exact_ids = [term.upper() for term in terms]
+        return _combine(
+            {"$or": [{field: value} for value in exact_ids for field in ("indicator", "normalized_indicator")]},
+            {"is_current": {"$ne": False}},
+        )
     conditions = [_text_query(terms, fields)]
     if collection_name == "attributes":
         conditions.append({"is_current": {"$ne": False}})
@@ -115,7 +131,7 @@ def _evidence_text(row: dict[str, Any], fields: tuple[str, ...]) -> str:
 def _as_evidence(collection_name: str, row: dict[str, Any], evidence_fields: tuple[str, ...], id_fields: tuple[str, ...]) -> dict[str, Any]:
     source_id = next((row.get(field) for field in id_fields if row.get(field) is not None), "record")
     reference = row.get("source_pdf") or row.get("source_url") or row.get("source_reference") or row.get("report_id")
-    source = row.get("source_feed_name") or row.get("source") or row.get("from_source") or collection_name
+    source = row.get("source_feed_name") or row.get("from_source") or row.get("source") or collection_name
     return {
         "text": _evidence_text(row, evidence_fields),
         "source": str(source),
@@ -133,6 +149,57 @@ def _chapter18_database(database: Database) -> Database | None:
     return database.client[name]
 
 
+_IOC_INTENT = re.compile(r"\biocs?\b|indicators? of compromise", flags=re.IGNORECASE)
+_IOC_TYPE_PATTERN = r"^(?:ip(?:v[46])?(?:[-:/|].*)?|domain(?:\|ip)?|hostname|host|url|uri|md5|sha1|sha256|sha512|email(?:[-_].*)?|filename|filepath|file-path)$"
+_IOC_STOP_TERMS = {
+    "what", "which", "who", "is", "are", "was", "were", "the", "a", "an", "of", "and", "or",
+    "to", "in", "on", "for", "with", "from", "me", "show", "shown", "list", "give", "provide",
+    "concrete", "value", "values", "present", "available", "explicit", "explicitly", "evidence",
+    "source", "sources", "record", "records", "retrieved", "ioc", "iocs", "indicator", "indicators",
+    "compromise", "cite", "only", "any", "these", "those", "about", "please",
+}
+
+
+def _indicator_source_query(
+    collection_name: str,
+    context_terms: list[str],
+    *,
+    platform: str | None = None,
+    threat_status: str | None = None,
+) -> dict[str, Any]:
+    conditions: list[dict[str, Any]] = []
+    if collection_name == "attributes":
+        conditions.extend([
+            {"indicator": {"$exists": True}},
+            {"indicator": {"$ne": None}},
+            {"indicator": {"$ne": ""}},
+            {"is_current": {"$ne": False}},
+        ])
+        conditions.append({"$or": [
+            {"indicator_type": {"$regex": _IOC_TYPE_PATTERN, "$options": "i"}},
+            {"category": {"$regex": _IOC_TYPE_PATTERN, "$options": "i"}},
+        ]})
+        if context_terms:
+            conditions.append(_text_query(context_terms, ("indicator", "normalized_indicator", "indicator_type", "category", "comment", "source_feed_name")))
+        if platform:
+            conditions.append(_regex_any(("platform", "platforms", "affected_platforms", "operating_system", "tags", "comment"), platform))
+    else:
+        conditions.extend([
+            {"provenance": "imported"},
+            {"indicator": {"$exists": True}},
+            {"indicator": {"$ne": None}},
+            {"indicator": {"$ne": ""}},
+        ])
+        conditions.append({"threat_type": {"$regex": _IOC_TYPE_PATTERN, "$options": "i"}})
+        if context_terms:
+            conditions.append(_text_query(context_terms, _CHAPTER18_SEARCH_FIELDS + ("source_feed_name",)))
+        if threat_status:
+            conditions.append({"status": threat_status.strip()})
+        if platform:
+            conditions.append(_regex_any(("platform", "platforms", "affected_platforms", "operating_system", "target"), platform))
+    return _combine(*conditions)
+
+
 def retrieve_structured_threat_evidence(
     database: Database,
     question: str,
@@ -148,12 +215,16 @@ def retrieve_structured_threat_evidence(
     already exists. No source is initialized or mutated here.
     """
     terms = _terms(question)
-    if not terms:
+    if not terms and not _IOC_INTENT.search(question):
         return {"items": [], "sources": [], "unavailable_sources": []}
     limit = min(max(int(limit), 1), 10)
+    is_ioc_query = bool(_IOC_INTENT.search(question))
+    ioc_context_terms = [term for term in terms if term.casefold() not in _IOC_STOP_TERMS] if is_ioc_query else []
     selected_sources = _SOURCES
     if threat_status:
         selected_sources = ()
+    elif is_ioc_query:
+        selected_sources = tuple(source for source in _SOURCES if source[0] == "attributes")
 
     items: list[dict[str, Any]] = []
     sources: list[str] = []
@@ -161,8 +232,13 @@ def retrieve_structured_threat_evidence(
     for name, search_fields, evidence_fields, id_fields in selected_sources:
         try:
             collection = database[name]
+            source_query = (
+                _indicator_source_query(name, ioc_context_terms, platform=platform, threat_status=threat_status)
+                if is_ioc_query
+                else build_source_query(name, terms, platform=platform, threat_status=threat_status)
+            )
             cursor = collection.find(
-                build_source_query(name, terms, platform=platform, threat_status=threat_status),
+                source_query,
                 {field: 1 for field in set(search_fields + evidence_fields + id_fields + ("source", "source_feed_name", "source_reference", "source_url", "report_id"))},
             )
             rows = cursor.max_time_ms(3_000).limit(limit)
@@ -179,10 +255,12 @@ def retrieve_structured_threat_evidence(
             names = set(chapter18.list_collection_names())
             if "full_threats" in names:
                 projection = {field: 1 for field in set(_CHAPTER18_SEARCH_FIELDS + _PLATFORM_FIELDS + ("status", "timestamp", "severity", "confidence", "provenance", "source_reference"))}
-                cursor = chapter18["full_threats"].find(
-                    build_source_query("full_threats", terms, platform=platform, threat_status=threat_status),
-                    projection,
+                chapter18_query = (
+                    _indicator_source_query("full_threats", ioc_context_terms, platform=platform, threat_status=threat_status)
+                    if is_ioc_query
+                    else build_source_query("full_threats", terms, platform=platform, threat_status=threat_status)
                 )
+                cursor = chapter18["full_threats"].find(chapter18_query, projection)
                 rows = cursor.max_time_ms(3_000).limit(limit)
                 found = [_as_evidence("full_threats", row, tuple(projection), ("threat_id", "_id")) for row in rows]
                 if found:

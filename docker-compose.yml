@@ -100,6 +100,51 @@ services:
         echo "[mongo-init] timed out waiting for a healthy replica set" >&2
         exit 1
 
+  # Ollama is internal to mongo-net; the model cache persists in its own named volume.
+  ollama:
+    image: ollama/ollama:0.40.16
+    container_name: ${OLLAMA_CONTAINER:-lab7-ollama}
+    restart: unless-stopped
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - mongo-net
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  # Pull the selected model once per deployment; retain legacy external-provider selection.
+  ollama-model:
+    image: ollama/ollama:0.40.16
+    restart: "no"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_CHAT_MODEL: "${OLLAMA_CHAT_MODEL:-llama3.2:3b}"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        case "$${LLM_PROVIDER:-}" in
+          openai|openai_compatible|openai-compatible|openai-compatible-api|nvidia-nim|nim) echo "External LLM provider selected; Ollama model pull skipped"; exit 0 ;;
+        esac
+        if [ -z "$${LLM_PROVIDER:-}" ] && [ -n "$${RAG_LLM_API_URL:-}$${RAG_LLM_MODEL:-}$${RAG_LLM_API_KEY:-}$${OPENAI_API_KEY:-}$${NVIDIA_NIM_API_KEY:-}" ]; then
+          echo "Legacy external LLM provider configured; Ollama model pull skipped"
+          exit 0
+        fi
+        exec /bin/ollama pull "$${OLLAMA_CHAT_MODEL}"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - mongo-net
+
   lab7-backend:
     # APP_IMAGE is set to the published Docker Hub tag in .env (see README); `build:` is the fallback.
     image: ${APP_IMAGE:-lab7-threat-intel:v1.0.0}
@@ -114,6 +159,8 @@ services:
     environment:
       MONGO_URI: "mongodb://mongo1:27017,mongo2:27017,mongo3:27017/?replicaSet=rs0"
       MONGO_DATABASE: "${MONGO_DATABASE:-chapter07}"
+      OLLAMA_BASE_URL: "${OLLAMA_BASE_URL:-http://ollama:11434}"
+      OLLAMA_CHAT_MODEL: "${OLLAMA_CHAT_MODEL:-llama3.2:3b}"
       FRONTEND_ORIGIN: "http://localhost:${APP_PORT:-8000}"
       LAB9_RESULTS_DIR: /app/labs/lab9/results
       CHAPTER14_BACKUP_DIR: /app/chapter-14/backups
@@ -121,6 +168,8 @@ services:
       - "${APP_PORT:-8000}:8000"
     depends_on:
       mongo-init:
+        condition: service_completed_successfully
+      ollama-model:
         condition: service_completed_successfully
     volumes:
       # Lab 9.1 / 9.2 reports appear here on the host.
@@ -162,6 +211,7 @@ volumes:
   mongo2-data:
   mongo3-data:
   chapter14-backups:
+  ollama-data:
 
 networks:
   mongo-net:

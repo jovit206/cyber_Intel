@@ -253,6 +253,16 @@ def normalize_existing_event(event: dict[str, Any]) -> tuple[ThreatRecord | None
         return None, "missing_identifier"
 
     timestamp = event.get("timestamp")
+    if timestamp is None:
+        # MISP public feed summaries commonly retain their source date but have
+        # no event timestamp. Preserve that date at UTC midnight rather than
+        # dropping valid feed records or substituting the import time.
+        source_date = event.get("date")
+        if isinstance(source_date, str) and source_date.strip():
+            try:
+                timestamp = datetime.fromisoformat(source_date.strip().replace("Z", "+00:00"))
+            except ValueError:
+                timestamp = None
     if not isinstance(timestamp, (datetime, str)):
         return None, "missing_timestamp"
     from_source = event.get("source_feed_name") or event.get("source_feed") or source
@@ -292,7 +302,7 @@ def normalize_existing_event(event: dict[str, Any]) -> tuple[ThreatRecord | None
             "description": event.get("description") or event.get("summary"),
             "related_threats": related,
             "transaction_ids": transaction_ids,
-            "source_reference": event.get("source_url") or event.get("url"),
+            "source_reference": event.get("source_reference") or event.get("source_url") or event.get("url"),
             "latitude": event.get("latitude"),
             "longitude": event.get("longitude"),
             "country_code": event.get("country_code"),
