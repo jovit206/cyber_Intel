@@ -1,0 +1,130 @@
+{
+  "activity": "activity_2_2",
+  "title": "Activity 2.2 - Bookstore CRUD Operations",
+  "environment": {
+    "student": {
+      "name": "Jovit Chawla",
+      "enrollment": "24BTRCL089"
+    },
+    "run_at_utc": "2026-11-19T14:22:47+00:00",
+    "machine": "LAPTOP-DSDFIQOI",
+    "os": "Windows 11 (10.0.26300)",
+    "python": "3.12.10",
+    "pymongo": "4.20.0"
+  },
+  "measurements": {
+    "deployment": "docker",
+    "steps": {
+      "create": {
+        "inserted": 10,
+        "duplicate_isbn": "rejected with DuplicateKeyError (unique index on isbn)"
+      },
+      "read": {
+        "by_isbn": {
+          "title": "Designing Data-Intensive Applications",
+          "authors": [
+            "Martin Kleppmann"
+          ],
+          "publisher": {
+            "name": "O'Reilly Media"
+          }
+        },
+        "databases": [
+          {
+            "title": "Seven Databases in Seven Weeks",
+            "year": 2012,
+            "price_inr": 780.0
+          },
+          {
+            "title": "Designing Data-Intensive Applications",
+            "year": 2017,
+            "price_inr": 1450.0
+          }
+        ],
+        "mit_press": [
+          {
+            "title": "Introduction to Algorithms",
+            "year": 1990,
+            "price_inr": 1250.0
+          },
+          {
+            "title": "Deep Learning",
+            "year": 2016,
+            "price_inr": 1600.0
+          }
+        ],
+        "range": [
+          {
+            "title": "The Pragmatic Programmer",
+            "year": 1999,
+            "price_inr": 720.0
+          },
+          {
+            "title": "Clean Code",
+            "year": 2008,
+            "price_inr": 650.0
+          },
+          {
+            "title": "Wings of Fire",
+            "year": 1999,
+            "price_inr": 299.0
+          }
+        ],
+        "three_plus_authors": 2,
+        "per_publisher": [
+          {
+            "_id": "Addison-Wesley",
+            "titles": 3,
+            "stock": 14
+          },
+          {
+            "_id": "MIT Press",
+            "titles": 2,
+            "stock": 15
+          },
+          {
+            "_id": "No Starch Press",
+            "titles": 1,
+            "stock": 15
+          },
+          {
+            "_id": "O'Reilly Media",
+            "titles": 1,
+            "stock": 5
+          },
+          {
+            "_id": "Pragmatic Bookshelf",
+            "titles": 1,
+            "stock": 8
+          },
+          {
+            "_id": "Prentice Hall",
+            "titles": 1,
+            "stock": 12
+          },
+          {
+            "_id": "Universities Press",
+            "titles": 1,
+            "stock": 20
+          }
+        ]
+      },
+      "update": {
+        "stock_after_sale": 13,
+        "tags": [
+          "databases",
+          "distributed systems",
+          "nosql"
+        ],
+        "imprint_modified": 3,
+        "upserted": true
+      },
+      "delete": {
+        "deleted_out_of_stock": 1,
+        "deleted_one": 1,
+        "remaining": 9
+      }
+    },
+    "final_count": 9
+  }
+}

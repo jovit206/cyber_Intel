@@ -22,7 +22,7 @@ from pymongo.errors import OperationFailure
 logger = logging.getLogger("aegis.chapter13")
 _standalone_warned = False
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-CHAPTER13_DIR = PROJECT_ROOT / "chapter-13"
+CHAPTER13_DIR = PROJECT_ROOT / "lab-13"
 METRICS_COLLECTION = "deployment_metric_samples"
 ELECTIONS_COLLECTION = "deployment_election_events"
 METRIC_RETENTION_DAYS = 30

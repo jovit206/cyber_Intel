@@ -34,16 +34,16 @@ LIVE_TTL_SECONDS = 300
 MAX_CHUNK_CHARS = 1100
 DOC_GLOBS = (
     "README.md", "ADMIN_GUIDE.md", "BILLING_AND_ENTITLEMENTS.md", "SECURITY_CENTER.md",
-    "backend/knowledge/*.md", "chapter-*/README.md", "chapter-*/*.md", "chapter-*/**/README.md",
-    "chapter-14/reports/*.md", "chapter-16/lab-16.1/*.md", "lab8/**/*.md", "lab9/**/*.md", "lab10/**/*.md", "chapter11/**/*.md",
+    "backend/knowledge/*.md", "lab-1[3-8]/README.md", "lab-1[3-8]/*.md", "lab-1[3-8]/**/README.md",
+    "lab-14/reports/*.md", "lab-16/lab-16.1/*.md", "lab8/**/*.md", "lab9/**/*.md", "lab10/**/*.md", "lab-11/**/*.md",
 )
 CODE_GLOBS = (
     "backend/*.py", "backend/routes/*.py", "backend/services/*.py", "backend/collectors/*.py",
-    "backend/models/*.py", "lab8/**/*.py", "lab9/**/*.py", "lab10/**/*.py", "chapter11/**/*.py", "chapter-14/*.py", "chapter-15/app/**/*.py",
-    "chapter-16/lab-16.2/app/*.py",
+    "backend/models/*.py", "lab8/**/*.py", "lab9/**/*.py", "lab10/**/*.py", "lab-11/**/*.py", "lab-14/*.py", "lab-15/app/**/*.py",
+    "lab-16/lab-16.2/app/*.py",
 )
-CONFIG_FILES = ("docker-compose.yml", "Dockerfile", "chapter-18/docker-compose.yml", "chapter-16/docker-compose.yml",
-                "chapter-13/docker-compose.yml", "lab9/failover-cluster/docker-compose.yml")
+CONFIG_FILES = ("docker-compose.yml", "Dockerfile", "lab-18/docker-compose.yml", "lab-16/docker-compose.yml",
+                "lab-13/docker-compose.yml", "lab9/failover-cluster/docker-compose.yml")
 SKIP_PARTS = {"__pycache__", ".venv", "node_modules", "results", "secrets", "logs", "backups"}
 
 _STOP = frozenset("""a about above after again all also am an and any are as at be because been before being
@@ -71,8 +71,8 @@ _SYNONYMS = {
     "deployment": ("docker", "compose", "container"), "api": ("route", "endpoint"), "endpoint": ("route", "api"),
     "database": ("mongodb", "collection"), "mongodb": ("database", "collection", "mongo"),
     "frontend": ("public", "html", "javascript", "sidebar"), "backend": ("fastapi", "route", "service"),
-    "sharding": ("shard", "mongos", "chapter11"), "backup": ("restore", "mongodump", "chapter-14"),
-    "monitoring": ("metrics", "prometheus", "sampler"), "tenant": ("multi-tenant", "chapter-15"),
+    "sharding": ("shard", "mongos", "chapter11"), "backup": ("restore", "mongodump", "lab-14"),
+    "monitoring": ("metrics", "prometheus", "sampler"), "tenant": ("multi-tenant", "lab-15"),
 }
 _TOKEN = re.compile(r"[a-z0-9][a-z0-9_\-./]*[a-z0-9]|[a-z0-9]")
 
@@ -103,7 +103,7 @@ def expand_query(question: str) -> list[str]:
         expanded.extend(_stem(s) for s in _SYNONYMS.get(token, ()))
     # "Experiment 13" / "lab 9" / "chapter-18" -> every spelling the project uses for that number.
     for number in re.findall(r"\b(?:experiment|lab|chapter|exercise|activity)s?[\s#-]*(\d{1,2})\b", question, re.I):
-        expanded += ["experiment", "chapter", "lab", number, f"chapter-{number}", f"lab{number}", f"lab_{number}",
+        expanded += ["experiment", "chapter", "lab", number, f"chapter-{number}", f"lab-{number}", f"lab{number}", f"lab_{number}",
                      f"exercise-{number}", f"chapter{number}"]
     return expanded
 

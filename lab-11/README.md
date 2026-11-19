@@ -21,10 +21,10 @@ Run these commands from the project root. `-ExecutionPolicy Bypass` applies only
 
 ```powershell
 Set-Location 'C:\Users\hp\Downloads\nosql-lab-7'
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\chapter11\scripts\start.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\chapter11\scripts\status.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\chapter11\scripts\run-labs.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\chapter11\scripts\test.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\lab-11\scripts\start.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\lab-11\scripts\status.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\lab-11\scripts\run-labs.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\lab-11\scripts\test.ps1
 ```
 
 `run-labs.ps1` generates the Lab 11.1 matrix, upserts exactly 10,000 deterministic experiment documents into each Lab 11.2 collection, records live per-shard and query-plan measurements, and runs the automated checks. Re-running it updates the same experiment document IDs instead of creating duplicate rows. It does not drop collections or delete documents.
@@ -37,13 +37,13 @@ Outputs are stored under `reports/`:
 To stop the isolated services while retaining containers and data:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\chapter11\scripts\stop.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\lab-11\scripts\stop.ps1
 ```
 
 To remove only Chapter 11 containers and its network while retaining all five data volumes, use the explicit cleanup command. PowerShell asks for confirmation:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\chapter11\scripts\cleanup.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\lab-11\scripts\cleanup.ps1
 ```
 
 Never add `--volumes` or `-v`. The cleanup script does not target `docker-compose.yml`, `lab8/docker-compose.yml`, `fresh-*`, `mongo*`, `bank-primary`, `bank-backup`, or `bank-dr` containers.
@@ -143,7 +143,7 @@ docker build --file Dockerfile.upgrade --tag aegis-cti-financial:2026-10-30-ch11
 
 Building does not replace the running container. When deploying a rebuilt image, preserve the current `fresh-backend` environment, `fresh-mongo-net` network, ports 8000/18000, and Lab 9 results mount. Keep the stopped rollback container `fresh-backend-rollback-20261030-ch11-ui`; do not recreate or alter any MongoDB, Chapter 10 banking, or Chapter 11 containers.
 
-To stop only the Chapter 11 cluster while retaining all data, use `scripts/stop.ps1`. The `cleanup.ps1` script removes only Chapter 11 containers and its network, with no volume option; verify its plan safely with `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\chapter11\scripts\cleanup.ps1 -WhatIf`. Do not stop `bank-primary`, `bank-backup`, or `bank-dr` for this lab.
+To stop only the Chapter 11 cluster while retaining all data, use `scripts/stop.ps1`. The `cleanup.ps1` script removes only Chapter 11 containers and its network, with no volume option; verify its plan safely with `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\lab-11\scripts\cleanup.ps1 -WhatIf`. Do not stop `bank-primary`, `bank-backup`, or `bank-dr` for this lab.
 
 Troubleshooting:
 

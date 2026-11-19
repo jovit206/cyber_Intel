@@ -1,0 +1,73 @@
+{
+  "activity": "activity_2_1_try_it_yourself",
+  "title": "Activity 2.1 (Try it yourself) - Compare MongoDB deployments",
+  "environment": {
+    "student": {
+      "name": "Jovit Chawla",
+      "enrollment": "24BTRCL089"
+    },
+    "run_at_utc": "2026-11-19T14:22:46+00:00",
+    "machine": "LAPTOP-DSDFIQOI",
+    "os": "Windows 11 (10.0.26300)",
+    "python": "3.12.10",
+    "pymongo": "4.20.0"
+  },
+  "measurements": {
+    "run_at": "2026-11-19T14:22:46+00:00",
+    "student": {
+      "name": "Jovit Chawla",
+      "enrollment": "24BTRCL089"
+    },
+    "deployments": [
+      {
+        "name": "docker",
+        "uri": "mongodb://localhost:27028",
+        "reachable": true,
+        "fields": {
+          "version": "7.0.45",
+          "gitVersion": "a52313e13ab5",
+          "target OS": "linux",
+          "distmod": "ubuntu2204",
+          "bits": 64,
+          "allocator": "tcmalloc",
+          "OpenSSL": "OpenSSL 3.0.2 15 Mar 2022",
+          "storage engines": "devnull, wiredTiger",
+          "max wire version": 21,
+          "topology": "standalone",
+          "writable primary": true,
+          "max BSON size (MB)": 16,
+          "ping ms (median of 20)": 2.208
+        }
+      },
+      {
+        "name": "native",
+        "uri": "mongodb://localhost:27017",
+        "reachable": true,
+        "fields": {
+          "version": "8.3.7",
+          "gitVersion": "34eee04f3498",
+          "target OS": "windows",
+          "distmod": "windows",
+          "bits": 64,
+          "allocator": "tcmalloc-gperf",
+          "OpenSSL": "Windows SChannel",
+          "storage engines": "devnull, wiredTiger",
+          "max wire version": 28,
+          "topology": "standalone",
+          "writable primary": true,
+          "max BSON size (MB)": 16,
+          "ping ms (median of 20)": 0.579
+        }
+      }
+    ],
+    "differences": [
+      "version",
+      "gitVersion",
+      "target OS",
+      "distmod",
+      "allocator",
+      "OpenSSL",
+      "max wire version"
+    ]
+  }
+}

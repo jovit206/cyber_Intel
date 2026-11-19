@@ -39,16 +39,16 @@ test
 docs
 
 # Public portfolio resources served by the application.
-!chapter-13/README.md
-!chapter-13/kubernetes/README.md
-!chapter-14/README.md
-!chapter-14/CHAPTER_14_EXECUTION_REPORT.md
-!chapter-15/README.md
-!chapter-15/CHAPTER_15_EXECUTION_REPORT.md
-!chapter-16/README.md
-!chapter-16/CHAPTER_16_EXECUTION_REPORT.md
-!chapter-17/README.md
-!chapter-17/requirements-vector-lab.txt
-!chapter-18/README.md
-chapter-13/secrets
-chapter-14/logs
+!lab-13/README.md
+!lab-13/kubernetes/README.md
+!lab-14/README.md
+!lab-14/CHAPTER_14_EXECUTION_REPORT.md
+!lab-15/README.md
+!lab-15/CHAPTER_15_EXECUTION_REPORT.md
+!lab-16/README.md
+!lab-16/CHAPTER_16_EXECUTION_REPORT.md
+!lab-17/README.md
+!lab-17/requirements-vector-lab.txt
+!lab-18/README.md
+lab-13/secrets
+lab-14/logs

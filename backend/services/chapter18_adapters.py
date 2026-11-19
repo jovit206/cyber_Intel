@@ -66,7 +66,7 @@ def ensure_cassandra_schema(
 ) -> dict[str, Any]:
     settings = connections.settings
     session = connections.cassandra_session()
-    schema_path = PROJECT_ROOT / "chapter-18" / "cassandra_schema.cql"
+    schema_path = PROJECT_ROOT / "lab-18" / "cassandra_schema.cql"
     statements = [statement.strip() for statement in schema_path.read_text(encoding="utf-8").split(";")]
     keyspace = settings.cassandra_keyspace
     datacenter = settings.cassandra_datacenter
@@ -99,7 +99,7 @@ def ensure_cassandra_schema(
 def ensure_neo4j_schema(
     connections: Chapter18Connections,
 ) -> dict[str, Any]:
-    schema_path = PROJECT_ROOT / "chapter-18" / "neo4j_schema.cypher"
+    schema_path = PROJECT_ROOT / "lab-18" / "neo4j_schema.cypher"
     statements = [statement.strip() for statement in schema_path.read_text(encoding="utf-8").split(";")]
     driver = connections.neo4j_driver()
     with driver.session(database=connections.settings.neo4j_database) as session:

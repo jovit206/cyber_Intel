@@ -1,0 +1,106 @@
+{
+  "activity": "activity_2_1",
+  "title": "Activity 2.1 - Environment Setup Verification",
+  "environment": {
+    "student": {
+      "name": "Jovit Chawla",
+      "enrollment": "24BTRCL089"
+    },
+    "run_at_utc": "2026-11-19T14:22:44+00:00",
+    "machine": "LAPTOP-DSDFIQOI",
+    "os": "Windows 11 (10.0.26300)",
+    "python": "3.12.10",
+    "pymongo": "4.20.0"
+  },
+  "measurements": {
+    "stored_id": "6aff06345e61c4eadc9a8964",
+    "checks": [
+      {
+        "check": "Python interpreter",
+        "required": true,
+        "status": "PASS",
+        "detail": "CPython 3.12.10 at G:\\Projects\\nosql-lab-7\\.venv\\Scripts\\python.exe"
+      },
+      {
+        "check": "PyMongo driver",
+        "required": true,
+        "status": "PASS",
+        "detail": "pymongo 4.20.0"
+      },
+      {
+        "check": "MongoDB in Docker",
+        "required": true,
+        "status": "PASS",
+        "detail": "mongodb://localhost:27028 -> MongoDB 7.0.45, standalone, first ping 31.4 ms",
+        "version": "7.0.45"
+      },
+      {
+        "check": "MongoDB native service",
+        "required": false,
+        "status": "PASS",
+        "detail": "mongodb://localhost:27017 -> MongoDB 8.3.7, standalone, first ping 23.8 ms",
+        "version": "8.3.7"
+      },
+      {
+        "check": "Docker engine",
+        "required": true,
+        "status": "PASS",
+        "detail": "server 29.8.2 (linux/amd64)"
+      },
+      {
+        "check": "Lab MongoDB container",
+        "required": true,
+        "status": "PASS",
+        "detail": "jovit-lab02-mongo: image mongo:7.0, running, ports 27017/tcp->127.0.0.1:27028"
+      },
+      {
+        "check": "MongoDB Atlas",
+        "required": false,
+        "status": "NOT CONFIGURED",
+        "detail": "MONGO_URI_ATLAS is not set in .env; add your own Atlas connection string to run this check"
+      },
+      {
+        "check": "optional: python-dotenv",
+        "required": false,
+        "status": "PASS",
+        "detail": "1.2.4"
+      },
+      {
+        "check": "optional: certifi",
+        "required": false,
+        "status": "PASS",
+        "detail": "2026.10.23"
+      },
+      {
+        "check": "optional: dnspython",
+        "required": false,
+        "status": "PASS",
+        "detail": "2.9.2"
+      },
+      {
+        "check": "optional: pandas",
+        "required": false,
+        "status": "MISSING",
+        "detail": "not installed (only needed by later labs)"
+      },
+      {
+        "check": "optional: matplotlib",
+        "required": false,
+        "status": "MISSING",
+        "detail": "not installed (only needed by later labs)"
+      },
+      {
+        "check": "optional: faker",
+        "required": false,
+        "status": "MISSING",
+        "detail": "not installed (only needed by later labs)"
+      }
+    ],
+    "counts": {
+      "MISSING": 3,
+      "NOT CONFIGURED": 1,
+      "PASS": 9
+    },
+    "required_failed": []
+  }
+}

@@ -1,0 +1,13 @@
+# Keep the image small and free of secrets.
+.env
+*.env
+!.env.example
+.git
+**/__pycache__
+**/*.pyc
+.venv
+_backup_reference_*
+docs
+local_agent
+MANIFEST.json
+*.zip

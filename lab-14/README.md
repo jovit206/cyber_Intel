@@ -24,7 +24,7 @@ dashboard (Lab 14.1) and automated, timestamped MongoDB backups with a guarded r
 - Install Python dependencies in the repository virtual environment:
 
   ```powershell
-  .\.venv\Scripts\python.exe -m pip install -r .\chapter-14\requirements.txt
+  .\.venv\Scripts\python.exe -m pip install -r .\lab-14\requirements.txt
   ```
 
 - MongoDB Database Tools (`mongodump` and `mongorestore`) on `PATH`, or Docker with an image that
@@ -49,7 +49,7 @@ dashboard (Lab 14.1) and automated, timestamped MongoDB backups with a guarded r
   Only the scripts and requirements are copied into the runtime image. The image creates writable
   `logs/`, `backups/`, and `reports/` directories under `/app/chapter14`.
 
-  From PowerShell, run these commands from `chapter-14`:
+  From PowerShell, run these commands from `lab-14`:
 
   ```powershell
   docker build -t jovit206/lab-14:1.0 .
@@ -140,16 +140,16 @@ printing the webhook URL.
 Run one snapshot (useful for a connection check):
 
 ```powershell
-.\.venv\Scripts\python.exe .\chapter-14\monitoring_dashboard.py --once
+.\.venv\Scripts\python.exe .\lab-14\monitoring_dashboard.py --once
 ```
 
 Run continuously; Ctrl+C stops it cleanly:
 
 ```powershell
-.\.venv\Scripts\python.exe .\chapter-14\monitoring_dashboard.py
+.\.venv\Scripts\python.exe .\lab-14\monitoring_dashboard.py
 ```
 
-Output is both printed and appended to `chapter-14\logs\metrics.log`. The recurring interval is
+Output is both printed and appended to `lab-14\logs\metrics.log`. The recurring interval is
 30 seconds. On standalone MongoDB, replica-set monitoring is shown as not applicable. WiredTiger
 fields that are absent are displayed as unavailable rather than treated as zero. Cache hit ratio
 uses `(pages requested from cache - pages read into cache) / pages requested from cache`; alerts
@@ -163,14 +163,14 @@ fire above 10 seconds.
 The default action performs one `mongodump --uri <URI> --out <timestamped-directory>` operation:
 
 ```powershell
-.\.venv\Scripts\python.exe .\chapter-14\backup_verify.py `
+.\.venv\Scripts\python.exe .\lab-14\backup_verify.py `
   --action backup `
   --uri $env:MONGO_URI `
-  --backup-dir .\chapter-14\backups
+  --backup-dir .\lab-14\backups
 ```
 
 Backup start, completion, duration, return code, and status are logged in
-`chapter-14\logs\backup.log`. Successful directories contain a private ownership marker used by
+`lab-14\logs\backup.log`. Successful directories contain a private ownership marker used by
 the retention policy. The script never prunes an unmarked directory or an unrelated file. Marked
 successful or failed backup directories older than seven days are removed during scheduled runs.
 For collection-scoped backup/restore, the tool removes only the URI's default database path because
@@ -185,10 +185,10 @@ network-reachable hosts.
 Keep the process running to schedule one backup per hour and run the seven-day retention check:
 
 ```powershell
-.\.venv\Scripts\python.exe .\chapter-14\backup_verify.py `
+.\.venv\Scripts\python.exe .\lab-14\backup_verify.py `
   --action scheduler `
   --uri $env:MONGO_URI `
-  --backup-dir .\chapter-14\backups
+  --backup-dir .\lab-14\backups
 ```
 
 The scheduler does not take an immediate backup at startup. Use `--action backup` for an immediate
@@ -206,10 +206,10 @@ No existing database is reused: if the generated database name already exists, e
 Run the 1,000-document restore drill:
 
 ```powershell
-.\.venv\Scripts\python.exe .\chapter-14\backup_verify.py `
+.\.venv\Scripts\python.exe .\lab-14\backup_verify.py `
   --action verify-restore `
   --uri $env:MONGO_URI `
-  --backup-dir .\chapter-14\backups
+  --backup-dir .\lab-14\backups
 ```
 
 The uniquely named test databases are retained for inspection. To remove a test database later,
@@ -221,14 +221,14 @@ lab's `backup_verification` collection; do not issue `dropDatabase` against any 
 The benchmark runs the same insert, scoped backup, mutation, restore, count, and field checks for
 1,000, 10,000, and 100,000 documents. It records actual local durations and BSON dump byte sizes;
 no sample timing is substituted. Results are saved to
-`chapter-14\reports\backup_restore_benchmarks.csv`.
+`lab-14\reports\backup_restore_benchmarks.csv`.
 
 ```powershell
-.\.venv\Scripts\python.exe .\chapter-14\backup_verify.py `
+.\.venv\Scripts\python.exe .\lab-14\backup_verify.py `
   --action benchmark `
   --uri $env:MONGO_URI `
-  --backup-dir .\chapter-14\backups `
-  --report .\chapter-14\reports\backup_restore_benchmarks.csv
+  --backup-dir .\lab-14\backups `
+  --report .\lab-14\reports\backup_restore_benchmarks.csv
 ```
 
 The restore measurement includes the `mongorestore` command; application restart time is not

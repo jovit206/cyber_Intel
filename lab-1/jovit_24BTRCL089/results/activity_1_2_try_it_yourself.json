@@ -1,0 +1,166 @@
+{
+  "activity": "activity_1_2_try_it_yourself",
+  "title": "Activity 1.2 (Try it yourself) - Food-delivery platform",
+  "environment": {
+    "student": {
+      "name": "Jovit Chawla",
+      "enrollment": "24BTRCL089"
+    },
+    "run_at_utc": "2026-11-19T14:15:32+00:00",
+    "machine": "LAPTOP-DSDFIQOI",
+    "os": "Windows 11 (10.0.26300)",
+    "python": "3.12.10",
+    "pymongo": "4.20.0",
+    "mongodb_server": "8.3.7",
+    "topology": "standalone"
+  },
+  "measurements": {
+    "menus": {
+      "restaurants": 300,
+      "by_id": {
+        "plan": "EXPRESS_IXSCAN",
+        "pipeline": [],
+        "nReturned": 1,
+        "keysExamined": 1,
+        "docsExamined": 1,
+        "executionTimeMillis": 0
+      },
+      "nested_query": {
+        "plan": "FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 59,
+        "keysExamined": 155,
+        "docsExamined": 155,
+        "executionTimeMillis": 16
+      }
+    },
+    "order_state": {
+      "orders": 20000,
+      "get": {
+        "plan": "EXPRESS_IXSCAN",
+        "pipeline": [],
+        "nReturned": 1,
+        "keysExamined": 1,
+        "docsExamined": 1,
+        "executionTimeMillis": 0
+      },
+      "poll_ms": 1.159,
+      "update_ms": 1.145
+    },
+    "zones": {
+      "zone": "ZONE-6",
+      "plan": {
+        "plan": "FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 1,
+        "keysExamined": 5,
+        "docsExamined": 1,
+        "executionTimeMillis": 0
+      },
+      "restaurants_within_3km": 55
+    },
+    "analytics": {
+      "orders": 15790,
+      "busiest_hours": [
+        {
+          "_id": 20,
+          "orders": 1321,
+          "revenue": 1026052
+        },
+        {
+          "_id": 19,
+          "orders": 1270,
+          "revenue": 984887
+        },
+        {
+          "_id": 13,
+          "orders": 1259,
+          "revenue": 963178
+        }
+      ]
+    },
+    "graph": {
+      "edges": 276,
+      "with_veg_biryani": [
+        [
+          "chole bhature",
+          615
+        ],
+        [
+          "paneer butter masala",
+          563
+        ],
+        [
+          "dal makhani",
+          555
+        ]
+      ],
+      "gulab_jamun_2hop": 18
+    },
+    "search": {
+      "documents": 3600,
+      "text_plan": {
+        "plan": "TEXT_MATCH <- FETCH <- OR <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 622,
+        "keysExamined": 838,
+        "docsExamined": 622,
+        "executionTimeMillis": 3
+      },
+      "regex_plan": {
+        "plan": "COLLSCAN",
+        "pipeline": [],
+        "nReturned": 622,
+        "keysExamined": 0,
+        "docsExamined": 3600,
+        "executionTimeMillis": 4
+      },
+      "top": [
+        [
+          "paneer butter masala",
+          7.81
+        ],
+        [
+          "kadhai paneer",
+          4.333
+        ],
+        [
+          "masala dosa",
+          4.333
+        ]
+      ]
+    },
+    "mapping": [
+      {
+        "domain": "Restaurant menus",
+        "family": "Document",
+        "evidence": "whole page in 1 doc (EXPRESS_IXSCAN)"
+      },
+      {
+        "domain": "Live order state",
+        "family": "Key-Value + TTL (Redis)",
+        "evidence": "read 1.159 ms / write 1.145 ms by key"
+      },
+      {
+        "domain": "Delivery zones",
+        "family": "Geospatial (document DB with geo index)",
+        "evidence": "point-in-polygon -> ZONE-6"
+      },
+      {
+        "domain": "Order analytics",
+        "family": "Time-series / Wide-Column at scale",
+        "evidence": "15790 orders grouped by hour"
+      },
+      {
+        "domain": "Also-ordered",
+        "family": "Graph (Neo4j)",
+        "evidence": "276 weighted edges, 2-hop reach 18"
+      },
+      {
+        "domain": "Dish search",
+        "family": "Search engine (Elasticsearch / Atlas Search)",
+        "evidence": "relevance score needed; a regex scanned 3600 docs with no ranking"
+      }
+    ]
+  }
+}

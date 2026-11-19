@@ -56,7 +56,7 @@ store before using a production cluster.
 ## Folder structure
 
 ```text
-chapter-13/
+lab-13/
 ├── .env.example
 ├── .dockerignore
 ├── .gitattributes
@@ -101,7 +101,7 @@ also ignored in this chapter's `.gitignore`.
 From a Bash terminal:
 
 ```bash
-cd chapter-13
+cd lab-13
 cp .env.example .env
 openssl rand -hex 32
 openssl rand -hex 32
@@ -149,7 +149,7 @@ remain resolvable.
 The exporter remains part of the normal replica-set startup. Prometheus and Grafana are opt-in so
 an existing Chapter 13 deployment does not gain new public listeners or require new credentials
 when it is started. Set unique `GRAFANA_ADMIN_USER` and `GRAFANA_ADMIN_PASSWORD` values in the
-ignored `chapter-13/.env`, then start only the observability profile:
+ignored `lab-13/.env`, then start only the observability profile:
 
 ```bash
 docker compose --env-file .env --profile observability up -d prometheus grafana

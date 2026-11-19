@@ -13,7 +13,7 @@ Chapter 18 is Project 7 in **Engineering → Technology & Innovation**. Lab 18.1
 
 ## Requirements and launch
 
-The root `requirements.txt` includes the Cassandra and Neo4j drivers and ReportLab used by this feature. For a standalone Chapter 18 environment, install `pip install -r chapter-18/requirements-chapter18.txt` in addition to the application requirements. The Dockerfile copies Chapter 18 schemas and supports the optional `INSTALL_CHAPTER18_POLYGLOT=true` build argument for installing this dependency file into the image.
+The root `requirements.txt` includes the Cassandra and Neo4j drivers and ReportLab used by this feature. For a standalone Chapter 18 environment, install `pip install -r lab-18/requirements-chapter18.txt` in addition to the application requirements. The Dockerfile copies Chapter 18 schemas and supports the optional `INSTALL_CHAPTER18_POLYGLOT=true` build argument for installing this dependency file into the image.
 
 The normal application MongoDB connection is required. Cassandra and Neo4j are optional; without configuration they appear as **not configured** and their operations are **not tested**. Configure these backend environment variables as needed:
 
@@ -32,7 +32,7 @@ The normal application MongoDB connection is required. Cassandra and Neo4j are o
 
 Supply credentials through the deployment's secret/environment mechanism. Do not put live credentials in source control or the frontend. No passwords are returned by status routes.
 
-For a local all-in-one deployment, the optional Compose overlay adds Cassandra and Neo4j while reusing the root application's MongoDB replica set and network. Set `LAB18_NEO4J_PASSWORD` in the shell or an untracked root `.env` file, then run `docker compose -f docker-compose.yml -f chapter-18/docker-compose.yml up -d --build`. The overlay uses isolated named volumes for Cassandra and Neo4j. The tracked deletion of the root `.env.example` is preserved; this README is the Chapter 18 configuration reference.
+For a local all-in-one deployment, the optional Compose overlay adds Cassandra and Neo4j while reusing the root application's MongoDB replica set and network. Set `LAB18_NEO4J_PASSWORD` in the shell or an untracked root `.env` file, then run `docker compose -f docker-compose.yml -f lab-18/docker-compose.yml up -d --build`. The overlay uses isolated named volumes for Cassandra and Neo4j. The tracked deletion of the root `.env.example` is preserved; this README is the Chapter 18 configuration reference.
 
 ## Use
 

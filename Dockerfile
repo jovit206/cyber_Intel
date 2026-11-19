@@ -22,17 +22,17 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install optional Lab 17 dependencies
-COPY chapter-17/requirements-vector-lab.txt ./chapter-17/requirements-vector-lab.txt
-COPY chapter-18/requirements-chapter18.txt ./chapter-18/requirements-chapter18.txt
+COPY lab-17/requirements-vector-lab.txt ./lab-17/requirements-vector-lab.txt
+COPY lab-18/requirements-chapter18.txt ./lab-18/requirements-chapter18.txt
 
 # Install CPU-only PyTorch to avoid unnecessary CUDA dependencies
 RUN if [ "$INSTALL_VECTOR_LAB" = "true" ]; then \
     pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch && \
-    pip install --no-cache-dir -r chapter-17/requirements-vector-lab.txt; \
+    pip install --no-cache-dir -r lab-17/requirements-vector-lab.txt; \
     fi
 
 RUN if [ "$INSTALL_CHAPTER18_POLYGLOT" = "true" ]; then \
-    pip install --no-cache-dir -r chapter-18/requirements-chapter18.txt; \
+    pip install --no-cache-dir -r lab-18/requirements-chapter18.txt; \
     fi
 
 # Application, frontend and project documentation
@@ -42,13 +42,13 @@ COPY public ./public
 COPY lab8 ./lab8
 COPY lab9 ./lab9
 COPY lab10 ./lab10
-COPY chapter11 ./chapter11
-COPY chapter-13 ./chapter-13
-COPY chapter-14 ./chapter-14
-COPY chapter-15 ./chapter-15
-COPY chapter-16 ./chapter-16
-COPY chapter-17 ./chapter-17
-COPY chapter-18 ./chapter-18
+COPY lab-11 ./lab-11
+COPY lab-13 ./lab-13
+COPY lab-14 ./lab-14
+COPY lab-15 ./lab-15
+COPY lab-16 ./lab-16
+COPY lab-17 ./lab-17
+COPY lab-18 ./lab-18
 # Project documentation and deployment files: searched by the AI Threat Assistant's platform knowledge base.
 COPY README.md ADMIN_GUIDE.md BILLING_AND_ENTITLEMENTS.md SECURITY_CENTER.md docker-compose.yml Dockerfile ./
 

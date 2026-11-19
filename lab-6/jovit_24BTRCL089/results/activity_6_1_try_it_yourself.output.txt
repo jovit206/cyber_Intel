@@ -1,0 +1,21 @@
+Activity 6.1 (Try it yourself) - Index usage with $indexStats
+Student: Jovit Chawla (24BTRCL089)
+Run at 2026-11-19T14:29:00+00:00 on LAPTOP-DSDFIQOI | MongoDB 8.3.7 (standalone) | Python 3.12.10 | pymongo 4.20.0
+  collection jovit_lab06.products: 50,000 documents, 7 indexes (2 extra: idx_category, idx_stock)
+  executed 200 queries {'Q1': 70, 'Q2': 45, 'Q3': 40, 'Q4': 25, 'Q5': 20}; documents returned per query type: {'Q1': 1400, 'Q2': 141248, 'Q3': 125303, 'Q4': 65376, 'Q5': 400}
+
+== $indexStats - accesses.ops during this workload ==
+  idx_category_price_rating       90 ops   45.0%  ##################
+  idx_price                       45 ops   22.5%  #########
+  idx_tags                        40 ops   20.0%  ########
+  idx_text_name_description       25 ops   12.5%  #####
+  idx_stock                        0 ops    0.0%  
+  _id_                             0 ops    0.0%  
+  idx_category                     0 ops    0.0%  
+
+== Findings ==
+  most used index: idx_category_price_rating
+  never used by this workload: ['idx_category', 'idx_stock']
+  redundant (a prefix of a compound index): ['idx_category']
+  recommendation: drop idx_category, idx_stock - each unused index still costs memory and work on every insert/update
+  dropped the two experimental indexes again; remaining: ['_id_', 'idx_category_price_rating', 'idx_price', 'idx_tags', 'idx_text_name_description']

@@ -1,0 +1,60 @@
+# AI Threat Assistant - standalone deployment.
+#
+#   cp .env.example .env            # set MONGO_URI (and anything else) for YOUR MongoDB
+#   docker compose up -d            # chatbot only, using your external MongoDB
+#   docker compose --profile local-mongo up -d   # chatbot + an empty single-node MongoDB replica set
+#
+# Ollama is NOT in this file: it runs on the host (http://host.docker.internal:11434) with llama3.2:3b pulled.
+name: ai-threat-assistant
+
+services:
+  chatbot:
+    image: jovit206/chatbot:latest
+    build: .
+    container_name: standalone-ai-chatbot
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      MONGO_URI: ${MONGO_URI:-mongodb://chatbot-mongo:27017/?replicaSet=rs0}
+      MONGO_DATABASE: ${MONGO_DATABASE:-chapter07}
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-llama3.2:3b}
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-180}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:8000}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+    ports:
+      - "127.0.0.1:${CHATBOT_PORT:-8000}:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # Linux; Docker Desktop provides this name already
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 25s
+      retries: 3
+
+  # Optional: an EMPTY MongoDB replica set (sign-in needs transactions, which need a replica set).
+  # It has no threat-intelligence records - threat questions will report that nothing matches.
+  chatbot-mongo:
+    profiles: ["local-mongo"]
+    image: mongo:7.0
+    container_name: standalone-ai-chatbot-mongo
+    command: ["--replSet", "rs0", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    volumes:
+      - chatbot-mongo-data:/data/db
+    healthcheck:
+      # Initiates the one-member replica set on first start, then reports healthy once it is primary.
+      test: ["CMD", "mongosh", "--quiet", "--eval",
+             "try { rs.status().ok } catch (e) { rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'chatbot-mongo:27017'}]}).ok }"]
+      interval: 10s
+      timeout: 10s
+      start_period: 20s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  chatbot-mongo-data:

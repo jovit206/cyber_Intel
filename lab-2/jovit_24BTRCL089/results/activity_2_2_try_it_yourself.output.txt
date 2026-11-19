@@ -1,0 +1,32 @@
+Activity 2.2 (Try it yourself) - 10% price rise for pre-2010 books
+Student: Jovit Chawla (24BTRCL089)
+Run at 2026-11-19T14:22:48+00:00 on LAPTOP-DSDFIQOI | Python 3.12.10 | pymongo 4.20.0
+Deployment: docker (MongoDB 7.0.45), collection jovit_lab02.books_price_update
+  seeded 10 books; 6 were published before 2010
+
+== Update ==
+  filter:   {"year": {"$lt": 2010}, "price_revised_2010": {"$ne": true}}
+  update:   [{$set: {old_price_inr: '$price_inr', price_inr: {$round: [{$multiply: ['$price_inr', 1.10]}, 2]}, price_revised_2010: true, price_revised_at: '$$NOW'}}]
+  matched 6, modified 6
+  running the same update again: matched 0, modified 0 (the guard stops a second 10% increase)
+
+== Verification ==
+  OK   1975  The Mythical Man-Month                     540.00 ->   594.00  (+10%)
+  OK   1990  Introduction to Algorithms                1250.00 ->  1375.00  (+10%)
+  OK   1999  Refactoring                                820.00 ->   902.00  (+10%)
+  OK   1999  The Pragmatic Programmer                   720.00 ->   792.00  (+10%)
+  OK   1999  Wings of Fire                              299.00 ->   328.90  (+10%)
+  OK   2008  Clean Code                                 650.00 ->   715.00  (+10%)
+  OK   2012  Seven Databases in Seven Weeks             780.00 ->   780.00  (unchanged)
+  OK   2015  Python Crash Course                        560.00 ->   560.00  (unchanged)
+  OK   2016  Deep Learning                             1600.00 ->  1600.00  (unchanged)
+  OK   2017  Designing Data-Intensive Applications     1450.00 ->  1450.00  (unchanged)
+  10/10 prices correct; modified count matches eligible books: True
+  catalogue value: INR 8,669.00 -> INR 9,096.90
+
+== Check in MongoDB Compass ==
+  connect to mongodb://localhost:27028, open jovit_lab02 > books_price_update and use:
+    Filter:  { "year": { "$lt": 2010 } }      -> every result has price_revised_2010: true and old_price_inr
+    Filter:  { "year": { "$gte": 2010 } }     -> no result has price_revised_2010
+
+  exported 10 books to results/activity_2_2_try_it_yourself_books.json

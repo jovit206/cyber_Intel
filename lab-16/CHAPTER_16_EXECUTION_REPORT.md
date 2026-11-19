@@ -1,7 +1,7 @@
 # Chapter 16 Execution Report
 
 **Execution date:** 2026-11-12  
-**Scope:** Lab 16.1 and Lab 16.2; all new files are under `chapter-16/`.  
+**Scope:** Lab 16.1 and Lab 16.2; all new files are under `lab-16/`.  
 **Docker Hub:** No image push was performed.
 
 ## Summary

@@ -1,0 +1,186 @@
+{
+  "activity": "activity_6_1",
+  "title": "Activity 6.1 - Index Design for a Query Workload",
+  "environment": {
+    "student": {
+      "name": "Jovit Chawla",
+      "enrollment": "24BTRCL089"
+    },
+    "run_at_utc": "2026-11-19T14:28:55+00:00",
+    "machine": "LAPTOP-DSDFIQOI",
+    "os": "Windows 11 (10.0.26300)",
+    "python": "3.12.10",
+    "pymongo": "4.20.0",
+    "mongodb_server": "8.3.7",
+    "topology": "standalone"
+  },
+  "measurements": {
+    "documents": 50000,
+    "before": {
+      "Q1": {
+        "plan": "SORT <- COLLSCAN",
+        "pipeline": [],
+        "nReturned": 20,
+        "keysExamined": 0,
+        "docsExamined": 50000,
+        "executionTimeMillis": 60
+      },
+      "Q2": {
+        "plan": "COLLSCAN",
+        "pipeline": [],
+        "nReturned": 2159,
+        "keysExamined": 0,
+        "docsExamined": 50000,
+        "executionTimeMillis": 57
+      },
+      "Q3": {
+        "plan": "COLLSCAN",
+        "pipeline": [],
+        "nReturned": 3177,
+        "keysExamined": 0,
+        "docsExamined": 50000,
+        "executionTimeMillis": 74
+      },
+      "Q4": {
+        "plan": "COLLSCAN",
+        "pipeline": [],
+        "nReturned": 3061,
+        "keysExamined": 0,
+        "docsExamined": 50000,
+        "executionTimeMillis": 89
+      },
+      "Q5": {
+        "plan": "SORT <- COLLSCAN",
+        "pipeline": [],
+        "nReturned": 20,
+        "keysExamined": 0,
+        "docsExamined": 50000,
+        "executionTimeMillis": 44
+      }
+    },
+    "after": {
+      "Q1": {
+        "plan": "LIMIT <- FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 20,
+        "keysExamined": 20,
+        "docsExamined": 20,
+        "executionTimeMillis": 1
+      },
+      "Q2": {
+        "plan": "FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 2159,
+        "keysExamined": 2159,
+        "docsExamined": 2159,
+        "executionTimeMillis": 8
+      },
+      "Q3": {
+        "plan": "FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 3177,
+        "keysExamined": 3177,
+        "docsExamined": 3177,
+        "executionTimeMillis": 9
+      },
+      "Q4": {
+        "plan": "TEXT_MATCH <- FETCH <- OR <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 4632,
+        "keysExamined": 4632,
+        "docsExamined": 4632,
+        "executionTimeMillis": 29
+      },
+      "Q5": {
+        "plan": "LIMIT <- FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 20,
+        "keysExamined": 231,
+        "docsExamined": 20,
+        "executionTimeMillis": 1
+      }
+    },
+    "summary": [
+      {
+        "query": "Q1",
+        "before_plan": "SORT <- COLLSCAN",
+        "after_plan": "LIMIT <- FETCH <- IXSCAN",
+        "docs_before": 50000,
+        "docs_after": 20,
+        "keys_after": 20,
+        "returned": 20,
+        "reduction_pct": 99.96,
+        "in_memory_sort": false
+      },
+      {
+        "query": "Q2",
+        "before_plan": "COLLSCAN",
+        "after_plan": "FETCH <- IXSCAN",
+        "docs_before": 50000,
+        "docs_after": 2159,
+        "keys_after": 2159,
+        "returned": 2159,
+        "reduction_pct": 95.68,
+        "in_memory_sort": false
+      },
+      {
+        "query": "Q3",
+        "before_plan": "COLLSCAN",
+        "after_plan": "FETCH <- IXSCAN",
+        "docs_before": 50000,
+        "docs_after": 3177,
+        "keys_after": 3177,
+        "returned": 3177,
+        "reduction_pct": 93.65,
+        "in_memory_sort": false
+      },
+      {
+        "query": "Q4",
+        "before_plan": "COLLSCAN",
+        "after_plan": "TEXT_MATCH <- FETCH <- OR <- IXSCAN",
+        "docs_before": 50000,
+        "docs_after": 4632,
+        "keys_after": 4632,
+        "returned": 4632,
+        "reduction_pct": 90.74,
+        "in_memory_sort": false
+      },
+      {
+        "query": "Q5",
+        "before_plan": "SORT <- COLLSCAN",
+        "after_plan": "LIMIT <- FETCH <- IXSCAN",
+        "docs_before": 50000,
+        "docs_after": 20,
+        "keys_after": 231,
+        "returned": 20,
+        "reduction_pct": 99.96,
+        "in_memory_sort": false
+      }
+    ],
+    "indexes": {
+      "idx_category_price_rating": {
+        "category": 1,
+        "price": 1,
+        "rating": 1
+      },
+      "idx_price": {
+        "price": 1
+      },
+      "idx_tags": {
+        "tags": 1
+      },
+      "idx_text_name_description": {
+        "name": "text",
+        "description": "text"
+      }
+    },
+    "index_sizes_bytes": {
+      "_id_": 4096,
+      "idx_category_price_rating": 1351680,
+      "idx_price": 897024,
+      "idx_tags": 569344,
+      "idx_text_name_description": 1585152
+    },
+    "all_indexed": true
+  }
+}

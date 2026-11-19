@@ -1,0 +1,26 @@
+Activity 2.1 (Try it yourself) - Compare MongoDB deployments
+Student: Jovit Chawla (24BTRCL089)
+Run at 2026-11-19T14:22:46+00:00 on LAPTOP-DSDFIQOI | Python 3.12.10 | pymongo 4.20.0
+  note: MONGO_URI_ATLAS is not configured, so Atlas is not part of this run
+  opened 2 connections concurrently in 95 ms
+
+== Side-by-side comparison (live server_info() / hello) ==
+  field                   docker mongodb://localhost:27028    native mongodb://localhost:27017    
+  version                 7.0.45                              8.3.7                               
+  gitVersion              a52313e13ab5                        34eee04f3498                        
+  target OS               linux                               windows                             
+  distmod                 ubuntu2204                          windows                             
+  bits                    64                                  64                                  
+  allocator               tcmalloc                            tcmalloc-gperf                      
+  OpenSSL                 OpenSSL 3.0.2 15 Mar 2022           Windows SChannel                    
+  storage engines         devnull, wiredTiger                 devnull, wiredTiger                 
+  max wire version        21                                  28                                  
+  topology                standalone                          standalone                          
+  writable primary        True                                True                                
+  max BSON size (MB)      16                                  16                                  
+  ping ms (median of 20)  2.208                               0.579                               
+
+== What differs ==
+  fields that differ between deployments: version, gitVersion, target OS, distmod, allocator, OpenSSL, max wire version
+  stored comparison in docker:jovit_lab02.server_comparison (_id 6aff0636ca686ed6be159dfe)
+  stored comparison in native:jovit_lab02.server_comparison (_id 6aff0636ca686ed6be159dff)

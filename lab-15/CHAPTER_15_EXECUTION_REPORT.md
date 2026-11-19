@@ -39,12 +39,12 @@ MongoDB replica-set deployment. No credentials or connection string are recorded
 
 ### Dependency installation and syntax
 
-- Installed `chapter-15/requirements.txt` into the repository's existing `.venv`.
-- `python -m compileall -q chapter-15/app chapter-15/scripts chapter-15/tests` — **PASS**.
+- Installed `lab-15/requirements.txt` into the repository's existing `.venv`.
+- `python -m compileall -q lab-15/app lab-15/scripts lab-15/tests` — **PASS**.
 
 ### API integration suite
 
-Ran `python -m pytest -q` from `chapter-15` against MongoDB. The test fixture used a generated
+Ran `python -m pytest -q` from `lab-15` against MongoDB. The test fixture used a generated
 `tasktracker_test_*` database and dropped that exact generated database in teardown.
 
 - **Result:** 7 passed, 0 failed.
@@ -114,7 +114,7 @@ recording timings. `reports/performance_comparison.csv` and
 
 ## Docker reproduction
 
-From `chapter-15`:
+From `lab-15`:
 
 ```powershell
 docker build -t jovit206/lab-15:1.0 .

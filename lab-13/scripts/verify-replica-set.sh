@@ -5,7 +5,7 @@ CHAPTER_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$CHAPTER_DIR"
 
 if [[ ! -f .env ]]; then
-  echo "Missing chapter-13/.env." >&2
+  echo "Missing lab-13/.env." >&2
   exit 1
 fi
 

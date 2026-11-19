@@ -1,0 +1,17 @@
+Activity 6.2 (Try it yourself) - Covered Queries
+Student: Jovit Chawla (24BTRCL089)
+Run at 2026-11-19T14:32:08+00:00 on LAPTOP-DSDFIQOI | MongoDB 8.3.7 (standalone) | Python 3.12.10 | pymongo 4.20.0
+  jovit_lab06.products_perf: 50,000 documents, indexes ['_id_', 'idx_category_price_rating']
+  query: filter {'category': 'Audio', 'price': {'$gte': 2000, '$lte': 3000}}, sort {'price': 1}
+
+== Projections (explain + median of 300 runs) ==
+  P1 whole document                  median 5.098 ms covered=False: plan=FETCH <- IXSCAN pipeline=- returned=156 keysExamined=156 docsExamined=156 serverMs=1
+  P2 index fields + _id              median 4.387 ms covered=False: plan=PROJECTION_SIMPLE <- FETCH <- IXSCAN pipeline=- returned=156 keysExamined=156 docsExamined=156 serverMs=2
+  P3 index fields, _id excluded      median 2.583 ms covered=True: plan=PROJECTION_COVERED <- IXSCAN pipeline=- returned=156 keysExamined=156 docsExamined=0 serverMs=0
+  P4 adds a non-index field (name)   median 5.447 ms covered=False: plan=PROJECTION_SIMPLE <- FETCH <- IXSCAN pipeline=- returned=156 keysExamined=156 docsExamined=156 serverMs=2
+  covered projections: ['P3 index fields, _id excluded']
+  excluding _id turned FETCH into a covered plan: 156 -> 0 documents examined, 4.387 -> 2.583 ms (41.1% faster)
+
+== Multikey limitation ==
+  find({tags: 'anc'}, {tags: 1, _id: 0}) on a multikey index: plan=PROJECTION_SIMPLE <- FETCH <- IXSCAN pipeline=- returned=3177 keysExamined=3177 docsExamined=3177 serverMs=28
+  documents examined: 3177 - an index on an array field cannot cover a query that returns that field, because each index key holds only one array element

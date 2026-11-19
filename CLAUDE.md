@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A FastAPI + MongoDB threat-intelligence platform ("AEGIS") built up across a NoSQL course: Lab 7 (dashboard, schema/working-set analysis), Lab 8 (3-member replica set `rs0`), Lab 9 (write-concern latency, network partition), Lab 10/11 and Chapters 13–18 (HA/Kubernetes, backup/monitoring, multi-tenant SaaS, polyglot persistence, RAG/vector search, multi-database threat intel). The root `backend/` + `public/` is one integrated app; `chapter-13/` … `chapter-18/` are mostly **self-contained sub-projects** with their own README, Compose file, requirements and tests (chapter 13/14/18 functionality is also surfaced in the main app via `backend/routes/chapter1x_*` and `backend/services/chapter1x_*`).
+A FastAPI + MongoDB threat-intelligence platform ("AEGIS") built up across a NoSQL course: Lab 7 (dashboard, schema/working-set analysis), Lab 8 (3-member replica set `rs0`), Lab 9 (write-concern latency, network partition), Lab 10/11 and Chapters 13–18 (HA/Kubernetes, backup/monitoring, multi-tenant SaaS, polyglot persistence, RAG/vector search, multi-database threat intel). The root `backend/` + `public/` is one integrated app; `lab-13/` … `lab-18/` are mostly **self-contained sub-projects** with their own README, Compose file, requirements and tests (chapter 13/14/18 functionality is also surfaced in the main app via `backend/routes/chapter1x_*` and `backend/services/chapter1x_*`).
 
 ## Commands
 
@@ -20,8 +20,8 @@ python -m unittest test.test_python_backend.NormalizationTests     # one class /
 python smoke_test.py          # against a running server; fails on any empty section
 
 # Sub-project tests (run from that chapter dir)
-cd chapter-15; python -m pytest -q
-cd chapter-16; python -m pytest -q .\lab-16.2\tests
+cd lab-15; python -m pytest -q
+cd lab-16; python -m pytest -q .\lab-16.2\tests
 ```
 
 Lab scripts are run as modules from the repo root, e.g. `python -m backend.lab_7_2_working_set`, `python lab9/lab_01_write_concern_latency.py --dry-run`, `python lab9/lab_02_simulate_partition.py --dry-run` (the partition script is destructive to the cluster without `--dry-run` and asks for typed confirmation). `python backup_db.py` exports every collection to `backups/` as JSON (no `mongodump` on this machine).
@@ -36,7 +36,7 @@ Lab scripts are run as modules from the repo root, e.g. `python -m backend.lab_7
 
 ## Deployment — important machine-specific caveat
 
-The running deployment on this machine is the pre-existing containers `fresh-mongo1/2/3` (replica set `rs0`, members advertised as `mongo1..3`, network aliases on `fresh-mongo-net`, host ports 37017–37019) + `fresh-backend` (port `127.0.0.1:8000`, image `aegis-cti-final:audit-20261119`, results bind mount `G:\Projects\nosql-lab-7\lab9\results`, Ollama env vars set). The previous broken container is kept as `fresh-backend-pre-audit-20261119` for rollback. Wallet/registration operations need multi-document transactions, i.e. the replica set — a standalone `mongod` (the Windows service on 27017) makes them fail with "could not be safely committed".
+The running deployment on this machine is the pre-existing containers `fresh-mongo1/2/3` (replica set `rs0`, members advertised as `mongo1..3`, network aliases on `fresh-mongo-net`, host ports 37017–37019) + `fresh-backend` (port `127.0.0.1:8000`, image `aegis-cti-final:lab-rename-20261119`, bind mount `G:\Projects\nosql-lab-7\lab9\results` → `/app/lab9/results` with `LAB9_RESULTS_DIR=/app/lab9/results`, Ollama env vars set). Rollback containers: `fresh-backend-pre-lab-rename-20261119` (before the `lab-1x` folder rename) and `fresh-backend-pre-audit-20261119`. Wallet/registration operations need multi-document transactions, i.e. the replica set — a standalone `mongod` (the Windows service on 27017) makes them fail with "could not be safely committed".
 
 The Lab 9.3 failover tests (`lab9/lab_03_failover_recovery.py`) run only on the isolated replica set `rsfail` from `lab9/failover-cluster/docker-compose.yml` (`netrel-mongo1..3`, network `netrel-net`, no host ports); the script refuses containers without the `aegis.purpose=lab9-isolated-failover-tests` label. Results go to `lab9/results/lab_03_failover_latest.json` and appear on the Network Reliability page.
 
@@ -63,4 +63,4 @@ Do **not** use `docker compose up` on the root `docker-compose.yml` as a fix/res
 - App startup must not drop or replace collections. Chapter-specific features write to isolated databases/collections (e.g. Chapter 18 uses `threat_intel_lab18`; Chapter 14 restores only into `chapter14_restore_test_*`).
 - Secrets (VirusTotal key, etc.) live only in the ignored `.env`; never expose them in HTML/JS, API responses, or logs.
 
-Further docs: `ADMIN_GUIDE.md` (admin bootstrap via `backend/bootstrap_*.py`), `BILLING_AND_ENTITLEMENTS.md`, `SECURITY_CENTER.md`, and each `chapter-*/README.md`.
+Further docs: `ADMIN_GUIDE.md` (admin bootstrap via `backend/bootstrap_*.py`), `BILLING_AND_ENTITLEMENTS.md`, `SECURITY_CENTER.md`, and each `lab-13`…`lab-18` `README.md`.

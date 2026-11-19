@@ -1,0 +1,38 @@
+Activity 2.2 - Bookstore CRUD Operations
+Student: Jovit Chawla (24BTRCL089)
+Run at 2026-11-19T14:22:47+00:00 on LAPTOP-DSDFIQOI | Python 3.12.10 | pymongo 4.20.0
+Deployment: docker (MongoDB 7.0.45), collection jovit_lab02.books
+
+== CREATE ==
+  insert_one -> _id 6aff0637e5396035a71e8459; insert_many -> 9 ids
+  inserting a second book with ISBN 978-0132350884: rejected with DuplicateKeyError (unique index on isbn)
+
+== READ ==
+  find_one by ISBN: {'title': 'Designing Data-Intensive Applications', 'authors': ['Martin Kleppmann'], 'publisher': {'name': "O'Reilly Media"}}
+  books tagged 'databases', oldest first (2):
+    - {"title": "Seven Databases in Seven Weeks", "year": 2012, "price_inr": 780.0}
+    - {"title": "Designing Data-Intensive Applications", "year": 2017, "price_inr": 1450.0}
+  query on the embedded publisher: MIT Press (2):
+    - {"title": "Introduction to Algorithms", "year": 1990, "price_inr": 1250.0}
+    - {"title": "Deep Learning", "year": 2016, "price_inr": 1600.0}
+  published 1995-2010 and under INR 800, most expensive first (3):
+    - {"title": "The Pragmatic Programmer", "year": 1999, "price_inr": 720.0}
+    - {"title": "Clean Code", "year": 2008, "price_inr": 650.0}
+    - {"title": "Wings of Fire", "year": 1999, "price_inr": 299.0}
+  books with three or more authors: 2
+  titles per publisher: Addison-Wesley=3, MIT Press=2, No Starch Press=1, O'Reilly Media=1, Pragmatic Bookshelf=1, Prentice Hall=1, Universities Press=1
+
+== UPDATE ==
+  sell 2 copies of Python Crash Course ($inc): matched 1, modified 1
+  add tag 'nosql' ($addToSet): modified 1; repeating it modified 0 (no duplicate tag)
+  set publisher.imprint on all Addison-Wesley books (update_many): modified 3
+  upsert a new title by ISBN: upserted_id 6aff06372e05c52578569fa3
+  verified: stock now 13, tags ['databases', 'distributed systems', 'nosql']
+
+== DELETE ==
+  delete_many out-of-stock books: deleted 1
+  delete_one The Mythical Man-Month: deleted 1
+  verified: 9 books remain, deleted ISBN no longer found
+
+  exported 9 books to results/activity_2_2_books.json
+  all CRUD checks passed

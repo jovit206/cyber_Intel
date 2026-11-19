@@ -1,0 +1,38 @@
+Activity 1.2 (Try it yourself) - Food-delivery platform
+Student: Jovit Chawla (24BTRCL089)
+Run at 2026-11-19T14:15:32+00:00 on LAPTOP-DSDFIQOI | MongoDB 8.3.7 (standalone) | Python 3.12.10 | pymongo 4.20.0
+
+== Restaurant menus -> Document ==
+  open a restaurant page (menu with sections, variants) by id: plan=EXPRESS_IXSCAN pipeline=- returned=1 keysExamined=1 docsExamined=1 serverMs=0
+  restaurants serving 'dal baati churma' under 200 INR: plan=FETCH <- IXSCAN pipeline=- returned=59 keysExamined=155 docsExamined=155 serverMs=16
+
+== Live order state -> Key-Value with TTL ==
+  customer app polls ORD000089 status: plan=EXPRESS_IXSCAN pipeline=- returned=1 keysExamined=1 docsExamined=1 serverMs=0
+  status read median 1.159 ms, status write median 1.145 ms; entries expire 2 h after creation (TTL)
+
+== Delivery zones -> Geospatial ==
+  which delivery zone contains this address?: plan=FETCH <- IXSCAN pipeline=- returned=1 keysExamined=5 docsExamined=1 serverMs=0
+  address falls in ZONE-6 (fee 50 INR)
+  restaurants within 3 km of the address: 55
+
+== Order analytics -> Time-series ==
+  busiest hours of the week: plan=GROUP <- UNPACK_TS_BUCKET <- COLLSCAN pipeline=['$cursor', '$sort'] returned=24 keysExamined=0 docsExamined=2030 serverMs=30
+  15790 orders stored; busiest UTC hours: 20:00 (1321 orders, INR 1,026,052), 19:00 (1270 orders, INR 984,887), 13:00 (1259 orders, INR 963,178)
+
+== 'Also ordered' recommendations -> Graph ==
+  276 weighted co-order edges (>= 25 shared orders)
+  ordered with veg biryani: chole bhature (615), paneer butter masala (563), dal makhani (555)
+  gulab jamun reaches 18 dishes within 2 hops (cross-sell candidates)
+
+== Dish search -> Search engine (relevance ranking) ==
+  full-text 'paneer masala' ranked by score: plan=TEXT_MATCH <- FETCH <- OR <- IXSCAN pipeline=- returned=622 keysExamined=838 docsExamined=622 serverMs=3
+  same need with a plain regex (no ranking): plan=COLLSCAN pipeline=- returned=622 keysExamined=0 docsExamined=3600 serverMs=4
+  top matches: paneer butter masala (7.81), kadhai paneer (4.33), masala dosa (4.33)
+
+== Mapping ==
+  Restaurant menus   Document                                       whole page in 1 doc (EXPRESS_IXSCAN)
+  Live order state   Key-Value + TTL (Redis)                        read 1.159 ms / write 1.145 ms by key
+  Delivery zones     Geospatial (document DB with geo index)        point-in-polygon -> ZONE-6
+  Order analytics    Time-series / Wide-Column at scale             15790 orders grouped by hour
+  Also-ordered       Graph (Neo4j)                                  276 weighted edges, 2-hop reach 18
+  Dish search        Search engine (Elasticsearch / Atlas Search)   relevance score needed; a regex scanned 3600 docs with no ranking

@@ -11,7 +11,7 @@ from uuid import uuid4
 from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError
 
-CHAPTER14_DIR = Path(__file__).resolve().parents[2] / "chapter-14"
+CHAPTER14_DIR = Path(__file__).resolve().parents[2] / "lab-14"
 if str(CHAPTER14_DIR) not in sys.path:
     sys.path.insert(0, str(CHAPTER14_DIR))
 from monitoring_dashboard import build_alerts, retrieve_replica_status, retrieve_server_metrics

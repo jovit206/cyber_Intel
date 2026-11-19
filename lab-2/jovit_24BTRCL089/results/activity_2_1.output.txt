@@ -1,0 +1,23 @@
+Activity 2.1 - Environment Setup Verification
+Student: Jovit Chawla (24BTRCL089)
+Run at 2026-11-19T14:22:44+00:00 on LAPTOP-DSDFIQOI | Python 3.12.10 | pymongo 4.20.0
+
+== Checklist ==
+  [PASS          ] Python interpreter: CPython 3.12.10 at G:\Projects\nosql-lab-7\.venv\Scripts\python.exe
+  [PASS          ] PyMongo driver: pymongo 4.20.0
+  [PASS          ] MongoDB in Docker: mongodb://localhost:27028 -> MongoDB 7.0.45, standalone, first ping 31.4 ms
+  [PASS          ] MongoDB native service: mongodb://localhost:27017 -> MongoDB 8.3.7, standalone, first ping 23.8 ms
+  [PASS          ] Docker engine: server 29.8.2 (linux/amd64)
+  [PASS          ] Lab MongoDB container: jovit-lab02-mongo: image mongo:7.0, running, ports 27017/tcp->127.0.0.1:27028
+  [NOT CONFIGURED] MongoDB Atlas: MONGO_URI_ATLAS is not set in .env; add your own Atlas connection string to run this check
+  [PASS          ] optional: python-dotenv: 1.2.4
+  [PASS          ] optional: certifi: 2026.10.23
+  [PASS          ] optional: dnspython: 2.9.2
+  [MISSING       ] optional: pandas: not installed (only needed by later labs)
+  [MISSING       ] optional: matplotlib: not installed (only needed by later labs)
+  [MISSING       ] optional: faker: not installed (only needed by later labs)
+
+== Summary ==
+  13 checks: {'MISSING': 3, 'NOT CONFIGURED': 1, 'PASS': 9}
+  required checks failed: none
+  stored this run in jovit_lab02.environment_checks (_id 6aff06345e61c4eadc9a8964); 13 checks read back; runs stored so far: 2

@@ -1,0 +1,50 @@
+{
+  "activity": "activity_6_1_try_it_yourself",
+  "title": "Activity 6.1 (Try it yourself) - Index usage with $indexStats",
+  "environment": {
+    "student": {
+      "name": "Jovit Chawla",
+      "enrollment": "24BTRCL089"
+    },
+    "run_at_utc": "2026-11-19T14:29:00+00:00",
+    "machine": "LAPTOP-DSDFIQOI",
+    "os": "Windows 11 (10.0.26300)",
+    "python": "3.12.10",
+    "pymongo": "4.20.0",
+    "mongodb_server": "8.3.7",
+    "topology": "standalone"
+  },
+  "measurements": {
+    "queries": {
+      "Q1": 70,
+      "Q2": 45,
+      "Q3": 40,
+      "Q4": 25,
+      "Q5": 20
+    },
+    "returned": {
+      "Q1": 1400,
+      "Q2": 141248,
+      "Q3": 125303,
+      "Q4": 65376,
+      "Q5": 400
+    },
+    "ops": {
+      "idx_stock": 0,
+      "idx_text_name_description": 25,
+      "idx_category_price_rating": 90,
+      "_id_": 0,
+      "idx_price": 45,
+      "idx_tags": 40,
+      "idx_category": 0
+    },
+    "unused": [
+      "idx_category",
+      "idx_stock"
+    ],
+    "redundant": [
+      "idx_category"
+    ],
+    "most_used": "idx_category_price_rating"
+  }
+}

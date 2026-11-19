@@ -1,0 +1,86 @@
+{
+  "activity": "activity_1_1_try_it_yourself",
+  "title": "Activity 1.1 (Try it yourself) - ScyllaDB, InfluxDB, ArangoDB",
+  "environment": {
+    "student": {
+      "name": "Jovit Chawla",
+      "enrollment": "24BTRCL089"
+    },
+    "run_at_utc": "2026-11-19T14:15:18+00:00",
+    "machine": "LAPTOP-DSDFIQOI",
+    "os": "Windows 11 (10.0.26300)",
+    "python": "3.12.10",
+    "pymongo": "4.20.0",
+    "mongodb_server": "8.3.7",
+    "topology": "standalone"
+  },
+  "measurements": {
+    "scylla": {
+      "rows": 60000,
+      "partition_query": {
+        "plan": "LIMIT <- FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 20,
+        "keysExamined": 20,
+        "docsExamined": 20,
+        "executionTimeMillis": 1
+      },
+      "non_partition_query": {
+        "plan": "SORT <- COLLSCAN",
+        "pipeline": [],
+        "nReturned": 19,
+        "keysExamined": 0,
+        "docsExamined": 60000,
+        "executionTimeMillis": 85
+      },
+      "clustering_order_from_index": true
+    },
+    "influx": {
+      "points": 100800,
+      "timeseries_storage_bytes": 413696,
+      "plain_storage_bytes": 3321856,
+      "hourly_rows": 24
+    },
+    "arango": {
+      "kv": {
+        "plan": "EXPRESS_IXSCAN",
+        "pipeline": [],
+        "nReturned": 1,
+        "keysExamined": 1,
+        "docsExamined": 1,
+        "executionTimeMillis": 0
+      },
+      "document": {
+        "plan": "FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 115,
+        "keysExamined": 306,
+        "docsExamined": 306,
+        "executionTimeMillis": 3
+      },
+      "graph_plus_document": {
+        "_id": "u0089",
+        "same_city": 3,
+        "reached": 12,
+        "median_ms": 3.598
+      }
+    },
+    "verdict": [
+      {
+        "product": "ScyllaDB",
+        "classification": "Single family: Wide-Column",
+        "evidence": "partition query examined 20 keys, no SORT; without the key: 60000 docs scanned"
+      },
+      {
+        "product": "InfluxDB",
+        "classification": "Time-series (specialised; not one of the classic four)",
+        "evidence": "time-series storage 404 KiB vs 3244 KiB plain; native downsampling"
+      },
+      {
+        "product": "ArangoDB",
+        "classification": "Multi-model: Key-Value + Document + Graph",
+        "evidence": "the same data answered a key lookup, a nested-document query and a traversal joined to documents"
+      }
+    ]
+  }
+}

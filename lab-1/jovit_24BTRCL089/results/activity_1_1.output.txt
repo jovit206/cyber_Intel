@@ -1,0 +1,41 @@
+Activity 1.1 - Classify Database Products
+Student: Jovit Chawla (24BTRCL089)
+Run at 2026-11-19T14:15:15+00:00 on LAPTOP-DSDFIQOI | MongoDB 8.3.7 (standalone) | Python 3.12.10 | pymongo 4.20.0
+
+== Amazon S3 -> key-value object store ==
+  stored 3000 objects in 3 buckets (6038 KiB of blobs)
+  GET object by full key: plan=EXPRESS_IXSCAN pipeline=- returned=1 keysExamined=1 docsExamined=1 serverMs=0
+  LIST keys with prefix 'assignments/2026/': plan=PROJECTION_COVERED <- IXSCAN pipeline=- returned=600 keysExamined=601 docsExamined=0 serverMs=13
+  search INSIDE blob bodies for a byte marker: fetched 3000 objects client-side, found 1, 25.07 ms (no server-side index can help)
+
+== Memcached -> in-memory key-value cache (cache-aside with TTL) ==
+  TTL index: {expires_at: 1} expireAfterSeconds=0 (mongod deletes expired keys)
+  cache GET by key: plan=EXPRESS_IXSCAN pipeline=- returned=1 keysExamined=1 docsExamined=1 serverMs=0
+  recompute aggregation over grades: plan=GROUP <- COLLSCAN pipeline=['$cursor', '$sort'] returned=40 keysExamined=0 docsExamined=30000 serverMs=41
+  cache miss (aggregate 30000 grades + SET): 29.246 ms, first call hit=False
+  cache hit (GET by key, median of 20): 0.662 ms -> 44.2x faster
+
+== Couchbase -> document store (nested JSON, flexible schema) ==
+  2500 course documents with 4 different top-level shapes in ONE collection
+  fetch whole course (nested arrays included) by key: plan=EXPRESS_IXSCAN pipeline=- returned=1 keysExamined=1 docsExamined=1 serverMs=0
+  query INSIDE nested array: Wed classes in LAB-3: plan=FETCH <- IXSCAN pipeline=- returned=200 keysExamined=200 docsExamined=200 serverMs=3
+  query an optional field: lab courses with a GPU: plan=COLLSCAN pipeline=- returned=407 keysExamined=0 docsExamined=2500 serverMs=3
+  atomic in-place update of a nested array ($push): modified=1
+
+== Apache HBase -> wide-column store (sorted row key, sparse column families) ==
+  6720 rows; families present: env=6720, power=2688, alarm=144
+  row-key RANGE scan: building 3 on 2026-03-04: plan=FETCH <- IXSCAN pipeline=- returned=96 keysExamined=96 docsExamined=96 serverMs=0
+  rows come back in row-key order, first row key: bldg-03#2026-03-04T00:00
+  filter on a NON-key column (env.temp_c > 33): plan=COLLSCAN pipeline=- returned=432 keysExamined=0 docsExamined=6720 serverMs=4
+
+== Amazon Neptune -> graph database (multi-hop relationship traversal) ==
+  1597 'knows' edges between 400 people
+  $graphLookup from P007, 3 hops in ONE server-side query: 73 people reached (new per hop {0: 4, 1: 13, 2: 56}), median 3.303 ms
+  same traversal done hop-by-hop by the application: 73 people, 3 round trips, median 5.979 ms
+
+== Classification (each backed by the measurements above) ==
+  Amazon S3       Key-Value (object store)       evidence: key GET examined 1 doc; body search had to fetch all 3000 objects
+  Memcached       Key-Value (in-memory cache)    evidence: hit 0.662 ms vs recompute 29.246 ms; TTL expiry
+  Couchbase       Document                       evidence: 4 document shapes in one collection; nested query used FETCH <- IXSCAN
+  Apache HBase    Wide-Column (column-family)    evidence: row-key range examined 96 keys for 96 rows; non-key filter examined 6720 docs
+  Amazon Neptune  Graph                          evidence: 73 people within 3 hops in 1 query vs 3 app round trips

@@ -55,7 +55,7 @@ The backend image keeps machine-learning dependencies optional. To include them 
 docker build --build-arg INSTALL_VECTOR_LAB=true -t <your-image-tag> .
 ```
 
-This installs `chapter-17/requirements-vector-lab.txt`. The model is loaded only after an administrator starts a dataset job. Provider credentials and MongoDB Atlas configuration are not included in the image.
+This installs `lab-17/requirements-vector-lab.txt`. The model is loaded only after an administrator starts a dataset job. Provider credentials and MongoDB Atlas configuration are not included in the image.
 
 ## Administrator API
 

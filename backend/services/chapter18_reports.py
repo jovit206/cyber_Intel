@@ -85,7 +85,7 @@ def benchmark_pdf(run: dict[str, Any]) -> bytes:
         )
     except ImportError as error:
         raise ReportDependencyError(
-            "PDF export requires reportlab from chapter-18/requirements-chapter18.txt."
+            "PDF export requires reportlab from lab-18/requirements-chapter18.txt."
         ) from error
 
     output = io.BytesIO()

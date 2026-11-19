@@ -1,0 +1,11 @@
+# REFERENCE ONLY - packages needed by the AI Threat Assistant code copied in this folder.
+# This folder is not installed or run by the project; the application uses the root requirements.txt.
+fastapi>=0.115,<1
+uvicorn[standard]>=0.34,<1
+pydantic>=2.10,<3
+pymongo>=4.11,<5
+httpx>=0.28,<1           # Ollama / OpenAI-compatible HTTP calls, local-agent client
+python-dotenv>=1,<2      # backend/config.py reads .env
+typing_extensions>=4.12
+dnspython>=2.6           # only for mongodb+srv:// (Atlas) URIs
+certifi                  # only for TLS connections (Atlas)

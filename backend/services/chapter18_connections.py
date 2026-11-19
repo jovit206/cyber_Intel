@@ -125,7 +125,7 @@ class Chapter18Connections:
                 from cassandra import DriverException
             except ImportError as error:
                 raise Chapter18DependencyError(
-                    "Install chapter-18/requirements-chapter18.txt to enable Cassandra."
+                    "Install lab-18/requirements-chapter18.txt to enable Cassandra."
                 ) from error
 
             options: dict[str, Any] = {}
@@ -166,7 +166,7 @@ class Chapter18Connections:
                 from neo4j import GraphDatabase
             except ImportError as error:
                 raise Chapter18DependencyError(
-                    "Install chapter-18/requirements-chapter18.txt to enable Neo4j."
+                    "Install lab-18/requirements-chapter18.txt to enable Neo4j."
                 ) from error
             self._neo4j_driver = GraphDatabase.driver(
                 self.settings.neo4j_uri,

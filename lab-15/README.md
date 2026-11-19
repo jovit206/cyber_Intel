@@ -33,7 +33,7 @@ deployment and writes both a CSV and SVG comparison. The migration leaves the or
 - MongoDB 5.0+ reachable from the host or Docker network. A replica set is recommended for
   production; this lab does not require transactions.
 - Docker Desktop only if running the container image.
-- For PowerShell, open a terminal in `chapter-15`.
+- For PowerShell, open a terminal in `lab-15`.
 
 Install dependencies in a virtual environment:
 
@@ -70,7 +70,7 @@ applying it; it does not delete or replace existing fields or documents.
 
 ## Run the API (Lab 15.1)
 
-From `chapter-15`:
+From `lab-15`:
 
 ```powershell
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000

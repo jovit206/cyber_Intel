@@ -1,0 +1,80 @@
+{
+  "activity": "activity_6_2_try_it_yourself",
+  "title": "Activity 6.2 (Try it yourself) - Covered Queries",
+  "environment": {
+    "student": {
+      "name": "Jovit Chawla",
+      "enrollment": "24BTRCL089"
+    },
+    "run_at_utc": "2026-11-19T14:32:08+00:00",
+    "machine": "LAPTOP-DSDFIQOI",
+    "os": "Windows 11 (10.0.26300)",
+    "python": "3.12.10",
+    "pymongo": "4.20.0",
+    "mongodb_server": "8.3.7",
+    "topology": "standalone"
+  },
+  "measurements": {
+    "filter": {
+      "category": "Audio",
+      "price": {
+        "$gte": 2000,
+        "$lte": 3000
+      }
+    },
+    "runs": 300,
+    "projections": {
+      "P1 whole document": {
+        "plan": "FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 156,
+        "keysExamined": 156,
+        "docsExamined": 156,
+        "executionTimeMillis": 1,
+        "median_ms": 5.098,
+        "covered": false
+      },
+      "P2 index fields + _id": {
+        "plan": "PROJECTION_SIMPLE <- FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 156,
+        "keysExamined": 156,
+        "docsExamined": 156,
+        "executionTimeMillis": 2,
+        "median_ms": 4.387,
+        "covered": false
+      },
+      "P3 index fields, _id excluded": {
+        "plan": "PROJECTION_COVERED <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 156,
+        "keysExamined": 156,
+        "docsExamined": 0,
+        "executionTimeMillis": 0,
+        "median_ms": 2.583,
+        "covered": true
+      },
+      "P4 adds a non-index field (name)": {
+        "plan": "PROJECTION_SIMPLE <- FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 156,
+        "keysExamined": 156,
+        "docsExamined": 156,
+        "executionTimeMillis": 2,
+        "median_ms": 5.447,
+        "covered": false
+      }
+    },
+    "covered": [
+      "P3 index fields, _id excluded"
+    ],
+    "multikey": {
+      "plan": "PROJECTION_SIMPLE <- FETCH <- IXSCAN",
+      "pipeline": [],
+      "nReturned": 3177,
+      "keysExamined": 3177,
+      "docsExamined": 3177,
+      "executionTimeMillis": 28
+    }
+  }
+}

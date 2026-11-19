@@ -1,0 +1,39 @@
+Activity 6.1 - Index Design for a Query Workload
+Student: Jovit Chawla (24BTRCL089)
+Run at 2026-11-19T14:28:55+00:00 on LAPTOP-DSDFIQOI | MongoDB 8.3.7 (standalone) | Python 3.12.10 | pymongo 4.20.0
+  seeded 50,000 products into jovit_lab06.products; indexes: ['_id_']
+  Q1: Laptops sorted by price (cheapest first), top 20
+  Q2: any product priced INR 1,000-1,500
+  Q3: products tagged 'anc'
+  Q4: search product names for 'gaming notebook'
+  Q5: Mobiles rated >= 4.5 sorted by price, top 20
+
+== Before: only the _id index ==
+  Q1: plan=SORT <- COLLSCAN pipeline=- returned=20 keysExamined=0 docsExamined=50000 serverMs=60
+  Q2: plan=COLLSCAN pipeline=- returned=2159 keysExamined=0 docsExamined=50000 serverMs=57
+  Q3: plan=COLLSCAN pipeline=- returned=3177 keysExamined=0 docsExamined=50000 serverMs=74
+  Q4 (regex fallback - $text needs a text index): plan=COLLSCAN pipeline=- returned=3061 keysExamined=0 docsExamined=50000 serverMs=89
+  Q5: plan=SORT <- COLLSCAN pipeline=- returned=20 keysExamined=0 docsExamined=50000 serverMs=44
+
+== Index design ==
+  created idx_category_price_rating: {'category': 1, 'price': 1, 'rating': 1}
+  created idx_price: {'price': 1}
+  created idx_tags: {'tags': 1}
+  created idx_text_name_description: {'name': 'text', 'description': 'text'}
+  index sizes: _id_ 4 KiB, idx_category_price_rating 1320 KiB, idx_price 876 KiB, idx_tags 556 KiB, idx_text_name_description 1548 KiB
+
+== After: designed indexes ==
+  Q1: plan=LIMIT <- FETCH <- IXSCAN pipeline=- returned=20 keysExamined=20 docsExamined=20 serverMs=1
+  Q2: plan=FETCH <- IXSCAN pipeline=- returned=2159 keysExamined=2159 docsExamined=2159 serverMs=8
+  Q3: plan=FETCH <- IXSCAN pipeline=- returned=3177 keysExamined=3177 docsExamined=3177 serverMs=9
+  Q4: plan=TEXT_MATCH <- FETCH <- OR <- IXSCAN pipeline=- returned=4632 keysExamined=4632 docsExamined=4632 serverMs=29
+  Q5: plan=LIMIT <- FETCH <- IXSCAN pipeline=- returned=20 keysExamined=231 docsExamined=20 serverMs=1
+
+== Summary ==
+  query before                after                                    docs before  docs after  reduction
+  Q1    SORT <- COLLSCAN      LIMIT <- FETCH <- IXSCAN                      50,000          20     99.96%
+  Q2    COLLSCAN              FETCH <- IXSCAN                               50,000       2,159     95.68%
+  Q3    COLLSCAN              FETCH <- IXSCAN                               50,000       3,177     93.65%
+  Q4    COLLSCAN              TEXT_MATCH <- FETCH <- OR <- IXSCAN           50,000       4,632     90.74%
+  Q5    SORT <- COLLSCAN      LIMIT <- FETCH <- IXSCAN                      50,000          20     99.96%
+  every query uses an index after the design: True; in-memory SORT stages left: none

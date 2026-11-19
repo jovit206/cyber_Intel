@@ -5,7 +5,7 @@ CHAPTER_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$CHAPTER_DIR"
 
 if [[ ! -f .env ]]; then
-  echo "Missing chapter-13/.env. Copy .env.example to .env and set independent random hex passwords." >&2
+  echo "Missing lab-13/.env. Copy .env.example to .env and set independent random hex passwords." >&2
   exit 1
 fi
 
@@ -18,7 +18,7 @@ set +a
 
 for name in MONGO_INITDB_ROOT_USERNAME MONGO_INITDB_ROOT_PASSWORD MONGO_EXPORTER_USERNAME MONGO_EXPORTER_PASSWORD; do
   if [[ -z "${!name:-}" || "${!name}" == REPLACE_* ]]; then
-    echo "$name must be set to a non-placeholder value in chapter-13/.env." >&2
+    echo "$name must be set to a non-placeholder value in lab-13/.env." >&2
     exit 1
   fi
 done

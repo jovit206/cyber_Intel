@@ -12,10 +12,10 @@ services:
         chmod 0400 /tmp/mongo-keyfile
         exec /usr/local/bin/docker-entrypoint.sh mongod --replSet rs0 --bind_ip_all --auth --keyFile /tmp/mongo-keyfile
     environment: &mongo-environment
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?Set MONGO_INITDB_ROOT_USERNAME in chapter-13/.env}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?Set MONGO_INITDB_ROOT_PASSWORD in chapter-13/.env}
-      MONGO_EXPORTER_USERNAME: ${MONGO_EXPORTER_USERNAME:?Set MONGO_EXPORTER_USERNAME in chapter-13/.env}
-      MONGO_EXPORTER_PASSWORD: ${MONGO_EXPORTER_PASSWORD:?Set MONGO_EXPORTER_PASSWORD in chapter-13/.env}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?Set MONGO_INITDB_ROOT_USERNAME in lab-13/.env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?Set MONGO_INITDB_ROOT_PASSWORD in lab-13/.env}
+      MONGO_EXPORTER_USERNAME: ${MONGO_EXPORTER_USERNAME:?Set MONGO_EXPORTER_USERNAME in lab-13/.env}
+      MONGO_EXPORTER_PASSWORD: ${MONGO_EXPORTER_PASSWORD:?Set MONGO_EXPORTER_PASSWORD in lab-13/.env}
     ports:
       - "127.0.0.1:27117:27017"
     volumes:
@@ -96,7 +96,7 @@ services:
   mongodb-exporter:
     image: percona/mongodb_exporter:0.40.0
     environment:
-      MONGODB_URI: mongodb://${MONGO_EXPORTER_USERNAME:?Set MONGO_EXPORTER_USERNAME in chapter-13/.env}:${MONGO_EXPORTER_PASSWORD:?Set MONGO_EXPORTER_PASSWORD in chapter-13/.env}@mongo1:27017,mongo2:27017,mongo3:27017/admin?replicaSet=rs0&authSource=admin
+      MONGODB_URI: mongodb://${MONGO_EXPORTER_USERNAME:?Set MONGO_EXPORTER_USERNAME in lab-13/.env}:${MONGO_EXPORTER_PASSWORD:?Set MONGO_EXPORTER_PASSWORD in lab-13/.env}@mongo1:27017,mongo2:27017,mongo3:27017/admin?replicaSet=rs0&authSource=admin
     command:
       - --web.listen-address=:9216
     depends_on:
@@ -141,7 +141,7 @@ services:
     entrypoint: ["/bin/sh", "-ec"]
     command: >-
       test -n "$$GF_SECURITY_ADMIN_USER" && test -n "$$GF_SECURITY_ADMIN_PASSWORD"
-      || { echo 'Set GRAFANA_ADMIN_USER and GRAFANA_ADMIN_PASSWORD in chapter-13/.env.' >&2; exit 1; }
+      || { echo 'Set GRAFANA_ADMIN_USER and GRAFANA_ADMIN_PASSWORD in lab-13/.env.' >&2; exit 1; }
       ; exec /run.sh
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-}
@@ -169,8 +169,8 @@ services:
       dockerfile: Dockerfile.failover
     profiles: ["tools"]
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?Set MONGO_INITDB_ROOT_USERNAME in chapter-13/.env}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?Set MONGO_INITDB_ROOT_PASSWORD in chapter-13/.env}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?Set MONGO_INITDB_ROOT_USERNAME in lab-13/.env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?Set MONGO_INITDB_ROOT_PASSWORD in lab-13/.env}
       MONGODB_HOSTS: mongo1:27017,mongo2:27017,mongo3:27017
     depends_on:
       mongo1:

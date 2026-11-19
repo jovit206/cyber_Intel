@@ -1,0 +1,33 @@
+Activity 6.2 - Compare Index Strategies
+Student: Jovit Chawla (24BTRCL089)
+Run at 2026-11-19T14:31:05+00:00 on LAPTOP-DSDFIQOI | MongoDB 8.3.7 (standalone) | Python 3.12.10 | pymongo 4.20.0
+
+== Step 1 - insert 20,000 documents; 7 interleaved rounds after 1 warm-up round ==
+  A: _id only                          median    581.5 ms  min    343.3 ms  (34,396 docs/s)  run-to-run spread 251%
+                                       runs [465.3, 581.5, 343.3, 584.1, 1204.9, 700.9, 345.5]
+  B: full 6.1 design (4 indexes)       median   2087.8 ms  min   1283.8 ms  (9,580 docs/s)  run-to-run spread 173%
+                                       runs [1578.5, 1283.8, 2087.8, 2779.8, 3510.6, 3002.0, 1903.0]
+  C: idx_category_price_rating only    median    762.9 ms  min    423.7 ms  (26,216 docs/s)  run-to-run spread 190%
+                                       runs [444.0, 423.7, 762.9, 1227.8, 765.2, 810.8, 605.7]
+  overhead vs _id only - paired per-round median (rounds slower than A) | median | min:
+    B: full 6.1 design (4 indexes)        +328.3% (7/7 rounds) | +259.0% | +274.0%
+    C: idx_category_price_rating only      +15.7% (4/7 rounds) | +31.2% | +23.4%
+
+== Step 2 - workload with only idx_category_price_rating ==
+  Q1: plan=LIMIT <- FETCH <- IXSCAN pipeline=- returned=20 keysExamined=20 docsExamined=20 serverMs=5
+  Q2: plan=COLLSCAN pipeline=- returned=2159 keysExamined=0 docsExamined=50000 serverMs=65
+  Q3: plan=COLLSCAN pipeline=- returned=3177 keysExamined=0 docsExamined=50000 serverMs=85
+  Q4 (no text index -> regex): plan=COLLSCAN pipeline=- returned=3061 keysExamined=0 docsExamined=50000 serverMs=147
+  Q5: plan=LIMIT <- FETCH <- IXSCAN pipeline=- returned=20 keysExamined=231 docsExamined=20 serverMs=1
+  queries that fall back to COLLSCAN: ['Q2', 'Q3', 'Q4']
+
+== Step 3 - key order for Q5 (category = Mobiles, rating >= 4.5, sort by price) ==
+  idx_category_price_rating (median 2.892 ms): plan=LIMIT <- FETCH <- IXSCAN pipeline=- returned=20 keysExamined=231 docsExamined=20 serverMs=0
+  idx_category_rating_price (median 3.867 ms): plan=FETCH <- SORT <- IXSCAN pipeline=- returned=20 keysExamined=529 docsExamined=20 serverMs=7
+  E-S-R order: in-memory sort = False, keys examined 231; E-R-S order: in-memory sort = True, keys examined 529
+
+== Step 4 - trade-off analysis (from the numbers above) ==
+  - Every index is updated on every insert: the full design changed insert time by +328.3% (median of per-round paired ratios; slower than _id only in 7 of 7 rounds) compared with _id only; a single compound index by +15.7% (median of per-round paired ratios; slower than _id only in 4 of 7 rounds) - not consistent in every round, so this figure is affected by the laptop's background load.
+  - Keeping only the most-used index leaves 3 of 5 workload queries (Q2, Q3, Q4) scanning all 50,000 documents, so read-heavy catalogue traffic still needs the full design.
+  - For write-heavy collections (logs, events, telemetry) the extra write cost is not worth it for rarely-run queries; index only what the workload runs often - which $indexStats shows (Activity 6.1 TIY).
+  - Key order matters as much as the key set: for Q5 the E-S-R order avoided an in-memory sort, while E-R-S needed one (medians 2.892 ms vs 3.867 ms).

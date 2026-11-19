@@ -1,0 +1,189 @@
+{
+  "activity": "activity_1_2",
+  "title": "Activity 1.2 - Map a Real-World Application (ride-sharing + social analytics)",
+  "environment": {
+    "student": {
+      "name": "Jovit Chawla",
+      "enrollment": "24BTRCL089"
+    },
+    "run_at_utc": "2026-11-19T14:15:26+00:00",
+    "machine": "LAPTOP-DSDFIQOI",
+    "os": "Windows 11 (10.0.26300)",
+    "python": "3.12.10",
+    "pymongo": "4.20.0",
+    "mongodb_server": "8.3.7",
+    "topology": "standalone"
+  },
+  "measurements": {
+    "driver_positions": {
+      "burst_write_ms": 1050.62,
+      "nearest": [
+        [
+          "D0296",
+          113
+        ],
+        [
+          "D0142",
+          351
+        ],
+        [
+          "D0388",
+          373
+        ],
+        [
+          "D0189",
+          536
+        ],
+        [
+          "D0447",
+          966
+        ]
+      ],
+      "geo_plan": {
+        "plan": "FETCH <- GEO_NEAR_2DSPHERE <- FETCH <- IXSCAN",
+        "pipeline": [
+          "$geoNearCursor",
+          "$limit"
+        ],
+        "nReturned": 32,
+        "keysExamined": 176,
+        "docsExamined": 153,
+        "executionTimeMillis": 3
+      },
+      "ttl_seconds": 120
+    },
+    "profiles": {
+      "documents": 3800,
+      "rider_by_id": {
+        "plan": "EXPRESS_IXSCAN",
+        "pipeline": [],
+        "nReturned": 1,
+        "keysExamined": 1,
+        "docsExamined": 1,
+        "executionTimeMillis": 0
+      },
+      "driver_by_id": {
+        "plan": "EXPRESS_IXSCAN",
+        "pipeline": [],
+        "nReturned": 1,
+        "keysExamined": 1,
+        "docsExamined": 1,
+        "executionTimeMillis": 0
+      },
+      "by_phone": {
+        "plan": "EXPRESS_IXSCAN",
+        "pipeline": [],
+        "nReturned": 1,
+        "keysExamined": 1,
+        "docsExamined": 1,
+        "executionTimeMillis": 4
+      }
+    },
+    "trip_history": {
+      "trips": 25000,
+      "without_index": {
+        "plan": "SORT <- COLLSCAN",
+        "pipeline": [],
+        "nReturned": 4,
+        "keysExamined": 0,
+        "docsExamined": 25000,
+        "executionTimeMillis": 25
+      },
+      "with_index": {
+        "plan": "FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 4,
+        "keysExamined": 4,
+        "docsExamined": 4,
+        "executionTimeMillis": 3
+      }
+    },
+    "fraud_graph": {
+      "edges": 12016,
+      "ring_found": [
+        "R00089",
+        "R00412",
+        "R01777",
+        "R02250",
+        "R02901"
+      ],
+      "ring_planted": [
+        "R00089",
+        "R00412",
+        "R01777",
+        "R02250",
+        "R02901"
+      ],
+      "ms": 8.42,
+      "control_reach": 4
+    },
+    "social": {
+      "posts": 12000,
+      "partition_read": {
+        "plan": "FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 524,
+        "keysExamined": 524,
+        "docsExamined": 524,
+        "executionTimeMillis": 4
+      },
+      "non_partition_read": {
+        "plan": "COLLSCAN",
+        "pipeline": [],
+        "nReturned": 3,
+        "keysExamined": 0,
+        "docsExamined": 12000,
+        "executionTimeMillis": 12
+      },
+      "increments": 24000,
+      "increments_ms": 2321.05,
+      "single_inc_ms": 0.586,
+      "trending": [
+        [
+          "#ipl:2026-05-10T04",
+          149
+        ],
+        [
+          "#monsoon:2026-05-10T04",
+          144
+        ],
+        [
+          "#pune:2026-05-10T04",
+          139
+        ]
+      ]
+    },
+    "mapping": [
+      {
+        "domain": "Live driver positions",
+        "family": "Key-Value + geo (Redis GEO)",
+        "evidence": "1050.62 ms for 4000 key writes; geo query examined 153 docs"
+      },
+      {
+        "domain": "Rider/driver profiles",
+        "family": "Document (MongoDB)",
+        "evidence": "profile by id: EXPRESS_IXSCAN, 1 doc"
+      },
+      {
+        "domain": "Trip history",
+        "family": "Document; Wide-Column at very large scale (Cassandra)",
+        "evidence": "25000 docs scanned without index -> 4 with the compound index"
+      },
+      {
+        "domain": "Fraud relationships",
+        "family": "Graph (Neo4j / Neptune)",
+        "evidence": "ring of 5 found in one traversal; planted ring matched: True"
+      },
+      {
+        "domain": "Social raw post stream",
+        "family": "Wide-Column (Cassandra)",
+        "evidence": "hour partition read examined 524 docs vs 12000"
+      },
+      {
+        "domain": "Social real-time counters",
+        "family": "Key-Value (Redis INCR)",
+        "evidence": "single increment median 0.586 ms"
+      }
+    ]
+  }
+}

@@ -69,7 +69,7 @@ repository's existing ignore rules exclude those data directories from Git.
 | Check | Result | Evidence |
 |---|---|---|
 | Python compilation | PASS | `python -m py_compile` on both scripts and test modules |
-| Unit tests | PASS | `python -m unittest discover -s .\\chapter-14\\tests -v` – 17 tests |
+| Unit tests | PASS | `python -m unittest discover -s .\\lab-14\\tests -v` – 17 tests |
 | Live MongoDB connection | PASS | Authenticated `ping`, `serverStatus`, and `replSetGetStatus` |
 | Replica-set health | PASS | `rs0`: 1 PRIMARY, 2 SECONDARY |
 | Monitoring log creation | PASS | `logs/metrics.log` created and populated |

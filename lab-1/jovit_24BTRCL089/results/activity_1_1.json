@@ -1,0 +1,153 @@
+{
+  "activity": "activity_1_1",
+  "title": "Activity 1.1 - Classify Database Products",
+  "environment": {
+    "student": {
+      "name": "Jovit Chawla",
+      "enrollment": "24BTRCL089"
+    },
+    "run_at_utc": "2026-11-19T14:15:15+00:00",
+    "machine": "LAPTOP-DSDFIQOI",
+    "os": "Windows 11 (10.0.26300)",
+    "python": "3.12.10",
+    "pymongo": "4.20.0",
+    "mongodb_server": "8.3.7",
+    "topology": "standalone"
+  },
+  "measurements": {
+    "s3": {
+      "objects": 3000,
+      "get_by_key": {
+        "plan": "EXPRESS_IXSCAN",
+        "pipeline": [],
+        "nReturned": 1,
+        "keysExamined": 1,
+        "docsExamined": 1,
+        "executionTimeMillis": 0
+      },
+      "prefix_list": {
+        "plan": "PROJECTION_COVERED <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 600,
+        "keysExamined": 601,
+        "docsExamined": 0,
+        "executionTimeMillis": 13
+      },
+      "content_search": {
+        "objects_fetched": 3000,
+        "hits": 1,
+        "ms": 25.07
+      }
+    },
+    "memcached": {
+      "miss_ms": 29.246,
+      "hit_ms_median": 0.662,
+      "get_plan": {
+        "plan": "EXPRESS_IXSCAN",
+        "pipeline": [],
+        "nReturned": 1,
+        "keysExamined": 1,
+        "docsExamined": 1,
+        "executionTimeMillis": 0
+      },
+      "recompute_plan": {
+        "plan": "GROUP <- COLLSCAN",
+        "pipeline": [
+          "$cursor",
+          "$sort"
+        ],
+        "nReturned": 40,
+        "keysExamined": 0,
+        "docsExamined": 30000,
+        "executionTimeMillis": 41
+      },
+      "ttl_seconds": 0
+    },
+    "couchbase": {
+      "documents": 2500,
+      "distinct_shapes": 4,
+      "by_key": {
+        "plan": "EXPRESS_IXSCAN",
+        "pipeline": [],
+        "nReturned": 1,
+        "keysExamined": 1,
+        "docsExamined": 1,
+        "executionTimeMillis": 0
+      },
+      "nested_query": {
+        "plan": "FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 200,
+        "keysExamined": 200,
+        "docsExamined": 200,
+        "executionTimeMillis": 3
+      },
+      "optional_field_query": {
+        "plan": "COLLSCAN",
+        "pipeline": [],
+        "nReturned": 407,
+        "keysExamined": 0,
+        "docsExamined": 2500,
+        "executionTimeMillis": 3
+      }
+    },
+    "hbase": {
+      "rows": 6720,
+      "rowkey_range": {
+        "plan": "FETCH <- IXSCAN",
+        "pipeline": [],
+        "nReturned": 96,
+        "keysExamined": 96,
+        "docsExamined": 96,
+        "executionTimeMillis": 0
+      },
+      "non_key_filter": {
+        "plan": "COLLSCAN",
+        "pipeline": [],
+        "nReturned": 432,
+        "keysExamined": 0,
+        "docsExamined": 6720,
+        "executionTimeMillis": 4
+      }
+    },
+    "neptune": {
+      "edges": 1597,
+      "reached": 73,
+      "new_per_hop": {
+        "0": 4,
+        "1": 13,
+        "2": 56
+      },
+      "graphlookup_ms": 3.303,
+      "app_bfs_ms": 5.979,
+      "app_round_trips": 3
+    },
+    "classification": [
+      {
+        "product": "Amazon S3",
+        "family": "Key-Value (object store)",
+        "evidence": "key GET examined 1 doc; body search had to fetch all 3000 objects"
+      },
+      {
+        "product": "Memcached",
+        "family": "Key-Value (in-memory cache)",
+        "evidence": "hit 0.662 ms vs recompute 29.246 ms; TTL expiry"
+      },
+      {
+        "product": "Couchbase",
+        "family": "Document",
+        "evidence": "4 document shapes in one collection; nested query used FETCH <- IXSCAN"
+      },
+      {
+        "product": "Apache HBase",
+        "family": "Wide-Column (column-family)",
+        "evidence": "row-key range examined 96 keys for 96 rows; non-key filter examined 6720 docs"
+      },
+      {
+        "product": "Amazon Neptune",
+        "family": "Graph",
+        "evidence": "73 people within 3 hops in 1 query vs 3 app round trips"
+      }
+    ]
+  }
+}

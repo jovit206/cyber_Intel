@@ -125,7 +125,7 @@ def benchmark_capabilities() -> dict[str, Any]:
         "ready_to_embed": sentence_transformers_installed and numpy_installed,
         "install_note": (
             None if sentence_transformers_installed and numpy_installed
-            else "Install chapter-17/requirements-vector-lab.txt in the backend image to enable dataset embedding."
+            else "Install lab-17/requirements-vector-lab.txt in the backend image to enable dataset embedding."
         ),
     }
 

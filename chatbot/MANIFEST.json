@@ -1,0 +1,227 @@
+{
+ "note": "Copied files are byte-identical to the original platform files; 'new_files' were written for the standalone Docker app.",
+ "copied_files": [
+  {
+   "original": "backend/routes/chapter17_compat.py",
+   "copy": "backend/routes/chapter17_compat.py",
+   "sha256": "ac647ce7c055fc9a96a47200f41b9ae465db9583cca67aabe3e10b2355da5156",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/routes/local_agent.py",
+   "copy": "backend/routes/local_agent.py",
+   "sha256": "3d02b9b8b1ec02b5737d03dc44b94fd427a7ab9c5e4fba9dd9aca560eb2245a6",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/routes/vector_rag.py",
+   "copy": "backend/routes/vector_rag.py",
+   "sha256": "fdd5f9364362111366cd24503edbe8da815fb1fee079af155d06d9e463531e06",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/routes/subscriptions.py",
+   "copy": "backend/routes/subscriptions.py",
+   "sha256": "1bc261b14ff1b61d651f3e0410187770f45fbd9b8c54cae3dbdbbf794181ac5c",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/routes/admin.py",
+   "copy": "backend/routes/admin.py",
+   "sha256": "7e418a5d24f719ead7918a88ba46b449802799f8be1cd6eacc26137c7786b47d",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/services/assistant.py",
+   "copy": "backend/services/assistant.py",
+   "sha256": "ff9d40ad14ba8d0f2569dd7fee6d1f52069b0955bfd8949c567af665907d599d",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/services/llm_provider.py",
+   "copy": "backend/services/llm_provider.py",
+   "sha256": "b1ea81bb429f397eb399871983ca9e279e56cfcd61d7dcc5bd40ce5acdd2f741",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/services/platform_knowledge.py",
+   "copy": "backend/services/platform_knowledge.py",
+   "sha256": "78dbd7c7b7b3291c3dd2ed76b6c797b7070819af209e3bdadfc734e212dd316a",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/services/threat_retrieval.py",
+   "copy": "backend/services/threat_retrieval.py",
+   "sha256": "40b831713e062fdc5a3387045edb3cd3d0969da6a5130752ffbc0a1138746b01",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/services/vector_rag.py",
+   "copy": "backend/services/vector_rag.py",
+   "sha256": "27fc89da8a540164000d3618d31e48d2a71ce46427e396efeb3f576a6e988cf6",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/services/local_assistant.py",
+   "copy": "backend/services/local_assistant.py",
+   "sha256": "1cacd0be8be9ae0cfbcdef0aae609c523f5e535b12b13a3d16af1f25f4cbad7c",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/services/local_agent.py",
+   "copy": "backend/services/local_agent.py",
+   "sha256": "79883d762da38341deaf6eecbb784aa357a09ca4613bf54e5108ebb9a46f570e",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/services/subscriptions.py",
+   "copy": "backend/services/subscriptions.py",
+   "sha256": "d3aa37e62000abda770a018786cd98ec4f0fcd96cb6cd5a9d60cccdf51f1869c",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/services/entitlements.py",
+   "copy": "backend/services/entitlements.py",
+   "sha256": "ad1141a497209c60aacd9704214b0881b937b740aa1a65aeb3bd0fe3cc305357",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/utils/routes.py",
+   "copy": "backend/utils/routes.py",
+   "sha256": "4e5332632f52c8e8d3f47cd06d34b0ddfed614bcedcfee3556590d5a239ab079",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/knowledge/PLATFORM_OVERVIEW.md",
+   "copy": "backend/knowledge/PLATFORM_OVERVIEW.md",
+   "sha256": "fe28ceb78b8bb0c81d9ea685308f2082a4a9d979341b0a402acc3801b489e084",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/config.py",
+   "copy": "backend/config.py",
+   "sha256": "ca83fcb7d9da79f0bed5fddf5f7cb0609f2a31e17b6c1a38a291ce4cac4987e2",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/database.py",
+   "copy": "backend/database.py",
+   "sha256": "9b0c9354bc7c0d2b15cca5fc9b089ed862c5846b41d9efa8eae07ee71250cf94",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/main.py",
+   "copy": "docs/reference/original_main.py",
+   "sha256": "fbb2d26950188fc650796de58f4361768d65a0ffaa965be9e27d72e0f8c05c08",
+   "identical_to_original": true
+  },
+  {
+   "original": "requirements.txt",
+   "copy": "docs/reference/original_requirements.txt",
+   "sha256": "53dc357a6175e9db0ffd557fcc716fa8c7a7fd6c5142269552b3e7f9265711ae",
+   "identical_to_original": true
+  },
+  {
+   "original": "public/ai-threat-assistant.js",
+   "copy": "public/ai-threat-assistant.js",
+   "sha256": "36292fe9d5a36eec8017fbd0924ec08be272515deed18f457782d4bb2b0f424e",
+   "identical_to_original": true
+  },
+  {
+   "original": "public/account.js",
+   "copy": "public/account.js",
+   "sha256": "dd82492b658db47a95fd84b602668a75ed517ada336271c5f82b8d2854a5b474",
+   "identical_to_original": true
+  },
+  {
+   "original": "public/ai-threat-assistant.css",
+   "copy": "public/ai-threat-assistant.css",
+   "sha256": "d1d11997e4894bdfb57bf78d52cc20aacbc67fe6ddd6d1e3adcc8bed1720df5a",
+   "identical_to_original": true
+  },
+  {
+   "original": "public/style.css",
+   "copy": "public/style.css",
+   "sha256": "81a7ea30ddd61589ad13c7084447b7ee0ae7407fc4cd9b1a1083edc12b700f0e",
+   "identical_to_original": true
+  },
+  {
+   "original": "public/index.html",
+   "copy": "public/index.html",
+   "sha256": "eadf5782a53e43eb6ca579d480c4bdf35ad828dcf9c50f28ec74ea9417de1c08",
+   "identical_to_original": true
+  },
+  {
+   "original": "public/account.html",
+   "copy": "public/account.html",
+   "sha256": "169833a80a0826fb3a243359235f15371d54c506eaf8c05ea8bedce570b18780",
+   "identical_to_original": true
+  },
+  {
+   "original": "local_agent/aegis_local_agent.py",
+   "copy": "local_agent/aegis_local_agent.py",
+   "sha256": "b185f5feabd065e804118e88362d231324dbb911737aa1972a9cfc3de83789ec",
+   "identical_to_original": true
+  },
+  {
+   "original": "local_agent/policy.py",
+   "copy": "local_agent/policy.py",
+   "sha256": "07cd4d3cee8a286b17bf08f564f76c987c57339022ef4122232f3c5632e18167",
+   "identical_to_original": true
+  },
+  {
+   "original": "local_agent/tools.py",
+   "copy": "local_agent/tools.py",
+   "sha256": "f90a16742829981b26eb2b2a8d3a873a5392e83b4f19ec562b364f55f0580a4d",
+   "identical_to_original": true
+  },
+  {
+   "original": "lab-17/README.md",
+   "copy": "docs/lab-17_README.md",
+   "sha256": "cfebcc2ed92582b6fdfcc5c27db95788805ed55282ccba7c54978853a00bd43c",
+   "identical_to_original": true
+  },
+  {
+   "original": "lab-17/THREAT_RETRIEVAL.md",
+   "copy": "docs/lab-17_THREAT_RETRIEVAL.md",
+   "sha256": "08769db6f69cf1107f978899b6e69397eaf5ae54cea9405740acb6175167fa95",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/__init__.py",
+   "copy": "backend/__init__.py",
+   "sha256": "42ac07e4b44f36a6d161a88acac4346fb124e7448dde94f969a30d8f2f51e353",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/routes/__init__.py",
+   "copy": "backend/routes/__init__.py",
+   "sha256": "99c222846379a443fed34fe19f932fd907a7ec8e600c35b0ce479fc7f7a40dd6",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/services/__init__.py",
+   "copy": "backend/services/__init__.py",
+   "sha256": "ba9a6b7d97164bdb9877eea9af7857923784c555ef8f8c0b1a82d3bfbfddfd29",
+   "identical_to_original": true
+  },
+  {
+   "original": "backend/utils/__init__.py",
+   "copy": "backend/utils/__init__.py",
+   "sha256": "c9e5f1b4b9d2460f4ebc81e4d2b7d1f75577ce3081d2c236062ff821b01bb7e6",
+   "identical_to_original": true
+  }
+ ],
+ "new_files": [
+  "app.py",
+  "public/assistant.html",
+  "Dockerfile",
+  "docker-compose.yml",
+  ".dockerignore",
+  "requirements.txt",
+  ".env.example",
+  "README.md",
+  "ARCHITECTURE.md",
+  "MANIFEST.json"
+ ]
+}

@@ -1,0 +1,3 @@
+pymongo>=4.6
+certifi          # CA bundle for TLS connections to MongoDB Atlas
+dnspython        # resolves mongodb+srv:// Atlas connection strings

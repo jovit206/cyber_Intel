@@ -1,0 +1,117 @@
+{
+  "activity": "activity_2_2_try_it_yourself",
+  "title": "Activity 2.2 (Try it yourself) - 10% price rise for pre-2010 books",
+  "environment": {
+    "student": {
+      "name": "Jovit Chawla",
+      "enrollment": "24BTRCL089"
+    },
+    "run_at_utc": "2026-11-19T14:22:48+00:00",
+    "machine": "LAPTOP-DSDFIQOI",
+    "os": "Windows 11 (10.0.26300)",
+    "python": "3.12.10",
+    "pymongo": "4.20.0"
+  },
+  "measurements": {
+    "deployment": "docker",
+    "eligible": 6,
+    "matched": 6,
+    "modified": 6,
+    "second_run_modified": 0,
+    "rows": [
+      {
+        "title": "The Mythical Man-Month",
+        "year": 1975,
+        "before": 540.0,
+        "after": 594.0,
+        "expected": 594.0,
+        "changed": true,
+        "ok": true
+      },
+      {
+        "title": "Introduction to Algorithms",
+        "year": 1990,
+        "before": 1250.0,
+        "after": 1375.0,
+        "expected": 1375.0,
+        "changed": true,
+        "ok": true
+      },
+      {
+        "title": "Refactoring",
+        "year": 1999,
+        "before": 820.0,
+        "after": 902.0,
+        "expected": 902.0,
+        "changed": true,
+        "ok": true
+      },
+      {
+        "title": "The Pragmatic Programmer",
+        "year": 1999,
+        "before": 720.0,
+        "after": 792.0,
+        "expected": 792.0,
+        "changed": true,
+        "ok": true
+      },
+      {
+        "title": "Wings of Fire",
+        "year": 1999,
+        "before": 299.0,
+        "after": 328.9,
+        "expected": 328.9,
+        "changed": true,
+        "ok": true
+      },
+      {
+        "title": "Clean Code",
+        "year": 2008,
+        "before": 650.0,
+        "after": 715.0,
+        "expected": 715.0,
+        "changed": true,
+        "ok": true
+      },
+      {
+        "title": "Seven Databases in Seven Weeks",
+        "year": 2012,
+        "before": 780.0,
+        "after": 780.0,
+        "expected": 780.0,
+        "changed": false,
+        "ok": true
+      },
+      {
+        "title": "Python Crash Course",
+        "year": 2015,
+        "before": 560.0,
+        "after": 560.0,
+        "expected": 560.0,
+        "changed": false,
+        "ok": true
+      },
+      {
+        "title": "Deep Learning",
+        "year": 2016,
+        "before": 1600.0,
+        "after": 1600.0,
+        "expected": 1600.0,
+        "changed": false,
+        "ok": true
+      },
+      {
+        "title": "Designing Data-Intensive Applications",
+        "year": 2017,
+        "before": 1450.0,
+        "after": 1450.0,
+        "expected": 1450.0,
+        "changed": false,
+        "ok": true
+      }
+    ],
+    "problems": [],
+    "catalogue_before": 8669.0,
+    "catalogue_after": 9096.9
+  }
+}

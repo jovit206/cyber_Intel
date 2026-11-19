@@ -6,7 +6,7 @@ Run Lab 11.1 from the project root after the platform backend and isolated Chapt
 
 ```powershell
 $env:CHAPTER11_MONGO_URI = 'mongodb://localhost:37317'
-..\.venv\Scripts\python.exe .\chapter11\lab11_1_shard_key.py
+..\.venv\Scripts\python.exe .\lab-11\lab11_1_shard_key.py
 ```
 
 The evaluator first verifies that exactly 1,400 uniquely identified records with the expected source markers exist. If that check fails, it writes no Chapter 11 collections. It then reads the source and writes only the four `chapter11.transactions_by_*` collections used for this evaluation. It checks that its Chapter 11 connection is `mongos` and refuses to alter an existing collection with a different shard key.

@@ -88,7 +88,7 @@ def cassandra_session(cassandra_cluster):
 def neo4j_driver():
     settings = Settings.from_env()
     if not settings.neo4j_password:
-        pytest.skip("Set NEO4J_PASSWORD in chapter-16/.env for Neo4j integration tests.")
+        pytest.skip("Set NEO4J_PASSWORD in lab-16/.env for Neo4j integration tests.")
     driver = GraphDatabase.driver(
         settings.neo4j_uri,
         auth=(settings.neo4j_username, settings.neo4j_password),

@@ -37,7 +37,7 @@ dataset has **10 students, 5 courses, and 24 enrollments**.
 From the repository root:
 
 ```powershell
-Set-Location .\chapter-16
+Set-Location .\lab-16
 Copy-Item .env.example .env
 ```
 
@@ -133,7 +133,7 @@ The canonical seed data is in `lab-16.1/common/dataset.py`. Seed operations are 
 
 ### Seed all databases and compare the queries
 
-From `chapter-16` after the databases are healthy:
+From `lab-16` after the databases are healthy:
 
 ```powershell
 python .\scripts\run_lab161.py

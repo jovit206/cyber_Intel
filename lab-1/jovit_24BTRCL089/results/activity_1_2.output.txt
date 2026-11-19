@@ -1,0 +1,35 @@
+Activity 1.2 - Map a Real-World Application (ride-sharing + social analytics)
+Student: Jovit Chawla (24BTRCL089)
+Run at 2026-11-19T14:15:26+00:00 on LAPTOP-DSDFIQOI | MongoDB 8.3.7 (standalone) | Python 3.12.10 | pymongo 4.20.0
+
+== 1. Live driver positions -> Key-Value / geospatial cache ==
+  4000 position upserts by key in one bulk write: 1050.6 ms (3,807 writes/s)
+  5 nearest available drivers within 3 km: plan=FETCH <- GEO_NEAR_2DSPHERE <- FETCH <- IXSCAN pipeline=['$geoNearCursor', '$limit'] returned=32 keysExamined=176 docsExamined=153 serverMs=3
+  nearest: D0296 113 m, D0142 351 m, D0388 373 m, D0189 536 m, D0447 966 m
+
+== 2. Rider and driver profiles -> Document ==
+  whole rider profile by id (places + payment in one doc): plan=EXPRESS_IXSCAN pipeline=- returned=1 keysExamined=1 docsExamined=1 serverMs=0
+  whole driver profile by id (vehicle + documents): plan=EXPRESS_IXSCAN pipeline=- returned=1 keysExamined=1 docsExamined=1 serverMs=0
+  login lookup by phone (unique secondary index): plan=EXPRESS_IXSCAN pipeline=- returned=1 keysExamined=1 docsExamined=1 serverMs=4
+
+== 3. Trip history -> Document (time-ordered per rider; wide-column at very large scale) ==
+  rider's last-30-day trips, NO index: plan=SORT <- COLLSCAN pipeline=- returned=4 keysExamined=0 docsExamined=25000 serverMs=25
+  same query with {rider:1, requested_at:-1}: plan=FETCH <- IXSCAN pipeline=- returned=4 keysExamined=4 docsExamined=4 serverMs=3
+
+== 4. Fraud relationships -> Graph ==
+  traversal from R00089 through shared devices/cards: connected accounts ['R00089', 'R00412', 'R01777', 'R02250', 'R02901'] (34 edges walked, 8.42 ms)
+  control: an ordinary account (R00007) connects only to ['R00007', 'card-00007', 'device-00007']
+
+== Part B - social-media analytics ==
+  raw layer: all posts in partition 2026-05-10T04: plan=FETCH <- IXSCAN pipeline=- returned=524 keysExamined=524 docsExamined=524 serverMs=4
+  raw layer: posts by user890 (not the partition key): plan=COLLSCAN pipeline=- returned=3 keysExamined=0 docsExamined=12000 serverMs=12
+  real-time layer: 24000 counter increments ($inc upsert by key) in 2321.0 ms; single INCR median 0.586 ms
+  trending in 2026-05-10T04: #ipl=149, #monsoon=144, #pune=139
+
+== Mapping (each row backed by the measurements above) ==
+  Live driver positions      Key-Value + geo (Redis GEO)                          1050.62 ms for 4000 key writes; geo query examined 153 docs
+  Rider/driver profiles      Document (MongoDB)                                   profile by id: EXPRESS_IXSCAN, 1 doc
+  Trip history               Document; Wide-Column at very large scale (Cassandra) 25000 docs scanned without index -> 4 with the compound index
+  Fraud relationships        Graph (Neo4j / Neptune)                              ring of 5 found in one traversal; planted ring matched: True
+  Social raw post stream     Wide-Column (Cassandra)                              hour partition read examined 524 docs vs 12000
+  Social real-time counters  Key-Value (Redis INCR)                               single increment median 0.586 ms

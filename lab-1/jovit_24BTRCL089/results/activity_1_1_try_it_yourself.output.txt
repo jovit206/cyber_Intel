@@ -1,0 +1,24 @@
+Activity 1.1 (Try it yourself) - ScyllaDB, InfluxDB, ArangoDB
+Student: Jovit Chawla (24BTRCL089)
+Run at 2026-11-19T14:15:18+00:00 on LAPTOP-DSDFIQOI | MongoDB 8.3.7 (standalone) | Python 3.12.10 | pymongo 4.20.0
+
+== ScyllaDB -> wide-column: PRIMARY KEY ((channel_id), sent_at DESC) ==
+  latest 20 messages of one partition (ch-042): plan=LIMIT <- FETCH <- IXSCAN pipeline=- returned=20 keysExamined=20 docsExamined=20 serverMs=1
+  same question without the partition key (by author): plan=SORT <- COLLSCAN pipeline=- returned=19 keysExamined=0 docsExamined=60000 serverMs=85
+  partition query needed no SORT stage (clustering order served by the index): True
+
+== InfluxDB -> time-series: measurement, tags, fields, timestamp ==
+  100800 points from 20 hosts | on-disk storage: time-series 404 KiB vs plain collection 3244 KiB (8.0x smaller); points packed into 140 buckets
+  1-hour downsample of web-07 for one day: plan=GROUP <- UNPACK_TS_BUCKET <- CLUSTERED_IXSCAN pipeline=['$cursor', '$sort'] returned=24 keysExamined=0 docsExamined=20 serverMs=4
+  downsampled 720 raw points into 24 hourly rows; first: 2026-04-01 00:00 mean=53.87 max=94.35
+  5-point moving average (window function), last value: 79.33
+
+== ArangoDB -> multi-model: key-value + document + graph in one engine ==
+  KEY-VALUE: get u0089 by key: plan=EXPRESS_IXSCAN pipeline=- returned=1 keysExamined=1 docsExamined=1 serverMs=0
+  DOCUMENT: users in Pune who know mongodb: plan=FETCH <- IXSCAN pipeline=- returned=115 keysExamined=306 docsExamined=306 serverMs=3
+  GRAPH + DOCUMENT in ONE query: u0089 reaches 12 people within 2 hops, 3 of them live in Pune (median 3.598 ms)
+
+== Verdict ==
+  ScyllaDB  Single family: Wide-Column                              partition query examined 20 keys, no SORT; without the key: 60000 docs scanned
+  InfluxDB  Time-series (specialised; not one of the classic four)  time-series storage 404 KiB vs 3244 KiB plain; native downsampling
+  ArangoDB  Multi-model: Key-Value + Document + Graph               the same data answered a key lookup, a nested-document query and a traversal joined to documents

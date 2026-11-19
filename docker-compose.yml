@@ -163,7 +163,7 @@ services:
       OLLAMA_CHAT_MODEL: "${OLLAMA_CHAT_MODEL:-llama3.2:3b}"
       FRONTEND_ORIGIN: "http://localhost:${APP_PORT:-8000}"
       LAB9_RESULTS_DIR: /app/lab9/results
-      CHAPTER14_BACKUP_DIR: /app/chapter-14/backups
+      CHAPTER14_BACKUP_DIR: /app/lab-14/backups
     ports:
       - "${APP_PORT:-8000}:8000"
     depends_on:
@@ -174,14 +174,14 @@ services:
     volumes:
       # Lab 9.1 / 9.2 reports appear here on the host.
       - ./lab9/results:/app/lab9/results
-      - chapter14-backups:/app/chapter-14/backups
+      - chapter14-backups:/app/lab-14/backups
     networks:
       - mongo-net
 
   chapter14-backup-worker:
     image: ${CHAPTER14_WORKER_IMAGE:-aegis-chapter14-backup-worker:local}
     build:
-      context: ./chapter-14
+      context: ./lab-14
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file:

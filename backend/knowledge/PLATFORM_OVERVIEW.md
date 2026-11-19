@@ -72,19 +72,19 @@ this platform.
   in multi-document transactions), `lab10/Activity_10.2/lab_10_2_inventory_reservation.py`
   (inventory reservation with optimistic concurrency and retries), plus retry/backoff and failover
   activities. UI: Banking Operations and Reliability & Inventory.
-- Experiment 11 (sharding): `chapter11/` evaluates shard keys and compares timestamp-range
+- Experiment 11 (sharding): `lab-11/` evaluates shard keys and compares timestamp-range
   with hashed-user sharding through `mongos` on the separate `c11-*` sharded cluster. UI: Sharding &
   Horizontal Scalability.
-- Experiment 13 (high availability and Kubernetes): `chapter-13/` deploys an authenticated
+- Experiment 13 (high availability and Kubernetes): `lab-13/` deploys an authenticated
   three-member replica set with Docker Compose and Kubernetes, with Prometheus/Grafana monitoring
   and an optional Atlas Terraform configuration. Admin UI: exercise 13.
-- Experiment 14 (monitoring, backup and restore): `chapter-14/monitoring_dashboard.py`,
-  `chapter-14/backup_worker.py` and `chapter-14/backup_verify.py`; restore drills only use databases
+- Experiment 14 (monitoring, backup and restore): `lab-14/monitoring_dashboard.py`,
+  `lab-14/backup_worker.py` and `lab-14/backup_verify.py`; restore drills only use databases
   named `chapter14_restore_test_*`. Admin UI: exercise 14.
-- Experiment 15 (multi-tenant SaaS API): `chapter-15/app/` is a FastAPI task service with JWT
+- Experiment 15 (multi-tenant SaaS API): `lab-15/app/` is a FastAPI task service with JWT
   authentication, tenant-scoped authorisation and rate limiting. In the main platform,
   `backend/routes/cases.py` provides multi-tenant cases. Admin UI: exercise 15.
-- Experiment 16 (polyglot persistence): `chapter-16/` models data in MongoDB, Cassandra and Neo4j and
+- Experiment 16 (polyglot persistence): `lab-16/` models data in MongoDB, Cassandra and Neo4j and
   provides a fraud-analysis service with per-backend circuit breakers. Admin UI: exercise 16.
 - Experiment 17 (vector search and RAG): `backend/routes/vector_rag.py` and
   `backend/services/vector_rag.py` implement document ingestion, embeddings, Vector Search index
