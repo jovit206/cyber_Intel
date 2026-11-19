@@ -1,0 +1,51 @@
+
+========================================================================
+  Lab 5.1 Try It Yourself: $bucket order size categories
+========================================================================
+
+[OK] Connected to MongoDB at mongodb://localhost:27017
+[OK] Reading 20 orders from Chapter05.orders (read-only).
+
+[3m                       Orders by Size Category                        [0m
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┓
+┃[1m [0m[1mCategory           [0m[1m [0m┃[1m [0m[1mOrders[0m[1m [0m┃[1m [0m[1mUnits[0m[1m [0m┃[1m [0m[1mRevenue[0m[1m [0m┃[1m [0m[1mAvg Value[0m[1m [0m┃[1m [0m[1mShare[0m[1m [0m┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━┩
+│[36m [0m[36mmedium ($50 - $200)[0m[36m [0m│      2 │     6 │[32m [0m[32m   $370[0m[32m [0m│   $185.00 │   10% │
+│[36m [0m[36mlarge  (over $200) [0m[36m [0m│     18 │    41 │[32m [0m[32m$12,940[0m[32m [0m│   $718.89 │   90% │
+└─────────────────────┴────────┴───────┴─────────┴───────────┴───────┘
+
+[OK] 20 of 20 orders bucketed (0 dropped -- a document is dropped only if its groupBy value is below the first boundary and no default is set).
+
+=== Orders in each bucket ===
+
+  medium ($50 - $200)
+    ORD-105  Divya    Mouse            4 x = $   180
+    ORD-109  Kavya    Webcam           2 x = $   190
+
+  large  (over $200)
+    ORD-107  Imran    Docking Station  1 x = $   210
+    ORD-103  Kavya    Keyboard         3 x = $   255
+    ORD-117  Arjun    Office Chair     1 x = $   260
+    ORD-116  Kavya    Mouse            6 x = $   270
+    ORD-106  Arjun    Headphones       2 x = $   300
+    ORD-120  Imran    Headphones       2 x = $   300
+    ORD-111  Divya    Monitor          1 x = $   320
+    ORD-112  Arjun    Docking Station  2 x = $   420
+    ORD-114  Sneha    Keyboard         5 x = $   425
+    ORD-115  Rahul    Headphones       4 x = $   600
+    ORD-102  Sneha    Monitor          2 x = $   640
+    ORD-110  Rahul    Office Chair     3 x = $   780
+    ORD-119  Rahul    Monitor          3 x = $   960
+    ORD-101  Arjun    Laptop           1 x = $ 1,200
+    ORD-108  Sneha    Laptop           1 x = $ 1,200
+    ORD-113  Imran    Laptop           1 x = $ 1,200
+    ORD-118  Divya    Laptop           1 x = $ 1,200
+    ORD-104  Rahul    Laptop           2 x = $ 2,400
+
+[OK] Wrote results JSON -> activity_5_1_try_it_yourself_buckets.json
+
+========================================================================
+  Lab 5.1 Try It Yourself Complete
+========================================================================
+
+[OK] MongoDB connection closed.

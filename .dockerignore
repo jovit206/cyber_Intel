@@ -30,13 +30,12 @@ legacy-node
 public/*.metadata.json
 
 # Generated experiment output stays on the host (mounted at run time)
-labs/lab9/results/*
-!labs/lab9/results/.gitkeep
+lab9/results/*
+!lab9/results/.gitkeep
 
 # Tests, docs and submission artefacts are not part of the runtime image
 test
 *.pdf
-README.md
 docs
 
 # Public portfolio resources served by the application.

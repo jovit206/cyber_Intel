@@ -1,0 +1,1004 @@
+{
+  "activity": "Activity 8.2 (Try it yourself) - Priorities and prediction",
+  "script": "try_8_2_priority_election.py",
+  "steps": [
+    {
+      "step": "1. Clear any election freeze on mongo1:27017",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:39.422Z"
+      },
+      "command": {
+        "replSetFreeze": 0,
+        "directConnection": "mongo1:27017"
+      },
+      "result": {
+        "info": "unfreezing",
+        "ok": 1.0,
+        "$clusterTime": {
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1791477038,
+              "i": 1
+            }
+          },
+          "signature": {
+            "hash": {
+              "$binary": {
+                "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "subType": "00"
+              }
+            },
+            "keyId": 0
+          }
+        },
+        "operationTime": {
+          "$timestamp": {
+            "t": 1791477038,
+            "i": 1
+          }
+        }
+      }
+    },
+    {
+      "step": "1. Clear any election freeze on mongo2:27017",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:39.428Z"
+      },
+      "command": {
+        "replSetFreeze": 0,
+        "directConnection": "mongo2:27017"
+      },
+      "result": {
+        "info": "unfreezing",
+        "ok": 1.0,
+        "$clusterTime": {
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1791477038,
+              "i": 1
+            }
+          },
+          "signature": {
+            "hash": {
+              "$binary": {
+                "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "subType": "00"
+              }
+            },
+            "keyId": 0
+          }
+        },
+        "operationTime": {
+          "$timestamp": {
+            "t": 1791477038,
+            "i": 1
+          }
+        }
+      }
+    },
+    {
+      "step": "1. Clear any election freeze on mongo3:27017",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:39.433Z"
+      },
+      "command": {
+        "replSetFreeze": 0,
+        "directConnection": "mongo3:27017"
+      },
+      "result": {
+        "skipped": "Cannot freeze node when primary or running for election, state: Primary, full error: {'ok': 0.0, 'errmsg': 'Cannot freeze node when primary or running for election, state: Primary', 'code': 95, 'codeName': 'NotSecondary', '$clusterTime': {'clusterTime': Timestamp(1791477038, 1), 'signature': {'hash': b'\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00', 'keyId': 0}}, 'operationTime': Timestamp(1791477038, 1)}"
+      }
+    },
+    {
+      "step": "1. Members before",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:39.435Z"
+      },
+      "command": {
+        "replSetGetStatus": 1
+      },
+      "result": {
+        "mongo1:27017": {
+          "state": "SECONDARY",
+          "health": 1.0,
+          "priority": 1.0,
+          "arbiter": false
+        },
+        "mongo2:27017": {
+          "state": "SECONDARY",
+          "health": 1.0,
+          "priority": 1.0,
+          "arbiter": false
+        },
+        "mongo3:27017": {
+          "state": "PRIMARY",
+          "health": 1.0,
+          "priority": 1.0,
+          "arbiter": false
+        },
+        "mongo-arbiter:27017": {
+          "state": "ARBITER",
+          "health": 1.0,
+          "priority": 0.0,
+          "arbiter": true
+        }
+      }
+    },
+    {
+      "step": "2. Set the priorities",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:39.445Z"
+      },
+      "command": {
+        "replSetReconfig": {
+          "_id": "rs0",
+          "version": 3,
+          "term": 3,
+          "members": [
+            {
+              "_id": 0,
+              "host": "mongo1:27017",
+              "arbiterOnly": false,
+              "buildIndexes": true,
+              "hidden": false,
+              "priority": 3,
+              "tags": {},
+              "secondaryDelaySecs": 0,
+              "votes": 1
+            },
+            {
+              "_id": 1,
+              "host": "mongo2:27017",
+              "arbiterOnly": false,
+              "buildIndexes": true,
+              "hidden": false,
+              "priority": 2,
+              "tags": {},
+              "secondaryDelaySecs": 0,
+              "votes": 1
+            },
+            {
+              "_id": 2,
+              "host": "mongo3:27017",
+              "arbiterOnly": false,
+              "buildIndexes": true,
+              "hidden": false,
+              "priority": 1,
+              "tags": {},
+              "secondaryDelaySecs": 0,
+              "votes": 1
+            },
+            {
+              "_id": 3,
+              "host": "mongo-arbiter:27017",
+              "arbiterOnly": true,
+              "buildIndexes": true,
+              "hidden": false,
+              "priority": 0.0,
+              "tags": {},
+              "secondaryDelaySecs": 0,
+              "votes": 1
+            }
+          ],
+          "protocolVersion": 1,
+          "writeConcernMajorityJournalDefault": true,
+          "settings": {
+            "chainingAllowed": true,
+            "heartbeatIntervalMillis": 2000,
+            "heartbeatTimeoutSecs": 10,
+            "electionTimeoutMillis": 10000,
+            "catchUpTimeoutMillis": -1,
+            "catchUpTakeoverDelayMillis": 30000,
+            "getLastErrorModes": {},
+            "getLastErrorDefaults": {
+              "w": 1,
+              "wtimeout": 0
+            },
+            "replicaSetId": {
+              "$oid": "6ac7c50060b751f79909e954"
+            }
+          }
+        }
+      },
+      "result": {
+        "ok": 1.0,
+        "$clusterTime": {
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1791477039,
+              "i": 1
+            }
+          },
+          "signature": {
+            "hash": {
+              "$binary": {
+                "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "subType": "00"
+              }
+            },
+            "keyId": 0
+          }
+        },
+        "operationTime": {
+          "$timestamp": {
+            "t": 1791477039,
+            "i": 1
+          }
+        }
+      }
+    },
+    {
+      "step": "2. Priority takeover",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:50.469Z"
+      },
+      "command": {
+        "replSetGetStatus": 1,
+        "polls": 12
+      },
+      "result": [
+        {
+          "at": {
+            "$date": "2026-10-08T16:30:39.446Z"
+          },
+          "members": {
+            "mongo1:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 3.0,
+              "arbiter": false
+            },
+            "mongo2:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 2.0,
+              "arbiter": false
+            },
+            "mongo3:27017": {
+              "state": "PRIMARY",
+              "health": 1.0,
+              "priority": 1.0,
+              "arbiter": false
+            },
+            "mongo-arbiter:27017": {
+              "state": "ARBITER",
+              "health": 1.0,
+              "priority": 0.0,
+              "arbiter": true
+            }
+          }
+        },
+        {
+          "at": {
+            "$date": "2026-10-08T16:30:40.449Z"
+          },
+          "members": {
+            "mongo1:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 3.0,
+              "arbiter": false
+            },
+            "mongo2:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 2.0,
+              "arbiter": false
+            },
+            "mongo3:27017": {
+              "state": "PRIMARY",
+              "health": 1.0,
+              "priority": 1.0,
+              "arbiter": false
+            },
+            "mongo-arbiter:27017": {
+              "state": "ARBITER",
+              "health": 1.0,
+              "priority": 0.0,
+              "arbiter": true
+            }
+          }
+        },
+        {
+          "at": {
+            "$date": "2026-10-08T16:30:41.451Z"
+          },
+          "members": {
+            "mongo1:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 3.0,
+              "arbiter": false
+            },
+            "mongo2:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 2.0,
+              "arbiter": false
+            },
+            "mongo3:27017": {
+              "state": "PRIMARY",
+              "health": 1.0,
+              "priority": 1.0,
+              "arbiter": false
+            },
+            "mongo-arbiter:27017": {
+              "state": "ARBITER",
+              "health": 1.0,
+              "priority": 0.0,
+              "arbiter": true
+            }
+          }
+        },
+        {
+          "at": {
+            "$date": "2026-10-08T16:30:50.469Z"
+          },
+          "members": {
+            "mongo1:27017": {
+              "state": "PRIMARY",
+              "health": 1.0,
+              "priority": 3.0,
+              "arbiter": false
+            },
+            "mongo2:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 2.0,
+              "arbiter": false
+            },
+            "mongo3:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 1.0,
+              "arbiter": false
+            },
+            "mongo-arbiter:27017": {
+              "state": "ARBITER",
+              "health": 1.0,
+              "priority": 0.0,
+              "arbiter": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "step": "3. Prediction, made before stepDown",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:55.475Z"
+      },
+      "command": null,
+      "result": {
+        "currentPrimary": "mongo1:27017",
+        "candidates": {
+          "mongo2:27017": 2.0,
+          "mongo3:27017": 1.0
+        },
+        "predictedNewPrimary": "mongo2:27017",
+        "reason": "highest priority among the members that can still be elected"
+      }
+    },
+    {
+      "step": "4. rs.stepDown() on the primary",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:55.477Z"
+      },
+      "command": {
+        "replSetStepDown": 60,
+        "sentTo": "mongo1:27017"
+      },
+      "result": {
+        "ok": 1.0,
+        "$clusterTime": {
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1791477050,
+              "i": 2
+            }
+          },
+          "signature": {
+            "hash": {
+              "$binary": {
+                "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "subType": "00"
+              }
+            },
+            "keyId": 0
+          }
+        },
+        "operationTime": {
+          "$timestamp": {
+            "t": 1791477050,
+            "i": 2
+          }
+        }
+      }
+    },
+    {
+      "step": "4. Election after stepDown",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:57.485Z"
+      },
+      "command": {
+        "replSetGetStatus": 1,
+        "polls": 3
+      },
+      "result": [
+        {
+          "at": {
+            "$date": "2026-10-08T16:30:55.480Z"
+          },
+          "members": {
+            "mongo1:27017": {
+              "state": "PRIMARY",
+              "health": 1.0,
+              "priority": 3.0,
+              "arbiter": false
+            },
+            "mongo2:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 2.0,
+              "arbiter": false
+            },
+            "mongo3:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 1.0,
+              "arbiter": false
+            },
+            "mongo-arbiter:27017": {
+              "state": "ARBITER",
+              "health": 1.0,
+              "priority": 0.0,
+              "arbiter": true
+            }
+          }
+        },
+        {
+          "at": {
+            "$date": "2026-10-08T16:30:56.482Z"
+          },
+          "members": {
+            "mongo1:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 3.0,
+              "arbiter": false
+            },
+            "mongo2:27017": {
+              "state": "PRIMARY",
+              "health": 1.0,
+              "priority": 2.0,
+              "arbiter": false
+            },
+            "mongo3:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 1.0,
+              "arbiter": false
+            },
+            "mongo-arbiter:27017": {
+              "state": "ARBITER",
+              "health": 1.0,
+              "priority": 0.0,
+              "arbiter": true
+            }
+          }
+        },
+        {
+          "at": {
+            "$date": "2026-10-08T16:30:57.485Z"
+          },
+          "members": {
+            "mongo1:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 3.0,
+              "arbiter": false
+            },
+            "mongo2:27017": {
+              "state": "PRIMARY",
+              "health": 1.0,
+              "priority": 2.0,
+              "arbiter": false
+            },
+            "mongo3:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 1.0,
+              "arbiter": false
+            },
+            "mongo-arbiter:27017": {
+              "state": "ARBITER",
+              "health": 1.0,
+              "priority": 0.0,
+              "arbiter": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "step": "5. Verify the prediction",
+      "executedAt": {
+        "$date": "2026-10-08T16:30:57.485Z"
+      },
+      "command": null,
+      "result": {
+        "predicted": "mongo2:27017",
+        "elected": "mongo2:27017",
+        "prediction": "CORRECT"
+      }
+    },
+    {
+      "step": "6. Old primary takes the role back",
+      "executedAt": {
+        "$date": "2026-10-08T16:32:06.227Z"
+      },
+      "command": {
+        "replSetGetStatus": 1,
+        "polls": 68
+      },
+      "result": [
+        {
+          "at": {
+            "$date": "2026-10-08T16:30:57.486Z"
+          },
+          "members": {
+            "mongo1:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 3.0,
+              "arbiter": false
+            },
+            "mongo2:27017": {
+              "state": "PRIMARY",
+              "health": 1.0,
+              "priority": 2.0,
+              "arbiter": false
+            },
+            "mongo3:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 1.0,
+              "arbiter": false
+            },
+            "mongo-arbiter:27017": {
+              "state": "ARBITER",
+              "health": 1.0,
+              "priority": 0.0,
+              "arbiter": true
+            }
+          }
+        },
+        {
+          "at": {
+            "$date": "2026-10-08T16:30:58.489Z"
+          },
+          "members": {
+            "mongo1:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 3.0,
+              "arbiter": false
+            },
+            "mongo2:27017": {
+              "state": "PRIMARY",
+              "health": 1.0,
+              "priority": 2.0,
+              "arbiter": false
+            },
+            "mongo3:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 1.0,
+              "arbiter": false
+            },
+            "mongo-arbiter:27017": {
+              "state": "ARBITER",
+              "health": 1.0,
+              "priority": 0.0,
+              "arbiter": true
+            }
+          }
+        },
+        {
+          "at": {
+            "$date": "2026-10-08T16:30:59.491Z"
+          },
+          "members": {
+            "mongo1:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 3.0,
+              "arbiter": false
+            },
+            "mongo2:27017": {
+              "state": "PRIMARY",
+              "health": 1.0,
+              "priority": 2.0,
+              "arbiter": false
+            },
+            "mongo3:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 1.0,
+              "arbiter": false
+            },
+            "mongo-arbiter:27017": {
+              "state": "ARBITER",
+              "health": 1.0,
+              "priority": 0.0,
+              "arbiter": true
+            }
+          }
+        },
+        {
+          "at": {
+            "$date": "2026-10-08T16:32:06.227Z"
+          },
+          "members": {
+            "mongo1:27017": {
+              "state": "PRIMARY",
+              "health": 1.0,
+              "priority": 3.0,
+              "arbiter": false
+            },
+            "mongo2:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 2.0,
+              "arbiter": false
+            },
+            "mongo3:27017": {
+              "state": "SECONDARY",
+              "health": 1.0,
+              "priority": 1.0,
+              "arbiter": false
+            },
+            "mongo-arbiter:27017": {
+              "state": "ARBITER",
+              "health": 1.0,
+              "priority": 0.0,
+              "arbiter": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "step": "Final rs.status()",
+      "executedAt": {
+        "$date": "2026-10-08T16:32:06.229Z"
+      },
+      "command": {
+        "replSetGetStatus": 1
+      },
+      "result": {
+        "set": "rs0",
+        "date": {
+          "$date": "2026-10-08T16:32:06.228Z"
+        },
+        "myState": 1,
+        "term": 6,
+        "syncSourceHost": "",
+        "syncSourceId": -1,
+        "heartbeatIntervalMillis": 2000,
+        "majorityVoteCount": 3,
+        "writeMajorityCount": 3,
+        "votingMembersCount": 4,
+        "writableVotingMembersCount": 3,
+        "optimes": {
+          "lastCommittedOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477126,
+                "i": 2
+              }
+            },
+            "t": 6
+          },
+          "lastCommittedWallTime": {
+            "$date": "2026-10-08T16:32:06.046Z"
+          },
+          "readConcernMajorityOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477126,
+                "i": 2
+              }
+            },
+            "t": 6
+          },
+          "appliedOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477126,
+                "i": 2
+              }
+            },
+            "t": 6
+          },
+          "durableOpTime": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477126,
+                "i": 2
+              }
+            },
+            "t": 6
+          },
+          "lastAppliedWallTime": {
+            "$date": "2026-10-08T16:32:06.046Z"
+          },
+          "lastDurableWallTime": {
+            "$date": "2026-10-08T16:32:06.046Z"
+          }
+        },
+        "lastStableRecoveryTimestamp": {
+          "$timestamp": {
+            "t": 1791477107,
+            "i": 1
+          }
+        },
+        "electionCandidateMetrics": {
+          "lastElectionReason": "priorityTakeover",
+          "lastElectionDate": {
+            "$date": "2026-10-08T16:32:06.030Z"
+          },
+          "electionTerm": 6,
+          "lastCommittedOpTimeAtElection": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477117,
+                "i": 1
+              }
+            },
+            "t": 5
+          },
+          "lastSeenOpTimeAtElection": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477117,
+                "i": 1
+              }
+            },
+            "t": 5
+          },
+          "numVotesNeeded": 3,
+          "priorityAtElection": 3.0,
+          "electionTimeoutMillis": 10000,
+          "priorPrimaryMemberId": 1,
+          "numCatchUpOps": 0,
+          "newTermStartDate": {
+            "$date": "2026-10-08T16:32:06.046Z"
+          },
+          "wMajorityWriteAvailabilityDate": {
+            "$date": "2026-10-08T16:32:06.055Z"
+          }
+        },
+        "electionParticipantMetrics": {
+          "votedForCandidate": true,
+          "electionTerm": 5,
+          "lastVoteDate": {
+            "$date": "2026-10-08T16:30:55.480Z"
+          },
+          "electionCandidateMemberId": 1,
+          "voteReason": "",
+          "lastAppliedOpTimeAtElection": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477050,
+                "i": 2
+              }
+            },
+            "t": 4
+          },
+          "maxAppliedOpTimeInSet": {
+            "ts": {
+              "$timestamp": {
+                "t": 1791477050,
+                "i": 2
+              }
+            },
+            "t": 4
+          },
+          "priorityAtElection": 3.0
+        },
+        "members": [
+          {
+            "_id": 0,
+            "name": "mongo1:27017",
+            "health": 1.0,
+            "state": 1,
+            "stateStr": "PRIMARY",
+            "uptime": 143,
+            "optime": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791477126,
+                  "i": 2
+                }
+              },
+              "t": 6
+            },
+            "optimeDate": {
+              "$date": "2026-10-08T16:32:06Z"
+            },
+            "lastAppliedWallTime": {
+              "$date": "2026-10-08T16:32:06.046Z"
+            },
+            "lastDurableWallTime": {
+              "$date": "2026-10-08T16:32:06.046Z"
+            },
+            "syncSourceHost": "",
+            "syncSourceId": -1,
+            "infoMessage": "",
+            "electionTime": {
+              "$timestamp": {
+                "t": 1791477126,
+                "i": 1
+              }
+            },
+            "electionDate": {
+              "$date": "2026-10-08T16:32:06Z"
+            },
+            "configVersion": 3,
+            "configTerm": 6,
+            "self": true,
+            "lastHeartbeatMessage": ""
+          },
+          {
+            "_id": 1,
+            "name": "mongo2:27017",
+            "health": 1.0,
+            "state": 2,
+            "stateStr": "SECONDARY",
+            "uptime": 133,
+            "optime": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791477117,
+                  "i": 1
+                }
+              },
+              "t": 5
+            },
+            "optimeDurable": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791477117,
+                  "i": 1
+                }
+              },
+              "t": 5
+            },
+            "optimeDate": {
+              "$date": "2026-10-08T16:31:57Z"
+            },
+            "optimeDurableDate": {
+              "$date": "2026-10-08T16:31:57Z"
+            },
+            "lastAppliedWallTime": {
+              "$date": "2026-10-08T16:32:06.046Z"
+            },
+            "lastDurableWallTime": {
+              "$date": "2026-10-08T16:32:06.046Z"
+            },
+            "lastHeartbeat": {
+              "$date": "2026-10-08T16:32:06.049Z"
+            },
+            "lastHeartbeatRecv": {
+              "$date": "2026-10-08T16:32:06.048Z"
+            },
+            "pingMs": 0,
+            "lastHeartbeatMessage": "",
+            "syncSourceHost": "",
+            "syncSourceId": -1,
+            "infoMessage": "",
+            "configVersion": 3,
+            "configTerm": 6
+          },
+          {
+            "_id": 2,
+            "name": "mongo3:27017",
+            "health": 1.0,
+            "state": 2,
+            "stateStr": "SECONDARY",
+            "uptime": 133,
+            "optime": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791477126,
+                  "i": 2
+                }
+              },
+              "t": 6
+            },
+            "optimeDurable": {
+              "ts": {
+                "$timestamp": {
+                  "t": 1791477117,
+                  "i": 1
+                }
+              },
+              "t": 5
+            },
+            "optimeDate": {
+              "$date": "2026-10-08T16:32:06Z"
+            },
+            "optimeDurableDate": {
+              "$date": "2026-10-08T16:31:57Z"
+            },
+            "lastAppliedWallTime": {
+              "$date": "2026-10-08T16:32:06.046Z"
+            },
+            "lastDurableWallTime": {
+              "$date": "2026-10-08T16:32:06.046Z"
+            },
+            "lastHeartbeat": {
+              "$date": "2026-10-08T16:32:06.050Z"
+            },
+            "lastHeartbeatRecv": {
+              "$date": "2026-10-08T16:32:06.050Z"
+            },
+            "pingMs": 0,
+            "lastHeartbeatMessage": "",
+            "syncSourceHost": "mongo1:27017",
+            "syncSourceId": 0,
+            "infoMessage": "",
+            "configVersion": 3,
+            "configTerm": 6
+          },
+          {
+            "_id": 3,
+            "name": "mongo-arbiter:27017",
+            "health": 1.0,
+            "state": 7,
+            "stateStr": "ARBITER",
+            "uptime": 112,
+            "lastHeartbeat": {
+              "$date": "2026-10-08T16:32:06.056Z"
+            },
+            "lastHeartbeatRecv": {
+              "$date": "2026-10-08T16:32:06.055Z"
+            },
+            "pingMs": 0,
+            "lastHeartbeatMessage": "",
+            "syncSourceHost": "",
+            "syncSourceId": -1,
+            "infoMessage": "",
+            "configVersion": 3,
+            "configTerm": 6
+          }
+        ],
+        "ok": 1.0,
+        "$clusterTime": {
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1791477126,
+              "i": 2
+            }
+          },
+          "signature": {
+            "hash": {
+              "$binary": {
+                "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "subType": "00"
+              }
+            },
+            "keyId": 0
+          }
+        },
+        "operationTime": {
+          "$timestamp": {
+            "t": 1791477126,
+            "i": 2
+          }
+        }
+      }
+    }
+  ]
+}

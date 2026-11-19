@@ -183,7 +183,7 @@ class InterpretationAndArtifactTests(unittest.TestCase):
 class ScriptTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        spec = importlib.util.spec_from_file_location("lab01", ROOT / "labs" / "lab9" / "lab_01_write_concern_latency.py")
+        spec = importlib.util.spec_from_file_location("lab01", ROOT / "lab9" / "lab_01_write_concern_latency.py")
         cls.module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cls.module)   # importing must not run anything or touch the network
 

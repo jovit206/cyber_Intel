@@ -1,0 +1,34 @@
+MongoDB version : 8.3.7
+Server address  : localhost:27017
+Database        : nosql_labs
+------------------------------------------------------------------------
+ScyllaDB - key-value API and wide-column API over the same collection
+Access shape                    Stage            DocsExamined  Returned  TimeMs  
+---------------------------------------------------------------------------------
+KV: exact _id get               EXPRESS_IXSCAN   1             1         0       
+Wide-col: partition range scan  FETCH -> IXSCAN  40            40        0       
+
+InfluxDB - native MongoDB time series collection vs. a regular collection
+Collection     storageSize  logical size  Docs   
+-------------------------------------------------
+ts_regular     339968       1095000       15000  
+ts_timeseries  53248        96967         15000  
+
+Collection     Time-window query plan  DocsExamined  Returned  TimeMs  
+-----------------------------------------------------------------------
+ts_regular     COLLSCAN                15000         3300      10      
+ts_timeseries  CLUSTERED_IXSCAN        101           3300      7       
+
+ArangoDB - document $match + graph $graphLookup in a single pipeline
+Matched document     category     related edges found  
+-------------------------------------------------------
+item-electronics-01  electronics  2                    
+item-electronics-02  electronics  1                    
+
+Pipeline               Stage     DocsExamined  Returned  TimeMs  
+-----------------------------------------------------------------
+$match + $graphLookup  COLLSCAN  3             2         0       
+
+Persisted 3 product document(s) to 'multi_model_products'.
+
+Exported 3 document(s) from 'multi_model_products' -> multi_model_products.json

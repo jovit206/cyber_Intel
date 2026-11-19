@@ -1,0 +1,111 @@
+[
+  {
+    "_id": 1,
+    "title": "Why NoSQL Matters for AI",
+    "author": "arjun",
+    "tags": [
+      "nosql",
+      "ai"
+    ],
+    "comments": [
+      {
+        "author": "reader1",
+        "text": "Great overview!",
+        "created": "2025-03-01"
+      },
+      {
+        "author": "reader2",
+        "text": "I still prefer SQL",
+        "created": "2025-03-02"
+      },
+      {
+        "author": "reader3",
+        "text": "Bookmarked this",
+        "created": "2025-03-02"
+      },
+      {
+        "author": "reader4",
+        "text": "Any benchmarks?",
+        "created": "2025-03-03"
+      }
+    ],
+    "comment_count": 4
+  },
+  {
+    "_id": 2,
+    "title": "MongoDB Aggregation Tips",
+    "author": "sneha",
+    "tags": [
+      "mongodb",
+      "aggregation"
+    ],
+    "comments": [
+      {
+        "author": "reader1",
+        "text": "$lookup is powerful",
+        "created": "2025-03-04"
+      },
+      {
+        "author": "reader5",
+        "text": "Cover $facet next",
+        "created": "2025-03-04"
+      },
+      {
+        "author": "reader6",
+        "text": "Very practical",
+        "created": "2025-03-05"
+      }
+    ],
+    "comment_count": 3
+  },
+  {
+    "_id": 3,
+    "title": "Vector Search Deep Dive",
+    "author": "kavya",
+    "tags": [
+      "vector",
+      "search"
+    ],
+    "comments": [
+      {
+        "author": "reader2",
+        "text": "HNSW vs IVF?",
+        "created": "2025-03-06"
+      },
+      {
+        "author": "reader7",
+        "text": "How does it scale?",
+        "created": "2025-03-07"
+      }
+    ],
+    "comment_count": 2
+  },
+  {
+    "_id": 4,
+    "title": "CAP Theorem Explained",
+    "author": "arjun",
+    "tags": [
+      "cap",
+      "distributed"
+    ],
+    "comments": [
+      {
+        "author": "reader3",
+        "text": "Good for interviews",
+        "created": "2025-03-08"
+      }
+    ],
+    "comment_count": 1
+  },
+  {
+    "_id": 5,
+    "title": "Graph Databases for Fraud",
+    "author": "rahul",
+    "tags": [
+      "graph",
+      "fraud"
+    ],
+    "comments": [],
+    "comment_count": 0
+  }
+]

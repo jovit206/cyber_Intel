@@ -1,0 +1,217 @@
+{
+  "database": "Chapter05",
+  "collection": "orders",
+  "orders_in_collection": 20,
+  "boundaries": [
+    0,
+    50,
+    200
+  ],
+  "default_bucket": "large",
+  "pipeline": [
+    {
+      "$set": {
+        "order_total": {
+          "$multiply": [
+            "$quantity",
+            "$unit_price"
+          ]
+        }
+      }
+    },
+    {
+      "$bucket": {
+        "groupBy": "$order_total",
+        "boundaries": [
+          0,
+          50,
+          200
+        ],
+        "default": "large",
+        "output": {
+          "count": {
+            "$sum": 1
+          },
+          "revenue": {
+            "$sum": "$order_total"
+          },
+          "avg_order_value": {
+            "$avg": "$order_total"
+          },
+          "units": {
+            "$sum": "$quantity"
+          },
+          "orders": {
+            "$push": {
+              "order_id": "$order_id",
+              "customer": "$customer",
+              "product": "$product",
+              "qty": "$quantity",
+              "total": "$order_total"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "results": [
+    {
+      "_id": 50,
+      "count": 2,
+      "revenue": 370,
+      "avg_order_value": 185.0,
+      "units": 6,
+      "orders": [
+        {
+          "order_id": "ORD-105",
+          "customer": "Divya",
+          "product": "Mouse",
+          "qty": 4,
+          "total": 180
+        },
+        {
+          "order_id": "ORD-109",
+          "customer": "Kavya",
+          "product": "Webcam",
+          "qty": 2,
+          "total": 190
+        }
+      ]
+    },
+    {
+      "_id": "large",
+      "count": 18,
+      "revenue": 12940,
+      "avg_order_value": 718.8888888888889,
+      "units": 41,
+      "orders": [
+        {
+          "order_id": "ORD-101",
+          "customer": "Arjun",
+          "product": "Laptop",
+          "qty": 1,
+          "total": 1200
+        },
+        {
+          "order_id": "ORD-102",
+          "customer": "Sneha",
+          "product": "Monitor",
+          "qty": 2,
+          "total": 640
+        },
+        {
+          "order_id": "ORD-103",
+          "customer": "Kavya",
+          "product": "Keyboard",
+          "qty": 3,
+          "total": 255
+        },
+        {
+          "order_id": "ORD-104",
+          "customer": "Rahul",
+          "product": "Laptop",
+          "qty": 2,
+          "total": 2400
+        },
+        {
+          "order_id": "ORD-106",
+          "customer": "Arjun",
+          "product": "Headphones",
+          "qty": 2,
+          "total": 300
+        },
+        {
+          "order_id": "ORD-107",
+          "customer": "Imran",
+          "product": "Docking Station",
+          "qty": 1,
+          "total": 210
+        },
+        {
+          "order_id": "ORD-108",
+          "customer": "Sneha",
+          "product": "Laptop",
+          "qty": 1,
+          "total": 1200
+        },
+        {
+          "order_id": "ORD-110",
+          "customer": "Rahul",
+          "product": "Office Chair",
+          "qty": 3,
+          "total": 780
+        },
+        {
+          "order_id": "ORD-111",
+          "customer": "Divya",
+          "product": "Monitor",
+          "qty": 1,
+          "total": 320
+        },
+        {
+          "order_id": "ORD-112",
+          "customer": "Arjun",
+          "product": "Docking Station",
+          "qty": 2,
+          "total": 420
+        },
+        {
+          "order_id": "ORD-113",
+          "customer": "Imran",
+          "product": "Laptop",
+          "qty": 1,
+          "total": 1200
+        },
+        {
+          "order_id": "ORD-114",
+          "customer": "Sneha",
+          "product": "Keyboard",
+          "qty": 5,
+          "total": 425
+        },
+        {
+          "order_id": "ORD-115",
+          "customer": "Rahul",
+          "product": "Headphones",
+          "qty": 4,
+          "total": 600
+        },
+        {
+          "order_id": "ORD-116",
+          "customer": "Kavya",
+          "product": "Mouse",
+          "qty": 6,
+          "total": 270
+        },
+        {
+          "order_id": "ORD-117",
+          "customer": "Arjun",
+          "product": "Office Chair",
+          "qty": 1,
+          "total": 260
+        },
+        {
+          "order_id": "ORD-118",
+          "customer": "Divya",
+          "product": "Laptop",
+          "qty": 1,
+          "total": 1200
+        },
+        {
+          "order_id": "ORD-119",
+          "customer": "Rahul",
+          "product": "Monitor",
+          "qty": 3,
+          "total": 960
+        },
+        {
+          "order_id": "ORD-120",
+          "customer": "Imran",
+          "product": "Headphones",
+          "qty": 2,
+          "total": 300
+        }
+      ]
+    }
+  ]
+}

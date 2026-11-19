@@ -21,7 +21,7 @@ logger = logging.getLogger("aegis.lab8")
 router = APIRouter(prefix="/api/lab8", tags=["Lab 8 - MongoDB Replica Set & Failover"])
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-LAB8_DIR_INTERNAL = PROJECT_ROOT / "labs" / "lab8"
+LAB8_DIR_INTERNAL = PROJECT_ROOT / "lab8"
 LAB8_DIR_EXTERNAL = Path(r"C:\Users\hp\Downloads\Jovit_24BTRCL089-LAB_8\Chapter_08_Submission\Chapter_08_Submission")
 
 

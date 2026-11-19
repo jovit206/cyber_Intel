@@ -139,3 +139,27 @@
 @media (prefers-reduced-motion: reduce) {
   .ai-chat-shell,.ai-chat-sidebar,.ai-prompt-grid button,.ai-thinking span { transition:none; animation:none; }
 }
+
+/* Local laptop agent: status pill, scan progress, cancel and permission dialog */
+.ai-agent-status { flex:0 0 auto; padding:4px 10px; border:1px solid var(--border-subtle); border-radius:999px; color:var(--text-muted); background:#fff; font:600 11px var(--font-main); white-space:nowrap; }
+.ai-agent-status.is-connected { border-color:rgba(46,125,82,.35); color:#2e7d52; }
+.ai-agent-status::before { content:""; display:inline-block; width:7px; height:7px; margin-right:6px; border-radius:50%; background:currentColor; vertical-align:1px; }
+.ai-agent-progress { display:grid; gap:6px; margin-top:8px; }
+.ai-agent-progress p { color:var(--text-secondary); font-size:12px; }
+.ai-agent-progress-bar { position:relative; height:6px; overflow:hidden; border-radius:999px; background:var(--border-subtle); }
+.ai-agent-progress-bar span { position:absolute; inset:0 auto 0 0; width:0; border-radius:inherit; background:var(--coral-accent); transition:width .3s ease; }
+.ai-agent-progress-bar.is-indeterminate span { width:35%; animation:ai-agent-slide 1.2s ease-in-out infinite; }
+@keyframes ai-agent-slide { from { left:-35%; } to { left:100%; } }
+.ai-agent-cancel { justify-self:start; padding:4px 12px; border:1px solid var(--coral-accent); border-radius:999px; color:var(--coral-accent); background:transparent; font:600 11px var(--font-main); cursor:pointer; }
+.ai-agent-cancel:disabled { opacity:.6; cursor:default; }
+.ai-confirm-dialog { width:min(92vw,440px); padding:22px; border:1px solid var(--border-subtle); border-radius:14px; color:var(--text-primary); background:#fffdf9; box-shadow:0 18px 50px rgba(57,44,59,.22); }
+.ai-confirm-dialog::backdrop { background:rgba(57,44,59,.35); }
+.ai-confirm-dialog h2 { margin-bottom:10px; color:var(--text-white); font-size:17px; }
+.ai-confirm-dialog p { margin-bottom:8px; color:var(--text-secondary); font-size:13px; line-height:1.55; overflow-wrap:anywhere; }
+.ai-confirm-reason { color:var(--text-muted) !important; font-size:12px !important; }
+.ai-confirm-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+.ai-confirm-actions button { padding:8px 16px; border-radius:10px; font:600 13px var(--font-main); cursor:pointer; }
+.ai-confirm-decline { border:1px solid var(--border-subtle); color:var(--text-secondary); background:#fff; }
+.ai-confirm-approve { border:1px solid var(--coral-accent); color:#fff; background:var(--coral-accent); }
+@media (prefers-reduced-motion: reduce) { .ai-agent-progress-bar.is-indeterminate span { animation:none; width:100%; opacity:.5; } }
+@media (max-width: 760px) { .ai-agent-status { display:none; } }

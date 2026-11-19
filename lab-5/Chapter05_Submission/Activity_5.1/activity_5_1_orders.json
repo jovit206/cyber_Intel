@@ -1,0 +1,302 @@
+[
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc72f9"
+    },
+    "order_id": "ORD-101",
+    "customer": "Arjun",
+    "product": "Laptop",
+    "quantity": 1,
+    "unit_price": 1200,
+    "order_date": {
+      "$date": "2024-01-05T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "North"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc72fa"
+    },
+    "order_id": "ORD-102",
+    "customer": "Sneha",
+    "product": "Monitor",
+    "quantity": 2,
+    "unit_price": 320,
+    "order_date": {
+      "$date": "2024-01-11T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "South"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc72fb"
+    },
+    "order_id": "ORD-103",
+    "customer": "Kavya",
+    "product": "Keyboard",
+    "quantity": 3,
+    "unit_price": 85,
+    "order_date": {
+      "$date": "2024-01-17T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "East"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc72fc"
+    },
+    "order_id": "ORD-104",
+    "customer": "Rahul",
+    "product": "Laptop",
+    "quantity": 2,
+    "unit_price": 1200,
+    "order_date": {
+      "$date": "2024-01-23T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "West"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc72fd"
+    },
+    "order_id": "ORD-105",
+    "customer": "Divya",
+    "product": "Mouse",
+    "quantity": 4,
+    "unit_price": 45,
+    "order_date": {
+      "$date": "2024-01-29T00:00:00Z"
+    },
+    "status": "cancelled",
+    "region": "North"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc72fe"
+    },
+    "order_id": "ORD-106",
+    "customer": "Arjun",
+    "product": "Headphones",
+    "quantity": 2,
+    "unit_price": 150,
+    "order_date": {
+      "$date": "2024-02-03T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "North"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc72ff"
+    },
+    "order_id": "ORD-107",
+    "customer": "Imran",
+    "product": "Docking Station",
+    "quantity": 1,
+    "unit_price": 210,
+    "order_date": {
+      "$date": "2024-02-08T00:00:00Z"
+    },
+    "status": "pending",
+    "region": "South"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc7300"
+    },
+    "order_id": "ORD-108",
+    "customer": "Sneha",
+    "product": "Laptop",
+    "quantity": 1,
+    "unit_price": 1200,
+    "order_date": {
+      "$date": "2024-02-12T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "South"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc7301"
+    },
+    "order_id": "ORD-109",
+    "customer": "Kavya",
+    "product": "Webcam",
+    "quantity": 2,
+    "unit_price": 95,
+    "order_date": {
+      "$date": "2024-02-16T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "East"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc7302"
+    },
+    "order_id": "ORD-110",
+    "customer": "Rahul",
+    "product": "Office Chair",
+    "quantity": 3,
+    "unit_price": 260,
+    "order_date": {
+      "$date": "2024-02-21T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "West"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc7303"
+    },
+    "order_id": "ORD-111",
+    "customer": "Divya",
+    "product": "Monitor",
+    "quantity": 1,
+    "unit_price": 320,
+    "order_date": {
+      "$date": "2024-02-27T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "North"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc7304"
+    },
+    "order_id": "ORD-112",
+    "customer": "Arjun",
+    "product": "Docking Station",
+    "quantity": 2,
+    "unit_price": 210,
+    "order_date": {
+      "$date": "2024-03-04T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "North"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc7305"
+    },
+    "order_id": "ORD-113",
+    "customer": "Imran",
+    "product": "Laptop",
+    "quantity": 1,
+    "unit_price": 1200,
+    "order_date": {
+      "$date": "2024-03-09T00:00:00Z"
+    },
+    "status": "cancelled",
+    "region": "South"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc7306"
+    },
+    "order_id": "ORD-114",
+    "customer": "Sneha",
+    "product": "Keyboard",
+    "quantity": 5,
+    "unit_price": 85,
+    "order_date": {
+      "$date": "2024-03-14T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "South"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc7307"
+    },
+    "order_id": "ORD-115",
+    "customer": "Rahul",
+    "product": "Headphones",
+    "quantity": 4,
+    "unit_price": 150,
+    "order_date": {
+      "$date": "2024-03-19T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "West"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc7308"
+    },
+    "order_id": "ORD-116",
+    "customer": "Kavya",
+    "product": "Mouse",
+    "quantity": 6,
+    "unit_price": 45,
+    "order_date": {
+      "$date": "2024-03-25T00:00:00Z"
+    },
+    "status": "pending",
+    "region": "East"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc7309"
+    },
+    "order_id": "ORD-117",
+    "customer": "Arjun",
+    "product": "Office Chair",
+    "quantity": 1,
+    "unit_price": 260,
+    "order_date": {
+      "$date": "2024-04-02T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "North"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc730a"
+    },
+    "order_id": "ORD-118",
+    "customer": "Divya",
+    "product": "Laptop",
+    "quantity": 1,
+    "unit_price": 1200,
+    "order_date": {
+      "$date": "2024-04-07T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "North"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc730b"
+    },
+    "order_id": "ORD-119",
+    "customer": "Rahul",
+    "product": "Monitor",
+    "quantity": 3,
+    "unit_price": 320,
+    "order_date": {
+      "$date": "2024-04-13T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "West"
+  },
+  {
+    "_id": {
+      "$oid": "6aaa1ff7e386a71bacfc730c"
+    },
+    "order_id": "ORD-120",
+    "customer": "Imran",
+    "product": "Headphones",
+    "quantity": 2,
+    "unit_price": 150,
+    "order_date": {
+      "$date": "2024-04-18T00:00:00Z"
+    },
+    "status": "completed",
+    "region": "South"
+  }
+]

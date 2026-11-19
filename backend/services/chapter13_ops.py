@@ -17,8 +17,10 @@ from urllib.request import Request, urlopen
 from uuid import uuid4
 
 from pymongo.database import Database
+from pymongo.errors import OperationFailure
 
 logger = logging.getLogger("aegis.chapter13")
+_standalone_warned = False
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CHAPTER13_DIR = PROJECT_ROOT / "chapter-13"
 METRICS_COLLECTION = "deployment_metric_samples"
@@ -166,6 +168,16 @@ def sample_deployment_metrics(database: Database) -> dict[str, Any] | None:
         if marker:
             database[ELECTIONS_COLLECTION].insert_one({**marker, "source": "observed_primary_change"})
         return sample
+    except OperationFailure as error:
+        if error.code == 76:  # NoReplicationEnabled: standalone server, no replica-set telemetry exists
+            global _standalone_warned
+            if not _standalone_warned:
+                logger.warning("Chapter 13 telemetry disabled: the configured MongoDB is not a replica set member; "
+                               "no synthetic sample was written")
+                _standalone_warned = True
+            return None
+        logger.warning("Chapter 13 telemetry sample failed; no synthetic sample was written", exc_info=True)
+        return None
     except Exception:
         logger.warning("Chapter 13 telemetry sample failed; no synthetic sample was written", exc_info=True)
         return None

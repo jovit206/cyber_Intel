@@ -537,6 +537,18 @@
     const item = chapters.find(chapter => chapter.id === currentChapter);
     const content = $('[data-labs-content]');
     const tabName = tabs[item.id][currentTab];
+    // Experiment 18 mounts the Chapter 18 threat-intelligence workspace, which has its own heading and full tab
+    // navigation (overview, database comparison, threat intelligence, false-positive queue, benchmarks, communities,
+    // report, settings). The outer heading, duplicate tab row and explanatory note are therefore not rendered.
+    const embedded = item.id === '18';
+    $('[data-labs-tabs]').hidden = embedded;
+    $('[data-labs-heading]').hidden = embedded;
+    if (embedded) {
+      content.innerHTML = '<div id="labs-c18-workspace" data-vector-project="chapter18"></div>';
+      setMessage('');
+      mountProject(item.project);
+      return;
+    }
     $('[data-labs-tabs]').innerHTML = tabs[item.id].map((label, index) => `<button type="button" class="labs-chapter-tab${index === currentTab ? ' is-active' : ''}" aria-current="${index === currentTab ? 'page' : 'false'}" data-labs-tab="${index}">${esc(label)}</button>`).join('');
     if (item.id === '13') content.innerHTML = c13Page(currentTab);
     else if (item.id === '14') {

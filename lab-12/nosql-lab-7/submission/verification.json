@@ -1,0 +1,65 @@
+{
+ "generated_at": "2026-10-15",
+ "checks": [
+  {
+   "name": "Unit tests (81): backend, feeds, galaxies/reports, reliability, VirusTotal, write concern, partition script",
+   "result": "PASS",
+   "detail": "python -m unittest <7 modules>"
+  },
+  {
+   "name": "Lab 9.2 logic against a fake docker cluster (prechecks, confirmation, cleanup, reconnect fallbacks, report JSON)",
+   "result": "PASS",
+   "detail": "18 tests; no real docker used"
+  },
+  {
+   "name": "Lab 9.2 read-only --dry-run against the real replica set",
+   "result": "PASS",
+   "detail": "prechecks passed; containers/network unchanged"
+  },
+  {
+   "name": "Lab 9.2 real partition experiment",
+   "result": "MANUAL",
+   "detail": "not executed in this task by instruction; run python labs/lab9/lab_02_simulate_partition.py"
+  },
+  {
+   "name": "Lab 9.1 benchmark",
+   "result": "MANUAL",
+   "detail": "ran earlier on a disposable stack (1000 x 6 acknowledged); re-run on your cluster when presenting"
+  },
+  {
+   "name": "Frontend files byte-identical before/after migration",
+   "result": "PASS",
+   "detail": "6 files sha256"
+  },
+  {
+   "name": "OpenAPI contract identical (32 operations)",
+   "result": "PASS",
+   "detail": "methods, parameters, status codes"
+  },
+  {
+   "name": "Browser DOM + computed-style fingerprint, 8 views (real Edge)",
+   "result": "PASS",
+   "detail": "identical before/after"
+  },
+  {
+   "name": "Integration script against migrated image and live app",
+   "result": "PASS",
+   "detail": "/ , APIs, markup checks"
+  },
+  {
+   "name": "docker compose config",
+   "result": "PASS",
+   "detail": "valid"
+  },
+  {
+   "name": "Existing MongoDB data",
+   "result": "PASS",
+   "detail": "21 collections, none removed, none with fewer documents"
+  },
+  {
+   "name": "Image republished to Docker Hub",
+   "result": "MANUAL",
+   "detail": "not done; published latest predates this work"
+  }
+ ]
+}

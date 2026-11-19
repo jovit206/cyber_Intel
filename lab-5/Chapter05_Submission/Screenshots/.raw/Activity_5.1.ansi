@@ -1,0 +1,46 @@
+
+========================================================================
+  Lab 5.1: Sales Analytics Pipeline
+========================================================================
+
+[OK] Connected to MongoDB at mongodb://localhost:27017
+[OK] Dropped collection: Chapter05.orders
+[OK] Inserted 20 orders into Chapter05.orders.
+
+=== Monthly Revenue (completed orders only) ===
+[3m                    Monthly Revenue Report                    [0m
+┏━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━┓
+┃[1m [0m[1mMonth  [0m[1m [0m┃[1m [0m[1mRevenue[0m[1m [0m┃[1m [0m[1mOrders[0m[1m [0m┃[1m [0m[1mUnits[0m[1m [0m┃[1m [0m[1mAvg Value[0m[1m [0m┃[1m [0m[1mCustomers[0m[1m [0m┃
+┡━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━┩
+│[36m [0m[36m2024-01[0m[36m [0m│[32m [0m[32m $4,495[0m[32m [0m│      4 │     8 │ $1,123.75 │         4 │
+│[36m [0m[36m2024-02[0m[36m [0m│[32m [0m[32m $2,790[0m[32m [0m│      5 │     9 │   $558.00 │         5 │
+│[36m [0m[36m2024-03[0m[36m [0m│[32m [0m[32m $1,445[0m[32m [0m│      3 │    11 │   $481.67 │         3 │
+│[36m [0m[36m2024-04[0m[36m [0m│[32m [0m[32m $2,720[0m[32m [0m│      4 │     7 │   $680.00 │         4 │
+└─────────┴─────────┴────────┴───────┴───────────┴───────────┘
+
+=== Top 3 Customers by Total Spending ===
+  Rahul        $   4,740 across 4 orders (12 items)
+               products: Headphones, Laptop, Monitor, Office Chair
+  Sneha        $   2,265 across 3 orders (8 items)
+               products: Keyboard, Laptop, Monitor
+  Arjun        $   2,180 across 4 orders (6 items)
+               products: Docking Station, Headphones, Laptop, Office Chair
+
+=== Avg Order Value by Status ===
+  completed    avg=$  715.62 (16 orders, total=$11,450)
+  cancelled    avg=$  690.00 (2 orders, total=$1,380)
+  pending      avg=$  240.00 (2 orders, total=$480)
+
+=== Order Value Buckets ===
+  $0 - $250       3 orders, total=$580
+  $250 - $500     8 orders, total=$2,550
+  $500 - $1K      4 orders, total=$2,980
+  $1K - $2.5K     5 orders, total=$7,200
+
+[OK] Wrote 20 documents -> activity_5_1_orders.json
+
+========================================================================
+  Lab 5.1 Complete
+========================================================================
+
+[OK] MongoDB connection closed.

@@ -1,0 +1,61 @@
+[
+  {
+    "_id": {
+      "$oid": "6aa11f89d835e6a89501d62b"
+    },
+    "asin": "B08VJM6VZC",
+    "title": "LEVENIS KN95 Face Masks 50 Pack, Breathable Comfortable and ",
+    "price": 21.24,
+    "listPrice": 29.99,
+    "unitsSoldLastMonth": 30020
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f89d835e6a89501d62c"
+    },
+    "asin": "B00CBAWIIY",
+    "title": "Scotch Thermal Laminating Pouches, 200 Count, Clear, 3 mil.,",
+    "price": 20.0394,
+    "listPrice": 43.29,
+    "unitsSoldLastMonth": 30000
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f89d835e6a89501d62d"
+    },
+    "asin": "B00004SU18",
+    "title": "Brita Standard Water Filter Replacements for Pitchers and Di",
+    "price": 17.56,
+    "listPrice": 0.0,
+    "unitsSoldLastMonth": 30000,
+    "active": true
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f89d835e6a89501d62e"
+    },
+    "asin": "B0014E82II",
+    "title": "Finish Jet-Dry Rinse Aid, Dishwasher Rinse Agent & Drying Ag",
+    "price": 4.47,
+    "listPrice": 0.0,
+    "unitsSoldLastMonth": 20000
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f89a4c42ed8613f61a7"
+    },
+    "asin": "B08V3JGB1F",
+    "price": 8.9,
+    "title": "Kitsch Dermaplaning Tool - Face Razor for Women | Eyebrow Ra",
+    "unitsSoldLastMonth": 20000
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f89a4c42ed8613f61a8"
+    },
+    "asin": "LAB-B0014E82II",
+    "price": 79.99,
+    "title": "Lab Bundle - Finish Jet-Dry Rinse Aid, Dishwasher Rin",
+    "unitsSoldLastMonth": 0
+  }
+]

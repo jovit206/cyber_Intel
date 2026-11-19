@@ -1,0 +1,91 @@
+[
+  {
+    "code": "CS101",
+    "title": "Programming Fundamentals",
+    "direct": [],
+    "chain": []
+  },
+  {
+    "code": "CS210",
+    "title": "Discrete Mathematics",
+    "direct": [],
+    "chain": []
+  },
+  {
+    "code": "CS201",
+    "title": "Data Structures",
+    "direct": [
+      "CS101"
+    ],
+    "chain": [
+      "CS101"
+    ]
+  },
+  {
+    "code": "CS301",
+    "title": "Algorithms",
+    "direct": [
+      "CS201",
+      "CS210"
+    ],
+    "chain": [
+      "CS101",
+      "CS201",
+      "CS210"
+    ]
+  },
+  {
+    "code": "CS310",
+    "title": "Operating Systems",
+    "direct": [
+      "CS201"
+    ],
+    "chain": [
+      "CS101",
+      "CS201"
+    ]
+  },
+  {
+    "code": "CS401",
+    "title": "Database Systems",
+    "direct": [
+      "CS301",
+      "CS310"
+    ],
+    "chain": [
+      "CS101",
+      "CS201",
+      "CS210",
+      "CS301",
+      "CS310"
+    ]
+  },
+  {
+    "code": "CS402",
+    "title": "Machine Learning",
+    "direct": [
+      "CS301",
+      "CS210"
+    ],
+    "chain": [
+      "CS101",
+      "CS201",
+      "CS210",
+      "CS301"
+    ]
+  },
+  {
+    "code": "CS403",
+    "title": "Natural Language Processing",
+    "direct": [
+      "CS402"
+    ],
+    "chain": [
+      "CS101",
+      "CS201",
+      "CS210",
+      "CS301",
+      "CS402"
+    ]
+  }
+]

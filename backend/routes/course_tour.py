@@ -4,15 +4,16 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, Request
 
 from backend.routes.admin import _admin_user
+from backend.utils.routes import route_paths
 
 router = APIRouter(tags=["Course tour"])
 
 _CHAPTERS = [
     (7, "Schema Analysis and Activity Monitoring", "/api/operations/overview"),
-    (8, "Reliability and Inventory", "/api/lab8/status"),
-    (9, "Sharding and Horizontal Scalability", "/api/lab9/latency"),
+    (8, "Replica Set and Failover", "/api/lab8/status"),
+    (9, "Write Concern and Network Reliability", "/api/lab9/latency"),
     (10, "Banking and Inventory Workflows", "/api/lab10/overview"),
-    (11, "Reliability and Transactions", "/api/chapter11/status"),
+    (11, "Sharding and Horizontal Scalability", "/api/chapter11/status"),
     (12, "No separate Chapter 12 workspace is registered in this application", None),
     (13, "Deployment and Infrastructure", "/api/ops/overview"),
     (14, "Monitoring and Backup", "/api/ops/metrics/monitoring?minutes=60"),
@@ -27,10 +28,11 @@ _CHAPTERS = [
 def course_tour(request: Request, actor: dict = Depends(_admin_user)) -> dict:
     del actor
     chapters = []
+    registered = route_paths(request.app)
     for number, description, endpoint in _CHAPTERS:
         # Status is deliberately a local declaration; it does not make an external
         # health request or imply that an optional service is running.
-        available = bool(endpoint and endpoint.split("?")[0] in {route.path for route in request.app.routes})
+        available = bool(endpoint and endpoint.split("?")[0] in registered)
         chapters.append({
             "chapter": number,
             "description": description,

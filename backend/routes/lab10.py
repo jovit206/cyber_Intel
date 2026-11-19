@@ -23,7 +23,7 @@ from pymongo.write_concern import WriteConcern
 from ..seed_lab10_inventory_demo import seed_database
 
 router = APIRouter(prefix="/api/lab10", tags=["Banking & Inventory"])
-LAB10_DIR = Path(__file__).resolve().parents[2] / "labs" / "lab10"
+LAB10_DIR = Path(__file__).resolve().parents[2] / "lab10"
 DEMO_INVENTORY_DATABASE = os.getenv("LAB10_DEMO_DATABASE", "lab10_demo").strip() or "lab10_demo"
 if DEMO_INVENTORY_DATABASE in {"chapter07", "bank", "shop"}:
     raise RuntimeError("LAB10_DEMO_DATABASE must stay separate from chapter07, bank, and shop.")

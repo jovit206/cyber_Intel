@@ -1,0 +1,72 @@
+[
+  {
+    "_id": {
+      "$oid": "6a91a2d36c81afa5fb213f5f"
+    },
+    "product": "ScyllaDB",
+    "claim": "Wide-column engine with a DynamoDB-compatible key-value API on top.",
+    "evidence": {
+      "kv_lookup": {
+        "stage": "EXPRESS_IXSCAN",
+        "totalDocsExamined": 1,
+        "totalKeysExamined": 1,
+        "nReturned": 1,
+        "executionTimeMillis": 0
+      },
+      "partition_range_scan": {
+        "stage": "FETCH -> IXSCAN",
+        "totalDocsExamined": 40,
+        "totalKeysExamined": 40,
+        "nReturned": 40,
+        "executionTimeMillis": 0
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d36c81afa5fb213f60"
+    },
+    "product": "InfluxDB",
+    "claim": "Time-series storage is specialised enough to be treated as its own family.",
+    "evidence": {
+      "regular_storage_bytes": 344064,
+      "timeseries_storage_bytes": 53248,
+      "regular_logical_bytes": 1095000,
+      "timeseries_logical_bytes": 96927,
+      "regular_query_plan": {
+        "stage": "COLLSCAN",
+        "totalDocsExamined": 15000,
+        "totalKeysExamined": 0,
+        "nReturned": 3300,
+        "executionTimeMillis": 8
+      },
+      "timeseries_query_plan": {
+        "stage": "CLUSTERED_IXSCAN",
+        "totalDocsExamined": 101,
+        "totalKeysExamined": 0,
+        "nReturned": 3300,
+        "executionTimeMillis": 7
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d36c81afa5fb213f61"
+    },
+    "product": "ArangoDB",
+    "claim": "Multi-model: document, graph and key-value access in one engine.",
+    "evidence": {
+      "combined_pipeline": {
+        "stage": "COLLSCAN",
+        "totalDocsExamined": 3,
+        "totalKeysExamined": 0,
+        "nReturned": 2,
+        "executionTimeMillis": 0
+      },
+      "matched": [
+        "item-electronics-01",
+        "item-electronics-02"
+      ]
+    }
+  }
+]

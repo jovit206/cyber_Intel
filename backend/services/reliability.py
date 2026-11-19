@@ -27,10 +27,10 @@ from backend.services import write_concern as wc_core
 logger = logging.getLogger("aegis.reliability")
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-LAB9_DIR = PROJECT_ROOT / "labs" / "lab9"
+LAB9_DIR = PROJECT_ROOT / "lab9"
 PARTITION_SCRIPT = LAB9_DIR / "lab_02_simulate_partition.py"
 PARTITION_RESULTS_FILE = LAB9_DIR / "lab_02_partition_results.json"
-PARTITION_SCRIPT_RELATIVE = "labs/lab9/lab_02_simulate_partition.py"
+PARTITION_SCRIPT_RELATIVE = "lab9/lab_02_simulate_partition.py"
 
 LATENCY_DATABASE = "cap_latency_test"
 PARTITION_DATABASE = "lab9_partition"
@@ -42,7 +42,7 @@ MIN_BENCHMARK_DOCS = 10
 MAX_BENCHMARK_DOCS = 500
 
 # key -> (w, j, label, description). Historical data lives in ``data_<key>``
-# (written by labs/lab9/lab_01_write_concern_latency.py); live runs write to
+# (written by lab9/lab_01_write_concern_latency.py); live runs write to
 # ``live_benchmark_<key>``.
 LATENCY_CONFIGS: list[dict[str, Any]] = [
     {"key": "w1_j0", "wc": 1, "journal": False, "label": "w:1, j:false", "desc": "Local primary, in-memory ack"},
@@ -424,6 +424,15 @@ def _load_saved_log() -> dict[str, Any] | None:
     return None
 
 
+def _load_failover_test() -> dict[str, Any] | None:
+    """Newest saved Lab 9.3 failover/recovery report from the isolated test replica set, if one exists."""
+    try:
+        report = json.loads((wc_core.results_dir() / "lab_03_failover_latest.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return report if isinstance(report, dict) and report.get("experiment") == "lab_03_failover_recovery" else None
+
+
 def simulation_info() -> dict[str, Any]:
     """Describe the manual partition script. Never executes it."""
     info: dict[str, Any] = {
@@ -502,4 +511,5 @@ def partition_report(client) -> dict[str, Any]:
         "cluster_readiness": replica_set_readiness(client),
         "simulation": simulation_info(),
         "saved_experiment_log": _load_saved_log(),
+        "saved_failover_test": _load_failover_test(),
     }

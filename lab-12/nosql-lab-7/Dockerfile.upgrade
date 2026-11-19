@@ -1,0 +1,14 @@
+# Reuse the locally installed dependencies from the running Lab 7 image so an
+# application-only update does not redownload hundreds of megabytes of wheels.
+# The base image tag is deliberately not overwritten by this upgrade.
+FROM lab7-threat-intel:latency-fix
+
+LABEL org.opencontainers.image.title="AEGIS Threat Intelligence + Subscription Demo" \
+      org.opencontainers.image.version="subscriptions-2026-10-29"
+
+WORKDIR /app
+COPY backend ./backend
+COPY public ./public
+COPY labs ./labs
+
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

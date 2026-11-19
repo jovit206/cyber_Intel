@@ -1,0 +1,98 @@
+
+========================================================================
+  Lab 6.2: Compare Index Strategies
+========================================================================
+
+[OK] Connected to MongoDB at mongodb://localhost:27017
+[OK] Dropped collection: chapter_06.products_perf
+=== Step 1: Insert 10,000 products, no indexes except _id ===
+  0 secondary indexes: 10,000 inserts, median of 5 runs = 0.085s (117,777 docs/sec; range 0.079-0.110s)
+
+=== Step 2: Create 5 indexes, insert another 10,000 ===
+  idx_category_price_rating    keys={'category': 1, 'price': 1, 'rating': 1}  -> Q1 (prefix), Q5 (ESR)
+  idx_price                    keys={'price': 1}  -> Q2
+  idx_tags                     keys={'tags': 1}  -> Q3 (multikey)
+  idx_name_text                keys={'name': 'text'}  -> Q4
+  idx_stock                    keys={'stock': 1}  -> none of Q1-Q5
+  5 secondary indexes: 10,000 inserts, median of 5 runs = 0.335s (29,831 docs/sec; range 0.312-0.376s)
+
+  Percentage slowdown with 5 indexes: +294.8%
+
+=== Step 3: Five queries with all 5 indexes (20,000 docs, avg of 20 runs) ===
+  Q1 Electronics, cheapest 20 first   LIMIT > FETCH > IXSCAN       docs=    20  avg=  0.69 ms
+  Q2 Price between $100 and $150      FETCH > IXSCAN               docs=   993  avg=  6.06 ms
+  Q3 Tagged 'wireless'                FETCH > IXSCAN               docs= 4,184  avg= 20.87 ms
+  Q4 Text search name: 'headphones'   TEXT_MATCH > FETCH > IXSCAN  docs=   478  avg=  4.69 ms
+  Q5 Books rated >= 4.5, by price     FETCH > IXSCAN               docs=   347  avg= 10.15 ms
+
+=== Step 3: Drop all but the most critical index ===
+  Keeping idx_category_price_rating: most used in Activity 6.1's $indexStats (activity_6_1_try_it_yourself_index_stats.json).
+  Dropped idx_price
+  Dropped idx_tags
+  Dropped idx_name_text
+  Dropped idx_stock
+  Remaining: ['_id_', 'idx_category_price_rating']
+
+=== Step 3: Five queries with only idx_category_price_rating ===
+  Q1 Electronics, cheapest 20 first   LIMIT > FETCH > IXSCAN       docs=    20  avg=  0.93 ms
+  Q2 Price between $100 and $150      COLLSCAN                     docs=20,000  avg= 12.78 ms
+  Q3 Tagged 'wireless'                COLLSCAN                     docs=20,000  avg= 20.16 ms
+  Q4 Text search name: 'headphones'   COLLSCAN                     docs=20,000  avg= 15.25 ms  [regex fallback]
+  Q5 Books rated >= 4.5, by price     FETCH > IXSCAN               docs=   347  avg=  7.36 ms
+
+[3m              Query Performance: all 5 indexes vs only idx_category_price_rating (20,000 docs)              [0m
+┏━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━┳━━━━━━━━┓
+┃[1m [0m[1mQuery[0m[1m [0m┃[1m [0m[1m5 indexes: stage           [0m[1m [0m┃[1m [0m[1m Docs[0m[1m [0m┃[1m [0m[1mAvg ms[0m[1m [0m┃[1m [0m[1m1 index: stage        [0m[1m [0m┃[1m [0m[1m  Docs[0m[1m [0m┃[1m [0m[1mAvg ms[0m[1m [0m┃[1m [0m[1mChange[0m[1m [0m┃
+┡━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━╇━━━━━━━━┩
+│[36m [0m[36mQ1   [0m[36m [0m│ LIMIT > FETCH > IXSCAN      │    20 │   0.69 │ LIMIT > FETCH > IXSCAN │     20 │   0.93 │[31m [0m[31m  1.3x[0m[31m [0m│
+│[36m [0m[36mQ2   [0m[36m [0m│ FETCH > IXSCAN              │   993 │   6.06 │ COLLSCAN               │ 20,000 │  12.78 │[31m [0m[31m  2.1x[0m[31m [0m│
+│[36m [0m[36mQ3   [0m[36m [0m│ FETCH > IXSCAN              │ 4,184 │  20.87 │ COLLSCAN               │ 20,000 │  20.16 │[31m [0m[31m  1.0x[0m[31m [0m│
+│[36m [0m[36mQ4*  [0m[36m [0m│ TEXT_MATCH > FETCH > IXSCAN │   478 │   4.69 │ COLLSCAN               │ 20,000 │  15.25 │[31m [0m[31m  3.2x[0m[31m [0m│
+│[36m [0m[36mQ5   [0m[36m [0m│ FETCH > IXSCAN              │   347 │  10.15 │ FETCH > IXSCAN         │    347 │   7.36 │[31m [0m[31m  0.7x[0m[31m [0m│
+└───────┴─────────────────────────────┴───────┴────────┴────────────────────────┴────────┴────────┴────────┘
+  * Q4 with 1 index is the $regex fallback -- $text cannot run without a text index.
+
+=== Write cost with only idx_category_price_rating ===
+  1 secondary index: 10,000 inserts, median of 5 runs = 0.119s (83,896 docs/sec; range 0.103-0.128s)
+
+[3m                 Write Throughput: 10,000 inserts, median of 5 runs                  [0m
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃[1m [0m[1mConfiguration                      [0m[1m [0m┃[1m [0m[1mSeconds[0m[1m [0m┃[1m [0m[1mDocs/sec[0m[1m [0m┃[1m [0m[1mSlowdown vs no indexes[0m[1m [0m┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━┩
+│[36m [0m[36mNo indexes (only _id)              [0m[36m [0m│   0.085 │  117,777 │[31m [0m[31m                     -[0m[31m [0m│
+│[36m [0m[36m5 secondary indexes                [0m[36m [0m│   0.335 │   29,831 │[31m [0m[31m               +294.8%[0m[31m [0m│
+│[36m [0m[36m1 index (idx_category_price_rating)[0m[36m [0m│   0.119 │   83,896 │[31m [0m[31m                +40.4%[0m[31m [0m│
+└─────────────────────────────────────┴─────────┴──────────┴────────────────────────┘
+
+=== Step 4: Analysis -- query performance vs write throughput ===
+  Write cost. Inserting 10,000 products took 0.085s (median of 5 runs) with only the _id
+  index and 0.335s with 5 secondary indexes: a +294.8% slowdown (117,777 -> 29,831
+  docs/sec). Every insert has to add an entry to every index, and the multikey tags index
+  and the text index on name add several entries per document. idx_stock served none of
+  the 5 queries, yet every write paid for it. With only idx_category_price_rating kept,
+  the same insert took 0.119s (+40.4% vs no indexes).
+
+  Read cost. After dropping to idx_category_price_rating, Q1, Q5 still used an index,
+  while Q2, Q3, Q4 fell back to a COLLSCAN that examines all 20,000 documents (Q2 993 ->
+  20,000 docs examined, 6.1 -> 12.8 ms; Q3 4,184 -> 20,000 docs examined, 20.9 -> 20.2 ms;
+  Q4 478 -> 20,000 docs examined, 4.7 -> 15.3 ms). Wall-clock time moves less than
+  documents examined because, at 20,000 documents, much of each query's time is sending
+  its matches back to the client. Documents examined is the gap that grows with the
+  collection: a COLLSCAN reads every document, an index scan reads only the matching keys.
+
+  Trade-off. Indexes move cost from reads to writes. A read-heavy product catalogue should
+  keep the indexes its frequent queries actually use -- $indexStats shows which -- and
+  drop the ones nothing reads, like idx_stock here. A write-heavy workload such as logs or
+  sensor data should keep the fewest indexes that still meet its read latency targets. One
+  index that serves several queries, as idx_category_price_rating does for Q1 and Q5,
+  gives the most read benefit per unit of write cost.
+
+  Timings vary from run to run; re-run to check the numbers are stable.
+
+[OK] Wrote results JSON -> activity_6_2_index_strategies.json
+
+========================================================================
+  Lab 6.2 Complete
+========================================================================
+
+[OK] MongoDB connection closed.

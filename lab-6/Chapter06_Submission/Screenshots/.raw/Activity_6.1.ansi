@@ -1,0 +1,94 @@
+
+========================================================================
+  Lab 6.1: Index Design for a Query Workload
+========================================================================
+
+[OK] Connected to MongoDB at mongodb://localhost:27017
+[OK] Dropped collection: chapter_06.products
+Generating 50,000 products... (may take a few seconds)
+[OK] Inserted 50,000 products into chapter_06.products.
+     Sample: {'sku': 'SKU-00000', 'name': 'Essential Orbit Novel', 'category': 'Books', 'price': 227.09, 'rating': 3.9, 'stock': 346, 'tags': ['budget']}
+
+=== Step 3: EXPLAIN without indexes (only _id_) ===
+  Q1 Electronics, cheapest 20 first
+    Stage: SORT > COLLSCAN
+    Index: -
+    totalDocsExamined: 50,000  totalKeysExamined: 0  nReturned: 20  time: 30 ms
+  Q2 Price between $100 and $150
+    Stage: COLLSCAN
+    Index: -
+    totalDocsExamined: 50,000  totalKeysExamined: 0  nReturned: 2,532  time: 22 ms
+  Q3 Tagged 'wireless'
+    Stage: COLLSCAN
+    Index: -
+    totalDocsExamined: 50,000  totalKeysExamined: 0  nReturned: 10,459  time: 26 ms
+  Q4 $text without an index fails: text index required for $text query
+  Q4 Text search name: 'headphones'  [regex fallback]
+    Stage: COLLSCAN
+    Index: -
+    totalDocsExamined: 50,000  totalKeysExamined: 0  nReturned: 1,236  time: 36 ms
+  Q5 Books rated >= 4.5, by price
+    Stage: SORT > COLLSCAN
+    Index: -
+    totalDocsExamined: 50,000  totalKeysExamined: 0  nReturned: 880  time: 34 ms
+
+=== Step 4: Creating Indexes ===
+  idx_category_price_rating    keys={'category': 1, 'price': 1, 'rating': 1}  -> Q1 (prefix), Q5 (ESR)
+  idx_price                    keys={'price': 1}  -> Q2
+  idx_tags                     keys={'tags': 1}  -> Q3 (multikey)
+  idx_name_text                keys={'name': 'text'}  -> Q4
+[OK] Created 4 indexes.
+
+=== Step 4: EXPLAIN with indexes ===
+  Q1 Electronics, cheapest 20 first
+    Stage: LIMIT > FETCH > IXSCAN
+    Index: idx_category_price_rating
+    totalDocsExamined: 20  totalKeysExamined: 20  nReturned: 20  time: 13 ms
+  Q2 Price between $100 and $150
+    Stage: FETCH > IXSCAN
+    Index: idx_price
+    totalDocsExamined: 2,532  totalKeysExamined: 2,532  nReturned: 2,532  time: 7 ms
+  Q3 Tagged 'wireless'
+    Stage: FETCH > IXSCAN
+    Index: idx_tags
+    totalDocsExamined: 10,459  totalKeysExamined: 10,459  nReturned: 10,459  time: 21 ms
+  Q4 Text search name: 'headphones'
+    Stage: TEXT_MATCH > FETCH > IXSCAN
+    Index: idx_name_text
+    totalDocsExamined: 1,236  totalKeysExamined: 1,236  nReturned: 1,236  time: 4 ms
+  Q5 Books rated >= 4.5, by price
+    Stage: FETCH > IXSCAN
+    Index: idx_category_price_rating
+    totalDocsExamined: 880  totalKeysExamined: 6,148  nReturned: 880  time: 17 ms
+
+[3m                                            explain(): Before vs After Indexing                                            [0m
+┏━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━┓
+┃[1m [0m[1mQuery[0m[1m [0m┃[1m [0m[1mBefore stage   [0m[1m [0m┃[1m [0m[1m  Docs[0m[1m [0m┃[1m [0m[1mAfter stage                [0m[1m [0m┃[1m [0m[1mIndex used               [0m[1m [0m┃[1m [0m[1m  Docs[0m[1m [0m┃[1m [0m[1m  Keys[0m[1m [0m┃[1m [0m[1mDocs cut[0m[1m [0m┃
+┡━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━┩
+│[36m [0m[36mQ1   [0m[36m [0m│ SORT > COLLSCAN │ 50,000 │ LIMIT > FETCH > IXSCAN      │[35m [0m[35midx_category_price_rating[0m[35m [0m│     20 │     20 │[32m [0m[32m  99.96%[0m[32m [0m│
+│[36m [0m[36mQ2   [0m[36m [0m│ COLLSCAN        │ 50,000 │ FETCH > IXSCAN              │[35m [0m[35midx_price                [0m[35m [0m│  2,532 │  2,532 │[32m [0m[32m  94.94%[0m[32m [0m│
+│[36m [0m[36mQ3   [0m[36m [0m│ COLLSCAN        │ 50,000 │ FETCH > IXSCAN              │[35m [0m[35midx_tags                 [0m[35m [0m│ 10,459 │ 10,459 │[32m [0m[32m  79.08%[0m[32m [0m│
+│[36m [0m[36mQ4*  [0m[36m [0m│ COLLSCAN        │ 50,000 │ TEXT_MATCH > FETCH > IXSCAN │[35m [0m[35midx_name_text            [0m[35m [0m│  1,236 │  1,236 │[32m [0m[32m  97.53%[0m[32m [0m│
+│[36m [0m[36mQ5   [0m[36m [0m│ SORT > COLLSCAN │ 50,000 │ FETCH > IXSCAN              │[35m [0m[35midx_category_price_rating[0m[35m [0m│    880 │  6,148 │[32m [0m[32m  98.24%[0m[32m [0m│
+└───────┴─────────────────┴────────┴─────────────────────────────┴───────────────────────────┴────────┴────────┴──────────┘
+  * Q4 'before' is the $regex fallback -- $text cannot run without a text index.
+  Q1: nReturned=20 (same)
+  Q2: nReturned=2,532 (same)
+  Q3: nReturned=10,459 (same)
+  Q4: nReturned=1,236 (same)
+  Q5: nReturned=880 (same)
+
+=== Index Summary ===
+  _id_                           keys={'_id': 1}
+  idx_category_price_rating      keys={'category': 1, 'price': 1, 'rating': 1}
+  idx_price                      keys={'price': 1}
+  idx_tags                       keys={'tags': 1}
+  idx_name_text                  keys={'_fts': 'text', '_ftsx': 1}
+
+[OK] Wrote explain results JSON -> activity_6_1_explain_results.json
+
+========================================================================
+  Lab 6.1 Complete
+========================================================================
+
+[OK] MongoDB connection closed.

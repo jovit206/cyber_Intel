@@ -1,0 +1,290 @@
+{
+  "database": "nosql_labs",
+  "collection": "products",
+  "documents_searched": 50000,
+  "results": {
+    "0. demo terms": {
+      "contains": "shirt",
+      "pair": [
+        "shirt",
+        "sleeve"
+      ],
+      "prefix": "Mens",
+      "exclude": "sleeve"
+    },
+    "1. Case-insensitive contains: 'shirt'": {
+      "shown": 8,
+      "documents": [
+        {
+          "title": "0-5T Baby Boys Halloween Outfit Set Infant Newborn Girls Pullover Sweatshirts Cotton Pant Casual Clothes",
+          "price": 13.99,
+          "category": "Baby"
+        },
+        {
+          "title": "10\" x 13\"(500 Count) 2 Mil Clear Plastic Reclosable Ziplock Bags for Prints, Photos, Documents, Clothing, T-Shirt",
+          "price": 34.19,
+          "category": "Packaging & Shipping Supplies"
+        },
+        {
+          "title": "100 Pcs Frosted Slider Zip Plastic Bags, 10x13 Inch 3 Mil Resealable Zipper Poly Bags with Vent Hol, Packaging Shipping Bags for Shirt, Hoodies, Clothing",
+          "price": 20.99,
+          "category": "Packaging & Shipping Supplies"
+        },
+        {
+          "title": "100% Cotton Urban Streetwear Graphic Hoodie Tee Shirts",
+          "price": 22.99,
+          "category": "Men's Clothing"
+        },
+        {
+          "title": "100% Merino Wool T Shirts for Men Short Sleeve Odor Resistance Lightweight Base Layer for Travel Hiking",
+          "price": 38.99,
+          "category": "Men's Clothing"
+        },
+        {
+          "title": "100% Polyester Two Tone Short Sleeve Men's Uniform Shirt",
+          "price": 26.99,
+          "category": "Men's Clothing"
+        },
+        {
+          "title": "12 Pack Plus Size Men Cotton T-Shirt Bulk Big Tall Short Sleeve Lightweight Tees",
+          "price": 68.04,
+          "category": "Men's Clothing"
+        },
+        {
+          "title": "12pcs Button Extenders for Jeans, Dress Shirt Button Extender Waistband Jean Button Pants Extenders for Women Men Buttons for Jeans Button Extender for Pants Jeans Extender Waist Extender Button",
+          "price": 3.99,
+          "category": "Sewing Products"
+        }
+      ],
+      "filter": {
+        "title": {
+          "$regex": "shirt",
+          "$options": "i"
+        }
+      },
+      "total_matching": 1044
+    },
+    "2. case sensitivity comparison": {
+      "note": "the same term matches far more documents once $options:'i' is set"
+    },
+    "3. escaping user input": {
+      "term": "(shirt",
+      "escaped_pattern": "\\(shirt",
+      "escaped_matches": 1
+    },
+    "4. $and of two regexes: title contains shirt AND sleeve": {
+      "shown": 8,
+      "documents": [
+        {
+          "title": "100% Merino Wool T Shirts for Men Short Sleeve Odor Resistance Lightweight Base Layer for Travel Hiking",
+          "price": 38.99,
+          "category": "Men's Clothing"
+        },
+        {
+          "title": "100% Polyester Two Tone Short Sleeve Men's Uniform Shirt",
+          "price": 26.99,
+          "category": "Men's Clothing"
+        },
+        {
+          "title": "12 Pack Plus Size Men Cotton T-Shirt Bulk Big Tall Short Sleeve Lightweight Tees",
+          "price": 68.04,
+          "category": "Men's Clothing"
+        },
+        {
+          "title": "2 Pack Boys UPF 50+ Short Sleeve Outdoor Sun Shirts, Water Surf Swim Shirt for Kids, UV/SPF Aqua Swim Top",
+          "price": 29.98,
+          "category": "Boys' Clothing"
+        },
+        {
+          "title": "2 Piece Casual Outfits Long Sleeve Button Down Shirt and Shorts Sweatsuit Sets",
+          "price": 37.99,
+          "category": "Women's Clothing"
+        },
+        {
+          "title": "2Pcs Set Infant Baby Girl Fall Clothes Daddys Girl Long Sleeve Crewneck Sweatshirt+Joggers Pants Winter Outfit Set",
+          "price": 17.99,
+          "category": "Baby"
+        },
+        {
+          "title": "3 Pack Men's UPF 50+ UV Sun Protection Hoodie Long/Short Sleeve Rash Guard Shirts Swim Shirts Fishing Shirt",
+          "price": 33.99,
+          "category": "Men's Clothing"
+        },
+        {
+          "title": "3 Pack Plus Size Nightgowns V Neck Nightshirts Short Sleeve Printed Sleepwear Soft Loungewear for Women",
+          "price": 32.99,
+          "category": "Women's Clothing"
+        }
+      ],
+      "filter": {
+        "$and": [
+          {
+            "title": {
+              "$regex": "shirt",
+              "$options": "i"
+            }
+          },
+          {
+            "title": {
+              "$regex": "sleeve",
+              "$options": "i"
+            }
+          }
+        ]
+      },
+      "total_matching": 506
+    },
+    "5. Anchored: title STARTS WITH 'Mens'": {
+      "shown": 8,
+      "documents": [
+        {
+          "title": "Mens 100% Satin Silk Oversized Pre-tied Bowtie Handmade Solid Formal Tuxedo Big Bow Ties",
+          "price": 39.99,
+          "category": "Men's Accessories"
+        },
+        {
+          "title": "Mens 100% Wool Black Bowler Derby Hat Satin Lined Fedora Party Costume Hat",
+          "price": 43.99,
+          "category": "Men's Accessories"
+        },
+        {
+          "title": "Mens 1110 Baltoro Lite GTX Suede Boots",
+          "price": 345.99,
+          "category": "Men's Shoes"
+        },
+        {
+          "title": "Mens 26mm Black Silicone Rubber Diver Watch Band Waterproof Sport Stainless Steel Black Buckle",
+          "price": 15.9,
+          "category": "Men's Watches"
+        },
+        {
+          "title": "Mens 3 Piece Suits Slim Fit One Button Tuxedo Suits for Men Solid Business Casual for Wedding Blazer Pants Vest Suit Set",
+          "price": 69.99,
+          "category": "Men's Clothing"
+        },
+        {
+          "title": "Mens 3 Stripe Shorts with Zipper Pockets",
+          "price": 29.97,
+          "category": "Men's Clothing"
+        },
+        {
+          "title": "Mens 42mm Bradner Automatic 3 Hands Watch with Genuine Leather or Stainless Steel Strap SP-5062",
+          "price": 285.0,
+          "category": "Men's Watches"
+        },
+        {
+          "title": "Mens 43mm P-51 Mustang Hitchcock Automatic Japanese Quartz Pilot Watch with Leather Strap AV-4086",
+          "price": 264.0,
+          "category": "Men's Watches"
+        }
+      ],
+      "filter": {
+        "title": {
+          "$regex": "^Mens",
+          "$options": "i"
+        }
+      },
+      "total_matching": 219
+    },
+    "6. $not: contains 'shirt' but NOT 'sleeve'": {
+      "shown": 8,
+      "documents": [
+        {
+          "title": "0-5T Baby Boys Halloween Outfit Set Infant Newborn Girls Pullover Sweatshirts Cotton Pant Casual Clothes",
+          "price": 13.99,
+          "category": "Baby"
+        },
+        {
+          "title": "10\" x 13\"(500 Count) 2 Mil Clear Plastic Reclosable Ziplock Bags for Prints, Photos, Documents, Clothing, T-Shirt",
+          "price": 34.19,
+          "category": "Packaging & Shipping Supplies"
+        },
+        {
+          "title": "100 Pcs Frosted Slider Zip Plastic Bags, 10x13 Inch 3 Mil Resealable Zipper Poly Bags with Vent Hol, Packaging Shipping Bags for Shirt, Hoodies, Clothing",
+          "price": 20.99,
+          "category": "Packaging & Shipping Supplies"
+        },
+        {
+          "title": "100% Cotton Urban Streetwear Graphic Hoodie Tee Shirts",
+          "price": 22.99,
+          "category": "Men's Clothing"
+        },
+        {
+          "title": "12pcs Button Extenders for Jeans, Dress Shirt Button Extender Waistband Jean Button Pants Extenders for Women Men Buttons for Jeans Button Extender for Pants Jeans Extender Waist Extender Button",
+          "price": 3.99,
+          "category": "Sewing Products"
+        },
+        {
+          "title": "1400W Heat Press Machine for T Shirts Digital Sublimation Heat Transfer Printer Heat Press 16x20 Inch Heat Transfer Machine T-Shirt Press Machine",
+          "price": 308.99,
+          "category": "Printmaking Supplies"
+        },
+        {
+          "title": "150 Sets Plastic Snap Fasteners Buttons Invisible Sewing on Snap Buttons 7.5 mm 10 mm 15 mm Round Clear Press Button Transparent Sew-on Button with Storage Box for Shirts Clothing DIY Craft Baby Bibs",
+          "price": 9.49,
+          "category": "Sewing Products"
+        },
+        {
+          "title": "15Pcs Cute Cartoon Iron On Patches, for Clothing On Applique Embroidered Patches for Jackets, Jeans, Shirts,Hats, Backpacks. (C4)",
+          "price": 13.99,
+          "category": "Sewing Products"
+        }
+      ],
+      "filter": {
+        "$and": [
+          {
+            "title": {
+              "$regex": "shirt",
+              "$options": "i"
+            }
+          },
+          {
+            "title": {
+              "$not": {
+                "$regularExpression": {
+                  "pattern": "sleeve",
+                  "options": "iu"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "total_matching": 538
+    },
+    "7. what each regex shape costs": {
+      "/shirt/i   case-insensitive, unanchored": {
+        "index_bounds": "[\"\", {})",
+        "keys_examined": 50000,
+        "docs_examined": 1044,
+        "returned": 1044,
+        "execution_ms": 128,
+        "walked_whole_index": true
+      },
+      "/shirt/    case-sensitive, unanchored": {
+        "index_bounds": "[\"\", {})",
+        "keys_examined": 50000,
+        "docs_examined": 253,
+        "returned": 253,
+        "execution_ms": 104,
+        "walked_whole_index": true
+      },
+      "/^Mens/   case-sensitive, ANCHORED": {
+        "index_bounds": "[\"Mens\", \"Ment\")",
+        "keys_examined": 178,
+        "docs_examined": 177,
+        "returned": 177,
+        "execution_ms": 1,
+        "walked_whole_index": false
+      },
+      "/^Mens/i  case-insensitive, anchored": {
+        "index_bounds": "[\"\", {})",
+        "keys_examined": 50000,
+        "docs_examined": 219,
+        "returned": 219,
+        "execution_ms": 81,
+        "walked_whole_index": true
+      }
+    }
+  }
+}

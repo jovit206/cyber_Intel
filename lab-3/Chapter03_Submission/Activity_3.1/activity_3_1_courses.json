@@ -1,0 +1,131 @@
+[
+  {
+    "_id": "6a9ea1323fe9c99e15d6e3f3",
+    "title": "Database Systems",
+    "code": "CS401",
+    "instructor": "Dr. Priya Sharma",
+    "credits": 4,
+    "schedule": {
+      "days": [
+        "Monday",
+        "Wednesday"
+      ],
+      "time": "10:00-11:30",
+      "room": "LH-201"
+    },
+    "enrolled_students": [
+      {
+        "student_id": "S1001",
+        "name": "Arjun Mehta",
+        "email": "arjun@college.edu",
+        "grade": "A"
+      },
+      {
+        "student_id": "S1002",
+        "name": "Sneha Reddy",
+        "email": "sneha@college.edu",
+        "grade": "B+"
+      },
+      {
+        "student_id": "S1003",
+        "name": "Rahul Kumar",
+        "email": "rahul@college.edu",
+        "grade": "A-"
+      }
+    ]
+  },
+  {
+    "_id": "6a9ea1323fe9c99e15d6e3f4",
+    "title": "Machine Learning",
+    "code": "CS402",
+    "instructor": "Dr. Anil Gupta",
+    "credits": 3,
+    "schedule": {
+      "days": [
+        "Tuesday",
+        "Thursday"
+      ],
+      "time": "14:00-15:30",
+      "room": "LH-305"
+    },
+    "enrolled_students": [
+      {
+        "student_id": "S1001",
+        "name": "Arjun Mehta",
+        "email": "arjun@college.edu",
+        "grade": null
+      },
+      {
+        "student_id": "S1005",
+        "name": "Kavya Nair",
+        "email": "kavya@college.edu",
+        "grade": "A"
+      }
+    ]
+  },
+  {
+    "_id": "6a9ea1323fe9c99e15d6e3f5",
+    "title": "Natural Language Processing",
+    "code": "CS403",
+    "instructor": "Dr. Priya Sharma",
+    "credits": 3,
+    "schedule": {
+      "days": [
+        "Monday",
+        "Wednesday",
+        "Friday"
+      ],
+      "time": "09:00-10:00",
+      "room": "LH-102"
+    },
+    "enrolled_students": [
+      {
+        "student_id": "S1002",
+        "name": "Sneha Reddy",
+        "email": "sneha@college.edu",
+        "grade": "B+"
+      },
+      {
+        "student_id": "S1007",
+        "name": "Priya Das",
+        "email": "priya.d@college.edu",
+        "grade": "A-"
+      },
+      {
+        "student_id": "S1008",
+        "name": "Neha Gupta",
+        "email": "neha@college.edu",
+        "grade": "B"
+      },
+      {
+        "student_id": "S1009",
+        "name": "Amit Verma",
+        "email": "amit@college.edu",
+        "grade": null
+      }
+    ]
+  },
+  {
+    "_id": "6a9ea1323fe9c99e15d6e3f6",
+    "title": "Operating Systems",
+    "code": "CS310",
+    "instructor": "Dr. Meera Joshi",
+    "credits": 4,
+    "schedule": {
+      "days": [
+        "Monday",
+        "Thursday"
+      ],
+      "time": "11:45-13:15",
+      "room": "LH-204"
+    },
+    "enrolled_students": [
+      {
+        "student_id": "S1004",
+        "name": "Divya Patel",
+        "email": "divya@college.edu",
+        "grade": "A"
+      }
+    ]
+  }
+]

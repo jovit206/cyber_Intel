@@ -1,0 +1,397 @@
+{
+  "database": "Chapter05",
+  "collections": {
+    "products": [
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5ad"
+        },
+        "product_id": "P001",
+        "name": "Laptop Pro 14",
+        "category": "Electronics",
+        "base_price": 1200
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5ae"
+        },
+        "product_id": "P002",
+        "name": "27-inch Monitor",
+        "category": "Electronics",
+        "base_price": 320
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5af"
+        },
+        "product_id": "P003",
+        "name": "Mechanical Keyboard",
+        "category": "Accessories",
+        "base_price": 85
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5b0"
+        },
+        "product_id": "P004",
+        "name": "Wireless Mouse",
+        "category": "Accessories",
+        "base_price": 45
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5b1"
+        },
+        "product_id": "P005",
+        "name": "ANC Headphones",
+        "category": "Audio",
+        "base_price": 150
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5b2"
+        },
+        "product_id": "P006",
+        "name": "Docking Station",
+        "category": "Accessories",
+        "base_price": 210
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5b3"
+        },
+        "product_id": "P007",
+        "name": "HD Webcam",
+        "category": "Electronics",
+        "base_price": 95
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5b4"
+        },
+        "product_id": "P008",
+        "name": "Ergonomic Chair",
+        "category": "Furniture",
+        "base_price": 260
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5b5"
+        },
+        "product_id": "P009",
+        "name": "Standing Desk",
+        "category": "Furniture",
+        "base_price": 540
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5b6"
+        },
+        "product_id": "P010",
+        "name": "USB-C Hub",
+        "category": "Accessories",
+        "base_price": 65
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5b7"
+        },
+        "product_id": "P011",
+        "name": "Studio Microphone",
+        "category": "Audio",
+        "base_price": 180
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5b8"
+        },
+        "product_id": "P012",
+        "name": "Laptop Stand",
+        "category": "Furniture",
+        "base_price": 70
+      }
+    ],
+    "product_orders": [
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5b9"
+        },
+        "order_id": "ORD-201",
+        "customer": "Arjun",
+        "product_id": "P001",
+        "quantity": 1,
+        "order_date": {
+          "$date": "2024-01-05T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "North"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5ba"
+        },
+        "order_id": "ORD-202",
+        "customer": "Sneha",
+        "product_id": "P002",
+        "quantity": 2,
+        "order_date": {
+          "$date": "2024-01-11T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "South"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5bb"
+        },
+        "order_id": "ORD-203",
+        "customer": "Kavya",
+        "product_id": "P003",
+        "quantity": 3,
+        "order_date": {
+          "$date": "2024-01-17T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "East"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5bc"
+        },
+        "order_id": "ORD-204",
+        "customer": "Rahul",
+        "product_id": "P001",
+        "quantity": 2,
+        "order_date": {
+          "$date": "2024-01-23T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "West"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5bd"
+        },
+        "order_id": "ORD-205",
+        "customer": "Divya",
+        "product_id": "P004",
+        "quantity": 4,
+        "order_date": {
+          "$date": "2024-01-29T00:00:00Z"
+        },
+        "status": "cancelled",
+        "region": "North"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5be"
+        },
+        "order_id": "ORD-206",
+        "customer": "Arjun",
+        "product_id": "P005",
+        "quantity": 2,
+        "order_date": {
+          "$date": "2024-02-03T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "North"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5bf"
+        },
+        "order_id": "ORD-207",
+        "customer": "Imran",
+        "product_id": "P006",
+        "quantity": 1,
+        "order_date": {
+          "$date": "2024-02-08T00:00:00Z"
+        },
+        "status": "pending",
+        "region": "South"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5c0"
+        },
+        "order_id": "ORD-208",
+        "customer": "Sneha",
+        "product_id": "P001",
+        "quantity": 1,
+        "order_date": {
+          "$date": "2024-02-12T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "South"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5c1"
+        },
+        "order_id": "ORD-209",
+        "customer": "Kavya",
+        "product_id": "P007",
+        "quantity": 2,
+        "order_date": {
+          "$date": "2024-02-16T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "East"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5c2"
+        },
+        "order_id": "ORD-210",
+        "customer": "Rahul",
+        "product_id": "P008",
+        "quantity": 3,
+        "order_date": {
+          "$date": "2024-02-21T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "West"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5c3"
+        },
+        "order_id": "ORD-211",
+        "customer": "Divya",
+        "product_id": "P002",
+        "quantity": 1,
+        "order_date": {
+          "$date": "2024-02-27T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "North"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5c4"
+        },
+        "order_id": "ORD-212",
+        "customer": "Arjun",
+        "product_id": "P006",
+        "quantity": 2,
+        "order_date": {
+          "$date": "2024-03-04T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "North"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5c5"
+        },
+        "order_id": "ORD-213",
+        "customer": "Imran",
+        "product_id": "P001",
+        "quantity": 1,
+        "order_date": {
+          "$date": "2024-03-09T00:00:00Z"
+        },
+        "status": "cancelled",
+        "region": "South"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5c6"
+        },
+        "order_id": "ORD-214",
+        "customer": "Sneha",
+        "product_id": "P003",
+        "quantity": 5,
+        "order_date": {
+          "$date": "2024-03-14T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "South"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5c7"
+        },
+        "order_id": "ORD-215",
+        "customer": "Rahul",
+        "product_id": "P005",
+        "quantity": 4,
+        "order_date": {
+          "$date": "2024-03-19T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "West"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5c8"
+        },
+        "order_id": "ORD-216",
+        "customer": "Kavya",
+        "product_id": "P004",
+        "quantity": 6,
+        "order_date": {
+          "$date": "2024-03-25T00:00:00Z"
+        },
+        "status": "pending",
+        "region": "East"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5c9"
+        },
+        "order_id": "ORD-217",
+        "customer": "Arjun",
+        "product_id": "P008",
+        "quantity": 1,
+        "order_date": {
+          "$date": "2024-04-02T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "North"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5ca"
+        },
+        "order_id": "ORD-218",
+        "customer": "Divya",
+        "product_id": "P001",
+        "quantity": 1,
+        "order_date": {
+          "$date": "2024-04-07T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "North"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5cb"
+        },
+        "order_id": "ORD-219",
+        "customer": "Rahul",
+        "product_id": "P002",
+        "quantity": 3,
+        "order_date": {
+          "$date": "2024-04-13T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "West"
+      },
+      {
+        "_id": {
+          "$oid": "6aaa1ff9c78eb816fadbf5cc"
+        },
+        "order_id": "ORD-220",
+        "customer": "Imran",
+        "product_id": "P005",
+        "quantity": 2,
+        "order_date": {
+          "$date": "2024-04-18T00:00:00Z"
+        },
+        "status": "completed",
+        "region": "South"
+      }
+    ]
+  }
+}

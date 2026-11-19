@@ -39,7 +39,7 @@ Docker Compose with persistent named volumes.</p>
 
 <h2>Start the complete application</h2>
 <pre>cp .env.example .env
-mkdir -p labs/lab9/results
+mkdir -p lab9/results
 # set APP_IMAGE=jovit206/threat-intelligence-platform:latest in .env, then:
 docker compose pull
 docker compose up -d
@@ -50,21 +50,21 @@ application. Data lives in named volumes and survives <code>stop</code>, <code>d
 <h2>Features</h2>
 <ul>
   <li><b>Lab 7</b>: Live Threat Stream, Top Threats, Report Corpus, Search &amp; Enrich (VirusTotal, 24 h cache), Cross-Source Analysis, Working Set Monitor (live WiredTiger cache telemetry).</li>
-  <li><b>Lab 8</b>: three-member replica set, member and primary monitoring, failover observer (<code>labs/lab8</code>).</li>
+  <li><b>Lab 8</b>: three-member replica set, member and primary monitoring, failover observer (<code>lab8</code>).</li>
   <li><b>Lab 9.1</b>: write-concern latency for <code>w:1</code>, <code>w:majority</code>, <code>w:all</code> (numeric <code>w</code> = member count) with <code>j:false</code>/<code>j:true</code>, 1,000 inserts each; JSON/CSV artifacts; historical vs live results separated in the UI.</li>
   <li><b>Lab 9.2</b>: confirmed, reversible network-partition simulation with prechecks, timestamps, honest write outcomes and verified recovery.</li>
 </ul>
 
 <h2>Lab 9.1 experiment (manual)</h2>
-<pre>docker compose exec lab7-backend python labs/lab9/lab_01_write_concern_latency.py
+<pre>docker compose exec lab7-backend python lab9/lab_01_write_concern_latency.py
 # options: --docs 200   --dry-run   --replace-historical</pre>
-<p>Reports are written to <code>labs/lab9/results/lab_01_&lt;timestamp&gt;.json</code> and <code>.csv</code>.
+<p>Reports are written to <code>lab9/results/lab_01_&lt;timestamp&gt;.json</code> and <code>.csv</code>.
 MongoDB has no <code>w: "all"</code>; it is run as <code>w:3</code> and the mapping is printed and saved.</p>
 
 <h2>Lab 9.2 experiment (manual)</h2>
-<pre>python labs/lab9/lab_02_simulate_partition.py --dry-run   # prechecks only
-python labs/lab9/lab_02_simulate_partition.py             # type the confirmation text when asked</pre>
-<p>Report: <code>labs/lab9/results/lab_02_partition_&lt;timestamp&gt;.json</code>. Losing the majority is a separate,
+<pre>python lab9/lab_02_simulate_partition.py --dry-run   # prechecks only
+python lab9/lab_02_simulate_partition.py             # type the confirmation text when asked</pre>
+<p>Report: <code>lab9/results/lab_02_partition_&lt;timestamp&gt;.json</code>. Losing the majority is a separate,
 separately confirmed phase (<code>--phase majority-loss</code>).</p>
 
 <h2>Safety notes</h2>
@@ -77,5 +77,5 @@ separately confirmed phase (<code>--phase majority-loss</code>).</p>
 </ul></div>
 
 <h2>Verification summary</h2>
-<p>Recorded 2026-10-15. Results are copied from the commands actually run; items marked MANUAL require a person to run them.</p><table class='grid'><thead><tr><th>Check</th><th>Result</th><th>Detail</th></tr></thead><tbody><tr><td>Unit tests (81): backend, feeds, galaxies/reports, reliability, VirusTotal, write concern, partition script</td><td class='res pass'>PASS</td><td>python -m unittest &lt;7 modules&gt;</td></tr><tr><td>Lab 9.2 logic against a fake docker cluster (prechecks, confirmation, cleanup, reconnect fallbacks, report JSON)</td><td class='res pass'>PASS</td><td>18 tests; no real docker used</td></tr><tr><td>Lab 9.2 read-only --dry-run against the real replica set</td><td class='res pass'>PASS</td><td>prechecks passed; containers/network unchanged</td></tr><tr><td>Lab 9.2 real partition experiment</td><td class='res manual'>MANUAL</td><td>not executed in this task by instruction; run python labs/lab9/lab_02_simulate_partition.py</td></tr><tr><td>Lab 9.1 benchmark</td><td class='res manual'>MANUAL</td><td>ran earlier on a disposable stack (1000 x 6 acknowledged); re-run on your cluster when presenting</td></tr><tr><td>Frontend files byte-identical before/after migration</td><td class='res pass'>PASS</td><td>6 files sha256</td></tr><tr><td>OpenAPI contract identical (32 operations)</td><td class='res pass'>PASS</td><td>methods, parameters, status codes</td></tr><tr><td>Browser DOM + computed-style fingerprint, 8 views (real Edge)</td><td class='res pass'>PASS</td><td>identical before/after</td></tr><tr><td>Integration script against migrated image and live app</td><td class='res pass'>PASS</td><td>/ , APIs, markup checks</td></tr><tr><td>docker compose config</td><td class='res pass'>PASS</td><td>valid</td></tr><tr><td>Existing MongoDB data</td><td class='res pass'>PASS</td><td>21 collections, none removed, none with fewer documents</td></tr><tr><td>Image republished to Docker Hub</td><td class='res manual'>MANUAL</td><td>not done; published latest predates this work</td></tr></tbody></table>
+<p>Recorded 2026-10-15. Results are copied from the commands actually run; items marked MANUAL require a person to run them.</p><table class='grid'><thead><tr><th>Check</th><th>Result</th><th>Detail</th></tr></thead><tbody><tr><td>Unit tests (81): backend, feeds, galaxies/reports, reliability, VirusTotal, write concern, partition script</td><td class='res pass'>PASS</td><td>python -m unittest &lt;7 modules&gt;</td></tr><tr><td>Lab 9.2 logic against a fake docker cluster (prechecks, confirmation, cleanup, reconnect fallbacks, report JSON)</td><td class='res pass'>PASS</td><td>18 tests; no real docker used</td></tr><tr><td>Lab 9.2 read-only --dry-run against the real replica set</td><td class='res pass'>PASS</td><td>prechecks passed; containers/network unchanged</td></tr><tr><td>Lab 9.2 real partition experiment</td><td class='res manual'>MANUAL</td><td>not executed in this task by instruction; run python lab9/lab_02_simulate_partition.py</td></tr><tr><td>Lab 9.1 benchmark</td><td class='res manual'>MANUAL</td><td>ran earlier on a disposable stack (1000 x 6 acknowledged); re-run on your cluster when presenting</td></tr><tr><td>Frontend files byte-identical before/after migration</td><td class='res pass'>PASS</td><td>6 files sha256</td></tr><tr><td>OpenAPI contract identical (32 operations)</td><td class='res pass'>PASS</td><td>methods, parameters, status codes</td></tr><tr><td>Browser DOM + computed-style fingerprint, 8 views (real Edge)</td><td class='res pass'>PASS</td><td>identical before/after</td></tr><tr><td>Integration script against migrated image and live app</td><td class='res pass'>PASS</td><td>/ , APIs, markup checks</td></tr><tr><td>docker compose config</td><td class='res pass'>PASS</td><td>valid</td></tr><tr><td>Existing MongoDB data</td><td class='res pass'>PASS</td><td>21 collections, none removed, none with fewer documents</td></tr><tr><td>Image republished to Docker Hub</td><td class='res manual'>MANUAL</td><td>not done; published latest predates this work</td></tr></tbody></table>
 </body></html>

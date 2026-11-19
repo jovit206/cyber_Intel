@@ -129,8 +129,12 @@
       if (endpoint === '/login') {
         const role = result.user?.role;
         const requestedNext = new URLSearchParams(window.location.search).get('next');
-        const safeNext = requestedNext && requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : null;
-        const destination = role === 'admin' ? (safeNext || '/?view=admin') : role === 'manager' ? '/?view=manager' : '/?view=lab10-banking#financial-activity';
+        // Same-origin paths only: browsers treat "/\host" like "//host", so reject backslashes and control characters too.
+        const safeNext = requestedNext && /^\/(?![\/\\])/.test(requestedNext) && !/[\\\u0000-\u001f]/.test(requestedNext)
+          && !requestedNext.startsWith('/account') ? requestedNext : null;
+        const roleHome = role === 'admin' ? '/?view=admin' : role === 'manager' ? '/?view=manager' : '/?view=lab10-banking#financial-activity';
+        // Return every role to the page that required sign-in; the server still enforces each route's permissions.
+        const destination = safeNext || roleHome;
         showNotice('Signed in. Opening your dashboard…', 'success');
         window.location.assign(destination);
       } else {

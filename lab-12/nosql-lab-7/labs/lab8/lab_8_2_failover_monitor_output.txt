@@ -1,0 +1,37 @@
+LAB 8.2 - OBSERVE FAILOVER AND ELECTION
+
+Step 1: rs.stepDown() on the primary, then watch the election
+  16:30:18  before:  mongo1=PRIMARY  mongo2=SECONDARY  mongo3=SECONDARY  mongo-arbiter=ARBITER
+  16:30:18  replSetStepDown sent to mongo1:27017
+  16:30:18  watch:   mongo1=PRIMARY  mongo2=SECONDARY  mongo3=SECONDARY  mongo-arbiter=ARBITER
+  16:30:19  watch:   mongo1=SECONDARY  mongo2=PRIMARY  mongo3=SECONDARY  mongo-arbiter=ARBITER
+  16:30:20  watch:   mongo1=SECONDARY  mongo2=PRIMARY  mongo3=SECONDARY  mongo-arbiter=ARBITER
+
+Step 2: rs.status() after the election - identify the new primary
+  mongo1:27017          SECONDARY  health=1
+  mongo2:27017          PRIMARY    health=1
+  mongo3:27017          SECONDARY  health=1
+  mongo-arbiter:27017   ARBITER    health=1
+  old primary: mongo1:27017   ->   new primary: mongo2:27017
+
+Step 3: read once a second for 14s and log which member answers
+  16:30:21  *** connected to mongo2:27017 (previously: None) ***
+  16:30:21  read ok from mongo2:27017  {'text': 'hello from the primary'}
+  16:30:22  read ok from mongo2:27017  {'text': 'hello from the primary'}
+  16:30:23  read ok from mongo2:27017  {'text': 'hello from the primary'}
+  16:30:24  read ok from mongo2:27017  {'text': 'hello from the primary'}
+  16:30:25  read ok from mongo2:27017  {'text': 'hello from the primary'}
+  16:30:26  >>> another connection sent replSetStepDown to mongo2:27017 <<<
+  16:30:26  *** connected to mongo3:27017 (previously: mongo2:27017) ***
+  16:30:26  read ok from mongo3:27017  {'text': 'hello from the primary'}
+  16:30:27  read ok from mongo3:27017  {'text': 'hello from the primary'}
+  16:30:28  read ok from mongo3:27017  {'text': 'hello from the primary'}
+  16:30:29  read ok from mongo3:27017  {'text': 'hello from the primary'}
+  16:30:30  read ok from mongo3:27017  {'text': 'hello from the primary'}
+  16:30:31  read ok from mongo3:27017  {'text': 'hello from the primary'}
+  16:30:32  read ok from mongo3:27017  {'text': 'hello from the primary'}
+  16:30:33  read ok from mongo3:27017  {'text': 'hello from the primary'}
+  13 successful reads, 0 failed reads; served by: mongo2:27017 -> mongo3:27017
+  final:   mongo1=SECONDARY  mongo2=SECONDARY  mongo3=PRIMARY  mongo-arbiter=ARBITER
+
+MongoDB commands and replies saved to lab_8_2_failover_monitor.json

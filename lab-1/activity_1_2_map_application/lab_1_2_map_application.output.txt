@@ -1,0 +1,45 @@
+MongoDB version : 8.3.7
+Server address  : localhost:27017
+Database        : nosql_labs
+------------------------------------------------------------------------
+Generating 500 drivers, 2000 riders, 20000 rides (seed=42)...
+
+TTL index: {'v': 2, 'key': [('updated_at', 1)], 'expireAfterSeconds': 300}
+(MongoDB's TTL monitor sweeps roughly every 60s, so expiry is never instant.)
+
+Nearest available driver  distance (m)  
+----------------------------------------
+drv-0204                  532.2         
+drv-0249                  668.7         
+drv-0192                  1084.4        
+drv-0157                  1871.2        
+drv-0252                  1948.4        
+
+Profile   Role    Role-specific fields present         
+-------------------------------------------------------
+rdr-0001  rider   payment_method, home_zone            
+drv-0001  driver  license_no, vehicle, payout_account  
+
+3-hop $graphLookup seed    Entities reached                        
+-------------------------------------------------------------------
+rdr-0001 (in seeded ring)  drv-0001, drv-0002, rdr-0001, rdr-0002  
+rdr-0500 (control)         (none)                                  
+
+MEASURED EXPLAIN STATS (executionStats)
+Domain / Query                    Stage                                 DocsExamined  Returned  TimeMs  
+--------------------------------------------------------------------------------------------------------
+driver_locations: $geoNear top-5  FETCH -> GEO_NEAR_2DSPHERE -> IXSCAN  128           62        25      
+user_profiles: fetch by _id       EXPRESS_IXSCAN                        1             1         0       
+ride_history: compound index      FETCH -> IXSCAN                       3             3         1       
+ride_history: forced $natural     SORT -> COLLSCAN                      20000         3         10      
+driver_rider_graph: $graphLookup  EXPRESS_IXSCAN                        1             1         0       
+raw_posts: one partition_date     FETCH -> IXSCAN                       500           500       20      
+raw_posts: keyword regex          COLLSCAN                              5000          1228      4       
+realtime_counters: one $inc       EXPRESS_UPDATE                        1             0         3       
+
+Wall-clock for 1000 sequential $inc updates (measured in Python, not from
+explain): 301.1ms total, 0.301ms per update.
+
+Persisted 6 domain-mapping document(s) to 'app_domain_mapping'.
+
+Exported 6 document(s) from 'app_domain_mapping' -> app_domain_mapping.json

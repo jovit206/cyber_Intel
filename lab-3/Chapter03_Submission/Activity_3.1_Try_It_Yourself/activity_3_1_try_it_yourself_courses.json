@@ -1,0 +1,246 @@
+[
+  {
+    "_id": "6a9ea135d1004fc6057c31e4",
+    "code": "CS101",
+    "title": "Programming Fundamentals",
+    "instructor": "Dr. Meera Joshi",
+    "credits": 3,
+    "schedule": {
+      "days": [
+        "Monday",
+        "Wednesday"
+      ],
+      "time": "08:00-09:00",
+      "room": "LH-101"
+    },
+    "enrolled_students": [
+      {
+        "student_id": "S1001",
+        "name": "Arjun Mehta",
+        "email": "arjun@college.edu",
+        "grade": "A"
+      }
+    ],
+    "prerequisites": []
+  },
+  {
+    "_id": "6a9ea135d1004fc6057c31e5",
+    "code": "CS210",
+    "title": "Discrete Mathematics",
+    "instructor": "Dr. Anil Gupta",
+    "credits": 3,
+    "schedule": {
+      "days": [
+        "Tuesday",
+        "Friday"
+      ],
+      "time": "09:00-10:00",
+      "room": "LH-110"
+    },
+    "enrolled_students": [
+      {
+        "student_id": "S1003",
+        "name": "Rahul Kumar",
+        "email": "rahul@college.edu",
+        "grade": "A-"
+      }
+    ],
+    "prerequisites": []
+  },
+  {
+    "_id": "6a9ea135d1004fc6057c31e6",
+    "code": "CS201",
+    "title": "Data Structures",
+    "instructor": "Dr. Meera Joshi",
+    "credits": 3,
+    "schedule": {
+      "days": [
+        "Monday",
+        "Thursday"
+      ],
+      "time": "10:00-11:30",
+      "room": "LH-105"
+    },
+    "enrolled_students": [
+      {
+        "student_id": "S1002",
+        "name": "Sneha Reddy",
+        "email": "sneha@college.edu",
+        "grade": "C"
+      }
+    ],
+    "prerequisites": [
+      {
+        "code": "CS101",
+        "title": "Programming Fundamentals",
+        "min_grade": "C"
+      }
+    ]
+  },
+  {
+    "_id": "6a9ea135d1004fc6057c31e7",
+    "code": "CS301",
+    "title": "Algorithms",
+    "instructor": "Dr. Anil Gupta",
+    "credits": 3,
+    "schedule": {
+      "days": [
+        "Wednesday",
+        "Friday"
+      ],
+      "time": "11:45-13:15",
+      "room": "LH-203"
+    },
+    "enrolled_students": [
+      {
+        "student_id": "S1001",
+        "name": "Arjun Mehta",
+        "email": "arjun@college.edu",
+        "grade": "B+"
+      }
+    ],
+    "prerequisites": [
+      {
+        "code": "CS201",
+        "title": "Data Structures",
+        "min_grade": "C"
+      },
+      {
+        "code": "CS210",
+        "title": "Discrete Mathematics",
+        "min_grade": "D"
+      }
+    ]
+  },
+  {
+    "_id": "6a9ea135d1004fc6057c31e8",
+    "code": "CS310",
+    "title": "Operating Systems",
+    "instructor": "Dr. Meera Joshi",
+    "credits": 3,
+    "schedule": {
+      "days": [
+        "Monday",
+        "Thursday"
+      ],
+      "time": "11:45-13:15",
+      "room": "LH-204"
+    },
+    "enrolled_students": [
+      {
+        "student_id": "S1004",
+        "name": "Divya Patel",
+        "email": "divya@college.edu",
+        "grade": "A"
+      }
+    ],
+    "prerequisites": [
+      {
+        "code": "CS201",
+        "title": "Data Structures",
+        "min_grade": "C"
+      }
+    ]
+  },
+  {
+    "_id": "6a9ea135d1004fc6057c31e9",
+    "code": "CS401",
+    "title": "Database Systems",
+    "instructor": "Dr. Priya Sharma",
+    "credits": 3,
+    "schedule": {
+      "days": [
+        "Monday",
+        "Wednesday"
+      ],
+      "time": "10:00-11:30",
+      "room": "LH-201"
+    },
+    "enrolled_students": [
+      {
+        "student_id": "S1003",
+        "name": "Rahul Kumar",
+        "email": "rahul@college.edu",
+        "grade": null
+      }
+    ],
+    "prerequisites": [
+      {
+        "code": "CS301",
+        "title": "Algorithms",
+        "min_grade": "C"
+      },
+      {
+        "code": "CS310",
+        "title": "Operating Systems",
+        "min_grade": "C"
+      }
+    ]
+  },
+  {
+    "_id": "6a9ea135d1004fc6057c31ea",
+    "code": "CS402",
+    "title": "Machine Learning",
+    "instructor": "Dr. Anil Gupta",
+    "credits": 3,
+    "schedule": {
+      "days": [
+        "Tuesday",
+        "Thursday"
+      ],
+      "time": "14:00-15:30",
+      "room": "LH-305"
+    },
+    "enrolled_students": [
+      {
+        "student_id": "S1005",
+        "name": "Kavya Nair",
+        "email": "kavya@college.edu",
+        "grade": null
+      }
+    ],
+    "prerequisites": [
+      {
+        "code": "CS301",
+        "title": "Algorithms",
+        "min_grade": "B"
+      },
+      {
+        "code": "CS210",
+        "title": "Discrete Mathematics",
+        "min_grade": "C"
+      }
+    ]
+  },
+  {
+    "_id": "6a9ea135d1004fc6057c31eb",
+    "code": "CS403",
+    "title": "Natural Language Processing",
+    "instructor": "Dr. Priya Sharma",
+    "credits": 3,
+    "schedule": {
+      "days": [
+        "Monday",
+        "Wednesday",
+        "Friday"
+      ],
+      "time": "09:00-10:00",
+      "room": "LH-102"
+    },
+    "enrolled_students": [
+      {
+        "student_id": "S1002",
+        "name": "Sneha Reddy",
+        "email": "sneha@college.edu",
+        "grade": null
+      }
+    ],
+    "prerequisites": [
+      {
+        "code": "CS402",
+        "title": "Machine Learning",
+        "min_grade": "C"
+      }
+    ]
+  }
+]

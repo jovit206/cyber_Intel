@@ -1,0 +1,212 @@
+{
+  "database": "chapter_06",
+  "collection": "products",
+  "workload": [
+    {
+      "query": "Q1",
+      "description": "Browse a category, cheapest 20",
+      "runs": 40
+    },
+    {
+      "query": "Q2",
+      "description": "$50 price band",
+      "runs": 25
+    },
+    {
+      "query": "Q3",
+      "description": "Products with a tag",
+      "runs": 20
+    },
+    {
+      "query": "Q4",
+      "description": "Text search on name",
+      "runs": 10
+    },
+    {
+      "query": "Q5",
+      "description": "Category rated >= 4.5, by price",
+      "runs": 5
+    }
+  ],
+  "pipeline": [
+    {
+      "$indexStats": {}
+    }
+  ],
+  "usage_ranked": [
+    {
+      "name": "idx_category_price_rating",
+      "key": {
+        "category": 1,
+        "price": 1,
+        "rating": 1
+      },
+      "ops": 45,
+      "ops_total": 46,
+      "since": {
+        "$date": "2026-09-28T09:32:29.606Z"
+      }
+    },
+    {
+      "name": "idx_price",
+      "key": {
+        "price": 1
+      },
+      "ops": 25,
+      "ops_total": 25,
+      "since": {
+        "$date": "2026-09-28T09:32:29.863Z"
+      }
+    },
+    {
+      "name": "idx_tags",
+      "key": {
+        "tags": 1
+      },
+      "ops": 20,
+      "ops_total": 21,
+      "since": {
+        "$date": "2026-09-28T09:32:30.095Z"
+      }
+    },
+    {
+      "name": "idx_name_text",
+      "key": {
+        "_fts": "text",
+        "_ftsx": 1
+      },
+      "ops": 10,
+      "ops_total": 10,
+      "since": {
+        "$date": "2026-09-28T09:32:30.417Z"
+      }
+    },
+    {
+      "name": "_id_",
+      "key": {
+        "_id": 1
+      },
+      "ops": 0,
+      "ops_total": 0,
+      "since": {
+        "$date": "2026-09-28T09:32:29.030Z"
+      }
+    }
+  ],
+  "most_used_index": "idx_category_price_rating",
+  "unused_secondary_indexes": [],
+  "raw_index_stats": [
+    {
+      "name": "idx_category_price_rating",
+      "key": {
+        "category": 1,
+        "price": 1,
+        "rating": 1
+      },
+      "host": "Kamleshs-MacBook-Pro.local:27017",
+      "accesses": {
+        "ops": 46,
+        "since": {
+          "$date": "2026-09-28T09:32:29.606Z"
+        }
+      },
+      "spec": {
+        "v": 2,
+        "key": {
+          "category": 1,
+          "price": 1,
+          "rating": 1
+        },
+        "name": "idx_category_price_rating"
+      }
+    },
+    {
+      "name": "idx_tags",
+      "key": {
+        "tags": 1
+      },
+      "host": "Kamleshs-MacBook-Pro.local:27017",
+      "accesses": {
+        "ops": 21,
+        "since": {
+          "$date": "2026-09-28T09:32:30.095Z"
+        }
+      },
+      "spec": {
+        "v": 2,
+        "key": {
+          "tags": 1
+        },
+        "name": "idx_tags"
+      }
+    },
+    {
+      "name": "idx_price",
+      "key": {
+        "price": 1
+      },
+      "host": "Kamleshs-MacBook-Pro.local:27017",
+      "accesses": {
+        "ops": 25,
+        "since": {
+          "$date": "2026-09-28T09:32:29.863Z"
+        }
+      },
+      "spec": {
+        "v": 2,
+        "key": {
+          "price": 1
+        },
+        "name": "idx_price"
+      }
+    },
+    {
+      "name": "_id_",
+      "key": {
+        "_id": 1
+      },
+      "host": "Kamleshs-MacBook-Pro.local:27017",
+      "accesses": {
+        "ops": 0,
+        "since": {
+          "$date": "2026-09-28T09:32:29.030Z"
+        }
+      },
+      "spec": {
+        "v": 2,
+        "key": {
+          "_id": 1
+        },
+        "name": "_id_"
+      }
+    },
+    {
+      "name": "idx_name_text",
+      "key": {
+        "_fts": "text",
+        "_ftsx": 1
+      },
+      "host": "Kamleshs-MacBook-Pro.local:27017",
+      "accesses": {
+        "ops": 10,
+        "since": {
+          "$date": "2026-09-28T09:32:30.417Z"
+        }
+      },
+      "spec": {
+        "v": 2,
+        "key": {
+          "_fts": "text",
+          "_ftsx": 1
+        },
+        "name": "idx_name_text",
+        "weights": {
+          "name": 1
+        },
+        "default_language": "english",
+        "language_override": "language",
+        "textIndexVersion": 3
+      }
+    }
+  ]
+}

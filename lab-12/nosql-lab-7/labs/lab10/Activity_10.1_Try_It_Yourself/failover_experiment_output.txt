@@ -1,0 +1,75 @@
+ACTIVITY 10.1 - BANK SERVER FAILOVER DURING PAYMENTS
+
+Setup: 4 accounts of 100,000; one payment of 10 every 0.5 s around the ring
+  bank-primary  priority 2
+  bank-backup   priority 1
+  bank-dr       priority 0
+  05:14:39  [observer] primary=bank-primary  |  bank-primary=PRIMARY  bank-backup=SECONDARY  bank-dr=SECONDARY
+  05:14:44  payments #001-#010 committed on bank-primary
+
+Step 1: the main bank server crashes
+  05:14:44  $ docker kill bank-primary
+  05:14:44  == bank-primary crashed (docker kill)
+  05:14:45  [observer] primary=NONE  |  bank-primary=(not reachable/healthy)  bank-backup=SECONDARY  bank-dr=SECONDARY
+  05:14:54  payment #011 COMMITTED on bank-backup after 4 attempts, 10.1 s  [ServerSelectionTimeoutError/TransientTransactionError x3]
+  05:14:54  [observer] primary=bank-backup  |  bank-primary=(not reachable/healthy)  bank-backup=PRIMARY  bank-dr=SECONDARY
+  05:14:54  == bank-backup elected primary
+  05:14:54  == payments continue on bank-backup
+  05:14:59  payments #012-#021 committed on bank-backup
+
+Step 2: the main bank server comes back
+  05:14:59  $ docker start bank-primary
+  05:14:59  == bank-primary restarted (docker start)
+  05:15:01  payments #022-#025 committed on bank-backup
+  05:15:01  [observer] primary=bank-backup  |  bank-primary=SECONDARY  bank-backup=PRIMARY  bank-dr=SECONDARY
+  05:15:11  payments #026-#044 committed on bank-backup
+  05:15:11  == bank-primary is primary again (priority 2 > 1)
+  05:15:11  payment #045 committed on bank-primary
+  05:15:11  == payments are back on bank-primary
+  05:15:11  [observer] primary=bank-primary  |  bank-primary=PRIMARY  bank-backup=SECONDARY  bank-dr=SECONDARY
+  05:15:15  payments #046-#052 committed on bank-primary
+
+Step 3: bank-backup and bank-dr go down together - no majority
+  05:15:15  $ docker kill bank-backup bank-dr
+  05:15:16  == bank-backup and bank-dr crashed (docker kill)
+  05:15:17  [observer] primary=bank-primary  |  bank-primary=PRIMARY  bank-backup=(not reachable/healthy)  bank-dr=(not reachable/healthy)
+  05:15:27  [observer] primary=NONE  |  bank-primary=SECONDARY  bank-backup=(not reachable/healthy)  bank-dr=(not reachable/healthy)
+  05:15:27  == bank-primary stepped down: no majority, no primary
+  05:15:46  payment #053 UNKNOWN after 1 attempt, 30.9 s  [WriteConcernError/UnknownTransactionCommitResult, ServerSelectionTimeoutError/UnknownTransactionCommitResult x5]
+  05:15:46  == payment #053 gives up: unknown
+  05:15:46  $ docker start bank-backup bank-dr
+  05:15:48  == bank-backup and bank-dr restarted (docker start)
+  05:15:49  [observer] primary=NONE  |  bank-primary=SECONDARY  bank-backup=SECONDARY  bank-dr=(not reachable/healthy)
+  05:15:50  [observer] primary=NONE  |  bank-primary=SECONDARY  bank-backup=SECONDARY  bank-dr=SECONDARY
+  05:15:57  == bank-primary is primary again
+  05:15:57  payment #054 COMMITTED on bank-primary after 4 attempts, 10.2 s  [ServerSelectionTimeoutError/TransientTransactionError x3]
+  05:15:57  == payments resume
+  05:15:57  [observer] primary=bank-primary  |  bank-primary=PRIMARY  bank-backup=SECONDARY  bank-dr=SECONDARY
+  05:16:00  payments #055-#059 committed on bank-primary
+
+Checks
+  payments sent:               59
+  acknowledged to the client:  58  (0 found already paid on a retry)
+  refused to the client:       0
+  result unknown to the client: 1  -> reconciled with the history: 1 applied ['pay-0053'], 0 not applied 
+  in the history:              59  (unique index: no payment can appear twice)
+  acknowledged but missing:    0
+  refused but applied anyway:  0 
+  total money:                 400,000 (unchanged)
+  payments per server:         bank-primary 24, bank-backup 34
+
+Timeline
+  05:14:44  T+  5.6 s  bank-primary crashed (docker kill)
+  05:14:54  T+ 15.6 s  bank-backup elected primary
+  05:14:54  T+ 15.6 s  payments continue on bank-backup
+  05:14:59  T+ 20.9 s  bank-primary restarted (docker start)
+  05:15:11  T+ 32.6 s  bank-primary is primary again (priority 2 > 1)
+  05:15:11  T+ 32.9 s  payments are back on bank-primary
+  05:15:16  T+ 37.2 s  bank-backup and bank-dr crashed (docker kill)
+  05:15:27  T+ 49.1 s  bank-primary stepped down: no majority, no primary
+  05:15:46  T+ 67.9 s  payment #053 gives up: unknown
+  05:15:48  T+ 69.6 s  bank-backup and bank-dr restarted (docker start)
+  05:15:57  T+ 78.3 s  bank-primary is primary again
+  05:15:57  T+ 78.6 s  payments resume
+
+Commands and replies saved to failover_experiment.json

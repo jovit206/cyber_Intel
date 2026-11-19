@@ -1,0 +1,40 @@
+# Secrets and local configuration must never enter an image
+.env
+.env.*
+*.env
+!.env.example
+
+# Version control, virtualenvs, caches
+.git
+.gitignore
+.venv
+venv
+node_modules
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+
+# Local backups, scratch files and database dumps (never publish private data)
+backups
+dump
+*.bak
+**/*.bak
+**/*.backup
+backup_db.py
+check_*.py
+count_events.py
+tmp_inspect_db.py
+smoke_test.py
+legacy-node
+public/*.metadata.json
+
+# Generated experiment output stays on the host (mounted at run time)
+labs/lab9/results/*
+!labs/lab9/results/.gitkeep
+
+# Tests, docs and submission artefacts are not part of the runtime image
+test
+*.pdf
+README.md
+docs

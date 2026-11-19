@@ -1,0 +1,23 @@
+LAB 8.1 - DEPLOY A LOCAL REPLICA SET
+
+Step 2: initialise the replica set
+  replSetInitiate -> ok: 1.0
+  waiting for the election ... done
+
+Step 3: insert a document into the primary, then read it on every member
+  inserted _id=6ac7c50cbe17afe2b3ba3106 through primary mongo1:27017
+  mongo1:27017   PRIMARY    text='hello from the primary'
+  mongo2:27017   SECONDARY  text='hello from the primary'
+  mongo3:27017   SECONDARY  text='hello from the primary'
+  document present on both secondaries: True
+
+Step 4: rs.status() - primary, secondaries and health
+  member         state      health  uptime
+  mongo1:27017   PRIMARY    1       21s
+  mongo2:27017   SECONDARY  1       12s
+  mongo3:27017   SECONDARY  1       12s
+  primary:     mongo1:27017
+  secondaries: mongo2:27017, mongo3:27017
+  all members healthy (health = 1): True
+
+MongoDB commands and replies saved to lab_8_1_replica_set.json

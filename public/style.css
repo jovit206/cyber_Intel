@@ -1129,6 +1129,45 @@ tbody tr:hover {
   transition: width 0.35s ease;
 }
 
+/* Working Set Monitor: card states, retry action and labelled cache bar */
+.stat-card.is-loading .big-val { color: var(--text-muted); animation: ws-pulse 1.4s ease-in-out infinite; }
+.stat-card.is-error { border-color: rgba(163, 52, 52, 0.35); background: linear-gradient(135deg, rgba(163, 52, 52, 0.06), var(--bg-card)); }
+.stat-card.is-error .big-val { color: #a33434; }
+.stat-card.is-error .hint { color: #7d3a3a; }
+@keyframes ws-pulse { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .stat-card.is-loading .big-val { animation: none; } }
+.stat-retry {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 5px 12px;
+  border: 1px solid var(--coral-accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--coral-accent);
+  font: 600 12px var(--font-main);
+  cursor: pointer;
+}
+.stat-retry:hover, .stat-retry:focus-visible { background: rgba(166, 83, 73, 0.08); }
+.stat-retry[hidden] { display: none; }
+.cache-detail-grid small { color: var(--text-muted); font-size: 11px; }
+.cache-progress-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.cache-progress-label strong { color: var(--text-white); font: 600 12px var(--font-mono); text-align: right; overflow-wrap: anywhere; }
+@media (max-width: 1100px) and (min-width: 721px) {
+  #view-cache .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  #view-cache .stat-card { min-height: 0; }
+  .cache-progress-label { flex-direction: column; gap: 2px; }
+  .cache-progress-label strong { text-align: left; }
+}
+
 .chart-viewport { min-height:230px; height:auto; }
 .wt-cache-chart { min-width:0; width:100%; min-height:190px; }
 .wt-utilization-chart { display:block; width:100%; height:auto; overflow:visible; }

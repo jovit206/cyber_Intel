@@ -1,0 +1,23 @@
+MongoDB version : 8.3.7
+Server address  : localhost:27017
+Database        : nosql_labs
+------------------------------------------------------------------------
+Generating 20000 IoT readings (seed=42)...
+Built kv_shape, doc_shape, wide_column_shape and graph_shape.
+
+MEASURED EXPLAIN STATS (executionStats)
+Shape              Query                         Stage                            DocsExamined  Returned  TimeMs
+----------------------------------------------------------------------------------------------------------------
+kv_shape           _id lookup                    EXPRESS_IXSCAN                   1             1         0     
+kv_shape           blob content regex            COLLSCAN                         20000         412       34    
+doc_shape          nested device.zone            FETCH -> IXSCAN                  800           800       5     
+wide_column_shape  ts range, 1 device            FETCH -> IXSCAN                  21            21        0     
+graph_shape        $graphLookup 3-hop (3 found)  $graphLookup (seed $match only)  1             1         3     
+graph_shape        manual 3x hop                 3x IXSCAN (manual hops)          3             3         0     
+
+Note: $graphLookup explain reports docs examined for the seed $match only, so the
+      'manual 3x hop' row is the comparable traversal-cost measurement.
+
+Persisted 5 classification document(s) to 'database_products'.
+
+Exported 5 document(s) from 'database_products' -> database_products.json

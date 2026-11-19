@@ -15,7 +15,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "labs" / "lab9" / "lab_02_simulate_partition.py"
+SCRIPT = ROOT / "lab9" / "lab_02_simulate_partition.py"
 spec = importlib.util.spec_from_file_location("lab02", SCRIPT)
 lab = importlib.util.module_from_spec(spec)
 sys.modules["lab02"] = lab

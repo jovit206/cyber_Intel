@@ -1,0 +1,43 @@
+
+========================================================================
+  Lab 6.2 Try It Yourself: Covered Queries
+========================================================================
+
+[OK] Connected to MongoDB at mongodb://localhost:27017
+[OK] Querying 30,000 products in chapter_06.products_perf (read-only).
+     Index: idx_category_price_rating {'category': 1, 'price': 1, 'rating': 1}
+     Filter: {'category': 'Electronics', 'price': {'$gte': 100, '$lte': 150}}  Sort: {'price': 1}
+
+[3m                                        explain(): Does the projection make the query covered?                                         [0m
+┏━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━┳━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┓
+┃[1m [0m[1m [0m[1m [0m┃[1m [0m[1mProjection                         [0m[1m [0m┃[1m [0m[1mWinning plan                      [0m[1m [0m┃[1m [0m[1mKeys[0m[1m [0m┃[1m [0m[1mDocs[0m[1m [0m┃[1m [0m[1mReturned[0m[1m [0m┃[1m [0m[1mAvg ms (500 runs)[0m[1m [0m┃[1m [0m[1mCovered[0m[1m [0m┃
+┡━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━╇━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━┩
+│[36m [0m[36mA[0m[36m [0m│ No projection (whole document)      │ FETCH > IXSCAN                     │  170 │  170 │      170 │             1.966 │ [31mno[0m      │
+│[36m [0m[36mB[0m[36m [0m│ Indexed fields, _id left in         │ PROJECTION_SIMPLE > FETCH > IXSCAN │  170 │  170 │      170 │             2.032 │ [31mno[0m      │
+│[36m [0m[36mC[0m[36m [0m│ Indexed fields + name (not indexed) │ PROJECTION_SIMPLE > FETCH > IXSCAN │  170 │  170 │      170 │             2.036 │ [31mno[0m      │
+│[36m [0m[36mD[0m[36m [0m│ Indexed fields only, _id excluded   │ PROJECTION_COVERED > IXSCAN        │  170 │    0 │      170 │             1.512 │ [32mYES[0m     │
+└───┴─────────────────────────────────────┴────────────────────────────────────┴──────┴──────┴──────────┴───────────────────┴─────────┘
+
+  A: not covered -- returns every field, so each match is fetched.
+  B: not covered -- _id is returned by default and is not in the index.
+  C: not covered -- name is not in the index.
+  D: covered -- every returned field comes from the index keys.
+
+=== Verification (variant D) ===
+[OK] FETCH stage eliminated: winning plan is PROJECTION_COVERED > IXSCAN, totalDocsExamined = 0.
+     Uncovered (A) examined 170 documents for the same 170 results.
+     Covered speedup vs A: 1.3x (1.966 -> 1.512 ms per query).
+
+  Rules for a covered query: filter, sort and projection use only fields in one
+  index; exclude _id unless it is in that index; and none of the fields may be an
+  array (a multikey index like idx_tags can never cover a query).
+
+  First 5 results of the covered query: [{'category': 'Electronics', 'price': 100.03, 'rating': 2.2}, {'category': 'Electronics', 'price': 100.52, 'rating': 2.2}, {'category': 'Electronics', 'price': 100.72, 'rating': 3.1}, {'category': 'Electronics', 'price': 100.92, 'rating': 2.3}, {'category': 'Electronics', 'price': 101.24, 'rating': 2.7}]
+
+[OK] Wrote results JSON -> activity_6_2_try_it_yourself_covered_query.json
+
+========================================================================
+  Lab 6.2 Try It Yourself Complete
+========================================================================
+
+[OK] MongoDB connection closed.

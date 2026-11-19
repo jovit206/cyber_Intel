@@ -1,0 +1,41 @@
+
+========================================================================
+  Lab 6.1 Try It Yourself: Index usage with $indexStats
+========================================================================
+
+[OK] Connected to MongoDB at mongodb://localhost:27017
+[OK] Querying 50,000 products in chapter_06.products (read-only).
+
+=== Running the workload ===
+  Q1 Browse a category, cheapest 20     x40
+  Q2 $50 price band                     x25
+  Q3 Products with a tag                x20
+  Q4 Text search on name                x10
+  Q5 Category rated >= 4.5, by price    x5
+[OK] Executed 100 queries.
+
+[3m                                   $indexStats: Index Usage During the Workload                                    [0m
+┏━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┓
+┃[1m [0m[1mRank[0m[1m [0m┃[1m [0m[1mIndex                    [0m[1m [0m┃[1m [0m[1mServes               [0m[1m [0m┃[1m [0m[1mOps[0m[1m [0m┃[1m [0m[1mShare[0m[1m [0m┃[1m [0m[1mOps since start[0m[1m [0m┃[1m [0m[1mTracking since (UTC)[0m[1m [0m┃
+┡━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━┩
+│    1 │[36m [0m[36midx_category_price_rating[0m[36m [0m│ Q1 (prefix), Q5 (ESR) │[32m [0m[32m 45[0m[32m [0m│ 45.0% │              46 │ 2026-09-28 09:32:29  │
+│    2 │[36m [0m[36midx_price                [0m[36m [0m│ Q2                    │[32m [0m[32m 25[0m[32m [0m│ 25.0% │              25 │ 2026-09-28 09:32:29  │
+│    3 │[36m [0m[36midx_tags                 [0m[36m [0m│ Q3 (multikey)         │[32m [0m[32m 20[0m[32m [0m│ 20.0% │              21 │ 2026-09-28 09:32:30  │
+│    4 │[36m [0m[36midx_name_text            [0m[36m [0m│ Q4                    │[32m [0m[32m 10[0m[32m [0m│ 10.0% │              10 │ 2026-09-28 09:32:30  │
+│    5 │[36m [0m[36m_id_                     [0m[36m [0m│ _id lookups           │[32m [0m[32m  0[0m[32m [0m│  0.0% │               0 │ 2026-09-28 09:32:29  │
+└──────┴───────────────────────────┴───────────────────────┴─────┴───────┴─────────────────┴──────────────────────┘
+
+  Most used: idx_category_price_rating (45 ops, serves Q1 (prefix), Q5 (ESR)).
+  Q1 and Q5 share it through the {category, price} prefix, so one well-ordered
+  compound index carries the two most frequent category queries.
+  Unused secondary indexes: none -- any listed here are drop candidates.
+  _id_ shows 0 ops; it is mandatory and cannot be dropped, whatever its usage.
+  Note: $indexStats counters reset when mongod restarts or an index is rebuilt.
+
+[OK] Wrote results JSON -> activity_6_1_try_it_yourself_index_stats.json
+
+========================================================================
+  Lab 6.1 Try It Yourself Complete
+========================================================================
+
+[OK] MongoDB connection closed.

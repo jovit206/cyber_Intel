@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import re
 import secrets
@@ -17,6 +18,7 @@ from backend.services.entitlements import FREE_WALLET_LIMIT, describe_entitlemen
 from backend.services.subscriptions import (BillingError, PLANS, SESSION_DAYS, create_account,
     add_money, ensure_indexes, password_matches, public_user, purchase_plan, transfer)
 
+logger = logging.getLogger("aegis.subscriptions")
 router = APIRouter(prefix="/api/subscriptions", tags=["Subscriptions & Wallets"])
 COOKIE_NAME = "aegis_session"
 
@@ -54,12 +56,13 @@ class Purchase(BaseModel):
 
 class WalletTransfer(BaseModel):
     recipient_email: str = Field(min_length=5, max_length=254)
-    amount: int = Field(gt=0, le=1_000_000)
+    # Money amounts must be JSON integers; "100" or 100.0 is rejected instead of being coerced.
+    amount: int = Field(gt=0, le=1_000_000, strict=True)
     idempotency_key: str = Field(min_length=8, max_length=128)
 
 
 class WalletTopUp(BaseModel):
-    amount: int
+    amount: int = Field(strict=True)
     idempotency_key: str = Field(min_length=8, max_length=128)
 
 
@@ -142,7 +145,8 @@ def register(credentials: RegistrationCredentials):
     except BillingError as error:
         _problem(error)
     except Exception:
-        # Avoid leaking duplicate-index/database details to a public client.
+        # Avoid leaking duplicate-index/database details to a public client, but keep the cause in server logs.
+        logger.exception("Account registration failed")
         raise HTTPException(status_code=503, detail="Registration is temporarily unavailable.") from None
     return {"user": user, "message": "Account created. Sign in to continue."}
 
@@ -194,6 +198,7 @@ def login(credentials: Credentials, request: Request, response: Response):
     except HTTPException:
         raise
     except Exception:
+        logger.exception("Sign-in failed")
         raise HTTPException(status_code=503, detail="Sign in is temporarily unavailable.") from None
 
 

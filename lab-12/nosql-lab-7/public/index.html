@@ -1,0 +1,703 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Threat Intelligence Platform | Operations</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="aegis-app">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <a class="sidebar-brand" href="/account" aria-label="Open account profile and subscription settings">
+        <div class="brand-crest">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h2>Threat Intelligence Platform</h2>
+        </div>
+        <span class="brand-profile-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span>
+      </a>
+
+      <div class="nav-section-title">THREAT INTELLIGENCE</div>
+      <nav class="sidebar-nav">
+        <button class="nav-link active" data-view="feed">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+          <span>Live Threat Stream</span>
+        </button>
+        <button class="nav-link" data-view="threats">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+          <span>Top Threats</span>
+        </button>
+        <button class="nav-link" data-view="reports" data-feature="reports">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+          <span>Report Corpus</span>
+        </button>
+        <button class="nav-link" data-view="search" data-feature="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <span>Search &amp; Enrich</span>
+        </button>
+        <button class="nav-link" data-view="cross" data-feature="cross_source">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>
+          <span>Cross-Source Analysis</span>
+        </button>
+      </nav>
+
+      <div class="nav-section-title" style="margin-top: 24px;">SYSTEM MONITORING</div>
+      <nav class="sidebar-nav">
+        <button class="nav-link highlight" data-view="cache" data-feature="working_set">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <span>Working Set Monitor</span>
+        </button>
+      </nav>
+
+      <div class="nav-section-title" style="margin-top: 24px;">PERFORMANCE &amp; RELIABILITY</div>
+      <nav class="sidebar-nav">
+        <button class="nav-link" data-view="latency" data-feature="write_concern">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Write Concern Latency</span>
+        </button>
+        <button class="nav-link" data-view="partition" data-feature="network_reliability">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m3 9 18 0"/><path d="m9 21 0-12"/></svg>
+          <span>Network Reliability</span>
+        </button>
+      </nav>
+
+      <div class="nav-section-title" style="margin-top: 24px;">BUSINESS OPERATIONS</div>
+      <nav class="sidebar-nav">
+        <button class="nav-link" data-view="lab10-banking"><span>Banking Operations</span></button>
+        <button class="nav-link" data-view="lab10-reliability-inventory" data-feature="inventory"><span>Reliability &amp; Inventory</span></button>
+        <button class="nav-link" data-view="lab11" data-feature="sharding" aria-controls="view-lab11"><span>Sharding &amp; Horizontal Scalability</span></button>
+        <button class="nav-link admin-nav-link" id="admin-nav" data-view="admin" aria-controls="view-admin" hidden><span>Admin Dashboard</span></button>
+        <button class="nav-link admin-nav-link" id="manager-nav" data-view="manager" aria-controls="view-manager" hidden><span>Manager Dashboard</span></button>
+      </nav>
+
+    </aside>
+
+    <!-- MAIN COMMAND CANVAS -->
+    <div class="main-canvas">
+      <!-- VIEW PANELS CONTAINER -->
+      <div class="content-body">
+
+        <!-- VIEW 1: THREAT STREAM -->
+        <section id="view-feed" class="content-view active">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">INTELLIGENCE OPERATIONS / LIVE</span>
+              <h1>Live Threat Stream</h1>
+              <p>Normalized indicators and threat activity from trusted intelligence feeds.</p>
+            </div>
+            <div id="threat-intelligence-status" class="feed-status" aria-live="polite" aria-busy="true">
+              <div class="feed-status-primary">
+                <span class="live-dot" aria-hidden="true"></span>
+                <span id="threat-intelligence-label">Threat Intelligence:</span>
+                <strong id="threat-intelligence-state">Checking availabilityÃ¢â‚¬Â¦</strong>
+              </div>
+              <div class="feed-status-details">
+                <span>Last updated: <time id="threat-intelligence-updated">Ã¢â‚¬â€</time></span>
+                <span>Threat records: <strong id="threat-intelligence-count">Ã¢â‚¬â€</strong></span>
+              </div>
+            </div>
+          </header>
+          <div class="filter-strip">
+            <div class="filter-pills">
+              <button class="pill active" data-source="">All Feeds</button>
+              <button class="pill" data-source="misp">All MISP</button>
+              <button class="pill" data-source="circl">CIRCL</button>
+              <button class="pill" data-source="botvrij">Botvrij</button>
+              <button class="pill" data-source="threatfox">ThreatFox</button>
+              <button class="pill" data-source="virustotal">VirusTotal</button>
+            </div>
+            <div class="filter-counter" id="feed-counter" aria-live="polite">Loading event count...</div>
+          </div>
+          <div class="cards-stream" id="events-stream">
+            <!-- Dynamic Event Cards -->
+            <div class="loading-state">Streaming intelligence records...</div>
+          </div>
+          <nav class="pagination" id="feed-pagination" aria-label="Threat stream pages" hidden>
+            <button class="pagination-button" id="feed-previous" type="button">Previous</button>
+            <span class="pagination-status" id="feed-page-status" aria-live="polite"></span>
+            <button class="pagination-button" id="feed-next" type="button">Next</button>
+          </nav>
+        </section>
+
+        <!-- VIEW 2: TOP THREATS -->
+        <section id="view-threats" class="content-view">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">INTELLIGENCE OPERATIONS</span>
+              <h1>Top Threats</h1>
+              <p>Most recent threat indicators received from configured intelligence sources.</p>
+            </div>
+            <span class="tag-badge cyan">Live sources</span>
+          </header>
+          <div class="matrix-grid" id="threats-matrix">
+            <!-- Dynamic Threat Cards -->
+          </div>
+        </section>
+
+        <!-- VIEW 3: REPORT CORPUS -->
+        <section id="view-reports" class="content-view">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">INTELLIGENCE OPERATIONS</span>
+              <h1>Report Corpus</h1>
+              <p>Research reports and source provenance for the intelligence feed.</p>
+            </div>
+          </header>
+          <div class="corpus-grid">
+            <div class="glass-panel">
+              <div class="panel-header">
+                <h3>Annual Security Reports</h3>
+                <span class="tag-badge">awesome-annual-security-reports</span>
+              </div>
+              <div class="table-container">
+                <table id="corpus-table">
+                  <thead>
+                    <tr>
+                      <th>Document</th>
+                      <th>Vendor</th>
+                      <th>Year</th>
+                      <th>Passages</th>
+                      <th>Threats Cited</th>
+                      <th>PDF Link</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="glass-panel" style="margin-top: 24px;">
+              <div class="panel-header">
+                <h3>Intelligence Feed Ingestion Sources</h3>
+                <span class="tag-badge green">Provenance Rated</span>
+              </div>
+              <div class="table-container">
+                <table id="sources-table">
+                  <thead>
+                    <tr>
+                      <th>Source</th>
+                      <th>Records</th>
+                      <th>Indicators</th>
+                      <th>Latest record</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 4: SEARCH & ENRICH -->
+        <section id="view-search" class="content-view">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">INTELLIGENCE OPERATIONS / VIRUSTOTAL</span>
+              <h1>VirusTotal scan</h1>
+              <p>Check one IP address, domain, URL or file hash against more than 90 antivirus engines. Each result is saved for 24 hours and linked to the threats it belongs to, so the next lookup is instant.</p>
+            </div>
+          </header>
+
+          <div class="glass-panel vt-panel">
+            <div class="vt-command-bar" id="vt-scan-form">
+              <span class="vt-prefix-badge">vt scan</span>
+              <input id="vt-scan-input" class="vt-scan-input" type="text" placeholder="185.220.101.1  |  evil.example  |  https://...  |  sha256" aria-label="VirusTotal scan target">
+              <button id="vt-scan-button" class="vt-scan-btn" type="button">Scan</button>
+            </div>
+            <div id="vt-scan-result"></div>
+          </div>
+
+          <div class="glass-panel vt-recent-panel">
+            <div class="vt-recent-header">
+              <h3>Recent scans Ã‚Â· <span id="vt-cache-count">0 cached</span></h3>
+              <button id="vt-refresh" class="vt-refresh-btn" type="button">Ã¢â€ Â» Refresh</button>
+            </div>
+            <div class="vt-table-wrap">
+              <table class="vt-recent-table">
+                <thead>
+                  <tr>
+                    <th>INDICATOR</th>
+                    <th>TYPE</th>
+                    <th>VERDICT</th>
+                    <th>COUNTRY</th>
+                    <th>OWNER</th>
+                    <th>SCANNED</th>
+                  </tr>
+                </thead>
+                <tbody id="vt-recent-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <div id="vt-modal-backdrop" class="vt-modal-backdrop hidden" hidden aria-hidden="true">
+          <div class="vt-modal-panel" role="dialog" aria-modal="true" aria-labelledby="vt-modal-title">
+            <div class="vt-modal-header">
+              <div>
+                <div class="vt-modal-eyebrow">VirusTotal analysis</div>
+                <h3 id="vt-modal-title">Full report</h3>
+              </div>
+              <button id="vt-modal-close" class="vt-modal-close" type="button" aria-label="Close report">Ãƒâ€”</button>
+            </div>
+            <div id="vt-modal-content" class="vt-modal-content"></div>
+          </div>
+        </div>
+
+        <!-- CROSS-SOURCE ANALYSIS (corroboration across sources; not duplicate detection) -->
+        <section id="view-cross" class="content-view">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">INTELLIGENCE OPERATIONS</span>
+              <h1>Cross-Source Analysis</h1>
+              <p>Intelligence that appears in more than one source. A shared CVE, malware family, actor or indicator is corroboration, not duplication &mdash; the underlying records can still differ.</p>
+            </div>
+            <button id="cs-refresh" class="xs-btn" type="button">Refresh Analysis</button>
+          </header>
+
+          <div id="cs-status" class="xs-status" aria-live="polite"></div>
+          <div id="cs-state" aria-live="polite"></div>
+
+          <div id="cs-body">
+            <div id="cs-totals" class="xs-cards"></div>
+
+            <div class="glass-panel xs-panel">
+              <div class="xs-filters">
+                <input id="cs-q" type="search" placeholder="Search by indicator, domain, IP, URL, CVE, malware or actor" aria-label="Search matches" autocomplete="off">
+                <select id="cs-src" aria-label="Filter by source"></select>
+                <select id="cs-sort" aria-label="Sort matches">
+                  <option value="source_count">Sort: most sources</option>
+                  <option value="record_count">Sort: most records</option>
+                  <option value="value">Sort: name</option>
+                  <option value="type">Sort: type</option>
+                </select>
+                <button id="cs-clear" class="xs-btn secondary" type="button" hidden>Clear filters</button>
+              </div>
+              <div class="xs-chip-row"><span class="xs-chip-label">Type</span><div id="cs-cat" class="xs-chips" role="group" aria-label="Filter by type"></div></div>
+              <div class="xs-chip-row"><span class="xs-chip-label">Found in</span><div id="cs-min" class="xs-chips" role="group" aria-label="Minimum sources"></div></div>
+            </div>
+
+            <div class="xs-results-head">
+              <h3 id="cs-common-title">Matches</h3>
+              <span id="cs-count" class="xs-muted"></span>
+            </div>
+            <div id="cs-rows" class="xs-list" aria-live="polite"></div>
+            <div class="xs-pager">
+              <button id="cs-prev" class="xs-btn secondary" type="button">Previous</button>
+              <span id="cs-page" class="xs-muted"></span>
+              <button id="cs-next" class="xs-btn secondary" type="button">Next</button>
+            </div>
+
+            <div class="glass-panel xs-panel">
+              <h3 class="xs-h3">Source overlap</h3>
+              <div id="cs-overlap"></div>
+            </div>
+
+            <details class="glass-panel xs-panel xs-compare">
+              <summary>Compare two sources</summary>
+              <div class="xs-filters" style="margin-top:12px;">
+                <select id="cs-a" aria-label="Source 1"></select>
+                <select id="cs-b" aria-label="Source 2"></select>
+                <button id="cs-compare" class="xs-btn" type="button">Compare</button>
+              </div>
+              <div id="cs-compare-result"></div>
+            </details>
+          </div>
+        </section>
+
+        <!-- WORKING SET & WIREDTIGER CACHE -->
+        <section id="view-cache" class="content-view">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">STORAGE ENGINE ANALYSIS</span>
+              <h1>Working Set &amp; WiredTiger Cache Analysis</h1>
+              <p>Measure a real-record-derived working set, monitor live cache behavior, and benchmark random point reads.</p>
+            </div>
+          </header>
+
+          <div class="glass-panel lab-objective">
+            <div>
+              <span class="eyebrow">OBJECTIVE</span>
+              <p>Evaluate how working-set size affects WiredTiger cache residency, random-read latency, and disk page reads.</p>
+            </div>
+            <span class="tag-badge cyan">100,000 derived benchmark documents</span>
+          </div>
+
+          <!-- Live collection and cache measurements -->
+          <div class="stats-row">
+            <div class="stat-card prime">
+              <div class="card-icon">Ã°Å¸â€œÂ¦</div>
+              <div class="stat-data">
+                <span class="label">Threat Reports</span>
+                <span class="big-val" id="ws-document-count">Loading...</span>
+                <span class="hint" id="ws-document-size">Collection measurements loading</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="card-icon">Ã°Å¸â€™Â¾</div>
+              <div class="stat-data">
+                <span class="label">Working Set Footprint</span>
+                <span class="big-val" id="ws-footprint">Loading...</span>
+                <span class="hint">BSON data plus collection indexes</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="card-icon">Ã°Å¸Â§Â </div>
+              <div class="stat-data">
+                <span class="label">WiredTiger Cache In Use</span>
+                <span class="big-val" id="wt-bytes-cache">Waiting...</span>
+                <span class="hint" id="wt-cache-pct">Waiting for telemetry...</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="card-icon">Ã°Å¸â€œË†</div>
+              <div class="stat-data">
+                <span class="label">Cache Hit Ratio (10s)</span>
+                <span class="big-val" id="wt-hit-ratio">Waiting...</span>
+                <span class="hint">1 Ã¢Ë†â€™ (pages read ÃƒÂ· pages requested)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-panel cache-capacity-panel">
+            <div class="panel-header">
+              <div>
+                <h3>Cache Capacity &amp; Eviction Activity</h3>
+                <p class="panel-sub">Values come from live MongoDB serverStatus. Reference run: 1,024 MB cache; this instance uses its configured capacity.</p>
+              </div>
+              <span class="tag-badge" id="wt-cache-capacity">Cache limit: loading...</span>
+            </div>
+            <div class="cache-detail-grid">
+              <div><span class="label">Dirty bytes</span><strong id="wt-dirty">Waiting...</strong></div>
+              <div><span class="label">Application-thread evictions</span><strong id="wt-evictions">Waiting...</strong></div>
+              <div><span class="label">Pages read into cache</span><strong id="wt-pages-read">Waiting...</strong></div>
+            </div>
+            <div class="cache-progress" role="progressbar" aria-label="WiredTiger cache utilization" aria-valuemin="0" aria-valuemax="100">
+              <div id="wt-cache-progress"></div>
+            </div>
+          </div>
+
+          <!-- Live cache utilization chart -->
+          <div class="glass-panel" style="margin-top: 20px;">
+            <div class="panel-header">
+              <div>
+                <h3>WiredTiger Cache Utilization</h3>
+                <p class="panel-sub">Cache bytes in use versus the configured maximum, sampled every 10 seconds.</p>
+              </div>
+              <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span>Live 10s Sampling</span>
+              </div>
+            </div>
+            <div class="chart-viewport">
+              <canvas id="wt-cache-chart" role="img" aria-label="WiredTiger cache utilization over time"></canvas>
+            </div>
+            <p class="experiment-note" id="wt-telemetry-status" aria-live="polite">Waiting for the first telemetry sample...</p>
+          </div>
+
+          <div class="glass-panel random-read-panel">
+            <div class="panel-header">
+              <div>
+                <h3>working-set measurement</h3>
+                <p class="panel-sub">Run 500 random indexed lookups by <code>_id</code> and measure elapsed time and cache page-read deltas.</p>
+              </div>
+              <button id="btn-run-random-reads" class="btn-glow" type="button">Run 500 Random Reads</button>
+            </div>
+            <div class="benchmark-results-box">
+              <div class="bench-metric-card">
+                <div class="metric-title">Average Read Latency</div>
+                <div class="metric-number speed" id="ws-read-latency">Ã¢â‚¬â€</div>
+                <div class="metric-details" id="ws-read-count">No measurement is available yet</div>
+              </div>
+              <div class="bench-metric-card">
+                <div class="metric-title">Cache Page Reads / Evictions</div>
+                <div class="metric-number" id="ws-read-pages">Ã¢â‚¬â€</div>
+                <div class="metric-details" id="ws-read-pages-detail">Measured during the last workload</div>
+              </div>
+            </div>
+            <p class="experiment-note" id="ws-experiment-status" aria-live="polite">Collect a measurement when you are ready. It never starts automatically.</p>
+            <div class="ws-hint" id="ws-build-hint" hidden>
+              <strong>The benchmark collection is empty.</strong>
+              <p>This view reads from the working-set data, which has not been built in this database yet. Build it once (derived from your stored records; existing records are not modified):</p>
+              <code>Run a working-set measurement from an administrator terminal.</code>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- WRITE CONCERN LATENCY -->
+        <section id="view-latency" class="content-view">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">PERFORMANCE &amp; RELIABILITY</span>
+              <h1>Write Concern Latency</h1>
+              <p>Empirical latency analysis across replica set durability levels (w:1, w:majority, j:false, j:true).</p>
+            </div>
+            <span class="tag-badge cyan">HISTORICAL BENCHMARK &amp; LIVE RUNNER</span>
+          </header>
+          <div id="latency-content">
+            <div class="loading-state">Loading write concern latency telemetry...</div>
+          </div>
+        </section>
+
+        <!-- NETWORK RELIABILITY & RECOVERY -->
+        <section id="view-partition" class="content-view">
+          <header class="view-header">
+            <div>
+              <span class="eyebrow">PERFORMANCE &amp; RELIABILITY</span>
+              <h1>Network Reliability &amp; Recovery</h1>
+              <p>Network isolation test results, write acknowledgements, cluster fault tolerance, and recovery status.</p>
+            </div>
+            <span class="tag-badge cyan">SAVED RESULTS &amp; LIVE TELEMETRY</span>
+          </header>
+          <div id="partition-content">
+            <div class="loading-state">Loading network reliability telemetry...</div>
+          </div>
+        </section>
+
+        <section id="view-lab10-banking" class="content-view">
+          <header class="view-header"><div><span class="eyebrow">BANKING</span><h1>Banking Operations</h1><p>Manage your simulated wallet and subscription, then review your private financial history. Demonstration records remain separate from your private account activity.</p></div><span id="banking-data-badge" class="rel-pill warn">Loading data</span></header>
+          <div id="banking-finance-auth" class="empty-prompt" hidden>Sign in to manage your wallet and view private financial activity. <a href="/account">Account &amp; Subscription</a></div>
+          <section id="banking-finance" class="banking-finance" hidden>
+            <div id="banking-finance-message" class="account-notice" role="status" aria-live="polite"></div>
+            <section class="glass-panel lab10-feature-card banking-wallet-card">
+              <div class="lab10-feature-heading"><div><span class="eyebrow">YOUR WALLET</span><h2>Financial summary</h2></div><button id="banking-add-money" class="account-primary-button" type="button">Add Money</button></div>
+              <p class="lab10-explainer">This wallet is a simulation. No payment gateway or real money is involved.</p>
+              <div id="financial-summary" class="lab10-metrics financial-summary"><div class="loading-state">Loading your financial summaryÃ¢â‚¬Â¦</div></div>
+            </section>
+            <section class="glass-panel lab10-feature-card banking-plans-card">
+              <div class="lab10-feature-heading"><div><span class="eyebrow">SUBSCRIPTION</span><h2>Current plan &amp; available plans</h2></div><span id="banking-current-plan" class="rel-pill info">Loading plan</span></div>
+              <div id="banking-plans" class="account-plan-grid"><div class="loading-state">Loading plansÃ¢â‚¬Â¦</div></div>
+              <p id="banking-plan-policy" class="account-policy"></p>
+            </section>
+            <section id="banking-admin-panel" class="glass-panel lab10-feature-card" hidden><div class="lab10-feature-heading"><div><span class="eyebrow">ADMINISTRATION</span><h2>Revenue &amp; consistency</h2></div></div><div id="banking-admin-summary"></div></section>
+          </section>
+          <div id="lab10-bank-data" class="loading-state">Loading saved operational measurementsÃ¢â‚¬Â¦</div>
+          <section id="financial-activity" class="glass-panel lab10-feature-card financial-activity-card">
+            <div class="lab10-feature-heading"><div><span class="eyebrow">YOUR WALLET &amp; BILLING</span><h2>Transaction history</h2></div><span class="rel-pill info">Private account history</span></div>
+            <p class="lab10-explainer">Committed wallet, subscription, transfer, and credit activity. Wallet and subscription history are recorded here.</p>
+            <form id="financial-filters" class="financial-filters">
+              <label>Search<input name="q" type="search" maxlength="100" placeholder="Transaction ID or description"></label>
+              <label>Type<select name="transaction_type"><option value="">All activity</option></select></label>
+              <label>Status<select name="status"><option value="">All statuses</option><option value="committed">Successful</option><option value="pending">Pending</option><option value="failed">Failed / rolled back</option><option value="refunded">Refunded</option></select></label>
+              <label>From<input name="date_from" type="date"></label>
+              <label>To<input name="date_to" type="date"></label>
+              <button class="xs-btn" type="submit">Apply filters</button><button id="financial-filter-reset" class="xs-btn secondary" type="button">Clear</button>
+            </form>
+            <div id="financial-history" class="financial-history" aria-live="polite"><div class="loading-state">Loading your financial activityÃ¢â‚¬Â¦</div></div>
+            <div id="financial-pagination" class="financial-pagination" aria-label="Financial activity pages"></div>
+          </section>
+          <dialog id="financial-detail-dialog" class="financial-detail-dialog">
+            <div class="lab10-feature-heading"><div><span class="eyebrow">TRANSACTION DETAILS</span><h2 id="financial-detail-title">Financial activity</h2></div><button id="financial-detail-close" class="xs-btn" type="button">Close</button></div>
+            <div id="financial-detail-content" class="financial-detail-content"></div>
+          </dialog>
+          <dialog id="banking-topup-dialog" class="account-dialog">
+            <form id="banking-topup-form" method="dialog">
+              <div class="account-section-heading"><div><span class="eyebrow">SIMULATED WALLET</span><h2>Add Money</h2></div><button class="account-close-button" type="button" data-dialog-close="banking-topup-dialog" aria-label="Close">Ãƒâ€”</button></div>
+              <p>Demonstration only: this adds test funds to your wallet. It does not charge a card or bank account.</p>
+              <p id="banking-topup-balance" class="banking-balance-preview"></p>
+              <div class="account-presets" aria-label="Preset top-up amounts"><button type="button" data-banking-amount="100">Ã¢â€šÂ¹100</button><button type="button" data-banking-amount="500">Ã¢â€šÂ¹500</button><button type="button" data-banking-amount="1000">Ã¢â€šÂ¹1,000</button><button type="button" data-banking-amount="2000">Ã¢â€šÂ¹2,000</button></div>
+              <label class="account-amount-label">Custom amount (Ã¢â€šÂ¹)<input id="banking-topup-amount" type="number" min="1" max="100000" step="1" required></label>
+              <small>Enter Ã¢â€šÂ¹1 to Ã¢â€šÂ¹100,000.</small>
+              <div class="account-dialog-actions"><button class="account-secondary-button" type="button" data-dialog-close="banking-topup-dialog">Cancel</button><button id="banking-topup-submit" class="account-primary-button" type="submit">Confirm deposit</button></div>
+            </form>
+          </dialog>
+          <dialog id="banking-confirm-dialog" class="account-dialog"><form method="dialog"><div class="account-section-heading"><div><span class="eyebrow">PLEASE CONFIRM</span><h2 id="banking-confirm-title">Confirm action</h2></div><button class="account-close-button" value="cancel" aria-label="Close">Ãƒâ€”</button></div><div id="banking-confirm-details" class="confirm-details"></div><div id="banking-confirm-error" class="account-notice error" role="alert"></div><div class="account-dialog-actions"><button class="account-secondary-button" value="cancel">Cancel</button><button id="banking-confirm-submit" class="account-primary-button" value="confirm">Confirm</button></div></form></dialog>
+        </section>
+
+        <section id="view-lab10-reliability-inventory" class="content-view">
+          <header class="view-header"><div><span class="eyebrow">RESILIENCE &amp; STOCK</span><h1>Reliability &amp; Inventory</h1><p>Explore replica recovery, stock reservations, and measured concurrency performance.</p></div><span id="lab10-cluster-badge" class="rel-pill warn">Checking cluster</span></header>
+          <div id="lab10-cluster-status" class="empty-prompt">Checking live cluster availability...</div>
+          <section class="glass-panel lab10-feature-card"><div class="lab10-feature-heading"><div><span class="eyebrow">HIGH AVAILABILITY</span><h2>Replica Failover</h2></div><span class="rel-pill info">Measured results</span></div><p>Payment continuity and recovery through primary changes and loss of voting majority.</p><div id="lab10-failover-data" class="loading-state">Loading failover results...</div></section>
+          <section class="glass-panel lab10-feature-card lab10-form-card"><div class="lab10-feature-heading"><div><span class="eyebrow">STOCK CONTROL</span><h2>Inventory Management</h2></div><div class="lab10-inventory-actions"><span id="inventory-data-badge" class="rel-pill warn">Loading data</span><button id="inventory-refresh" class="xs-btn" type="button">Refresh inventory</button></div></div><p>Product catalog, available units, and reservation activity.</p><div id="lab10-inventory-data" class="loading-state">Loading inventory products...</div>
+            <form id="reservation-form" class="lab10-form"><label>Product<select id="reservation-product" required disabled></select></label><label>Customer ID<input id="reservation-customer" type="text" maxlength="64" required disabled></label><label>Quantity<input id="reservation-quantity" type="number" min="1" step="1" value="1" required disabled></label><button id="reservation-submit" class="xs-btn" type="submit" disabled>Reserve stock</button></form><div id="reservation-result" aria-live="polite"></div>
+          </section>
+          <section class="glass-panel lab10-feature-card"><div class="lab10-feature-heading"><div><span class="eyebrow">PERFORMANCE</span><h2>Concurrency &amp; Performance</h2></div><span class="rel-pill info">Measured results</span></div><p>Recorded throughput across worker counts. The non-transactional series is benchmark-only and carries consistency risks.</p><div id="lab10-performance-data" class="loading-state">Loading benchmark measurements...</div></section>
+        </section>
+
+        <section id="view-lab11" class="content-view" aria-labelledby="lab11-title">
+          <header class="view-header">
+            <div><span class="eyebrow">DATABASE ARCHITECTURE</span><h1 id="lab11-title"> Ã¢â‚¬â€ Sharding &amp; Horizontal Scalability</h1><p>Compare shard-key trade-offs and inspect measured data placement and query routing on the isolated database cluster.</p></div>
+            <span id="lab11-page-status" class="rel-pill warn" role="status">Checking cluster</span>
+          </header>
+
+          <section class="glass-panel lab11-controls" aria-label="Sharding controls">
+            <div><span class="eyebrow">MEASUREMENT CONTROLS</span><h2>Cluster and measurement actions</h2><p>Read-only checks are available to signed-in users. Refresh actions require an administrator session.</p></div>
+            <div class="lab11-action-row">
+              <button id="lab11-check-status" class="xs-btn secondary" type="button">Check cluster status</button>
+              <button id="lab11-run-1" class="xs-btn" type="button" hidden>Refresh shard-key evaluation</button>
+              <button id="lab11-run-2" class="xs-btn" type="button" hidden>Refresh hotspot measurements</button>
+              <button id="lab11-refresh-results" class="xs-btn secondary" type="button">Refresh measurements</button>
+              <button id="lab11-view-explain" class="xs-btn secondary" type="button">View raw explain output</button>
+            </div>
+            <p id="lab11-job-status" class="lab11-job-status" role="status" aria-live="polite"></p>
+          </section>
+
+          <section class="glass-panel lab11-section">
+            <div class="lab10-feature-heading"><div><span class="eyebrow">CLUSTER OVERVIEW</span><h2>Sharded cluster readiness</h2></div><span id="lab11-cluster-state" class="rel-pill warn">Checking</span></div>
+            <div id="lab11-cluster-status" class="lab11-status-grid"><div class="loading-state">Checking mongos and replica-set statusÃ¢â‚¬Â¦</div></div>
+            <div class="lab11-overview-copy"><div><h3>Objectives</h3><p>Evaluate shard keys by cardinality, distribution, query targeting, range efficiency, and hotspot risk. Compare a monotonically increasing timestamp key with a hashed entity key using actual cluster measurements.</p></div><div><h3>Prerequisites</h3><p>Docker Desktop running; the isolated sharding cluster config-server replica set, two shards, and mongos router healthy. The application reaches the router through its sharding cluster endpoint.</p></div></div>
+            <div class="lab11-objective-grid"><article><h3>Shard-key choices</h3><p>Compare order ID, customer ID, order date, and hashed customer ID for a customer-centric order workload.</p></article><article><h3>Hotspot analysis</h3><p>Load 10,000 reproducible records into each sharded collection, then measure placement, storage, and explain plans.</p></article></div>
+          </section>
+
+          <nav class="lab11-experiment-tabs" role="tablist" aria-label="Sharding analyses">
+            <button id="lab11-tab-button-1" class="lab11-tab-button is-active" role="tab" aria-selected="true" aria-controls="lab11-tab-1" type="button">Shard Key Evaluation</button>
+            <button id="lab11-tab-button-2" class="lab11-tab-button" role="tab" aria-selected="false" aria-controls="lab11-tab-2" type="button">Hotspot Analysis</button>
+          </nav>
+
+          <div id="lab11-tab-1" class="lab11-tab-panel" role="tabpanel" aria-labelledby="lab11-tab-button-1">
+          <section class="glass-panel lab11-section">
+            <div class="lab10-feature-heading"><div><span class="eyebrow">TRANSACTION DATASET</span><h2>Shard Key Evaluation</h2></div><a class="lab11-report-link" href="/api/chapter11/reports/decision-matrix-markdown?download=true">Download evaluation</a></div>
+            <p class="lab10-explainer">This 1,400-row dataset is reserved for this evaluation and isolated from operational payment and account records.</p>
+            <p id="lab11-evaluation-captured" class="lab11-measurement-caption">Loading measured dataset results...</p>
+            <div id="lab11-dataset-summary" class="lab11-status-metrics"><div class="loading-state">Reading evaluation measurements...</div></div>
+            <div class="lab11-chart-grid">
+              <article class="lab11-chart-card"><h3>Distinct values by key</h3><canvas id="lab11-cardinality-chart" aria-label="Measured key cardinality chart"></canvas></article>
+              <article class="lab11-chart-card"><h3>Actual records per shard</h3><canvas id="lab11-distribution-chart" aria-label="Measured per-shard distribution chart"></canvas></article>
+            </div>
+            <div id="lab11-matrix" class="lab11-table-wrap"><div class="loading-state">Loading the measured evaluation...</div></div>
+            <p id="lab11-recommendation" class="lab11-recommendation"></p>
+            <details class="lab11-research"><summary>MongoDB 5.0+ resharding notes</summary><div id="lab11-resharding-notes"><p>Resharding copies data to a new shard-key distribution, applies writes made during copying, and commits a consistency point. Before starting, confirm the supporting index, unique-index compatibility, healthy shards, spare disk and network capacity, and no active index build. Temporary copies consume resources; the commit phase can briefly block writes and cannot be aborted after commit begins. Hashed shard keys cannot be unique, and some specialized index/encryption workloads have restrictions. Resharding is not triggered from this dashboard.</p><a href="https://www.mongodb.com/docs/manual/reference/command/reshardcollection/" target="_blank" rel="noopener noreferrer">MongoDB reshardCollection documentation</a></div></details>
+          </section>
+
+                    </div>
+
+          <div id="lab11-tab-2" class="lab11-tab-panel" role="tabpanel" aria-labelledby="lab11-tab-button-2" hidden>
+<section class="glass-panel lab11-section">
+            <div class="lab10-feature-heading"><div><span class="eyebrow">INDEPENDENT WORKLOAD</span><h2>Hotspot Analysis Ã‚Â· measured results</h2></div><div class="lab11-report-links"><a class="lab11-report-link" href="/api/chapter11/reports/measurements?download=true">Download measurements</a><a class="lab11-report-link" href="/api/chapter11/reports/measurements">Download raw JSON evidence</a></div></div>
+            <p class="lab10-explainer">This independent workload uses its own 10,000-document collections and does not read the Transaction Dataset used by Shard Key Evaluation.</p>
+            <p id="lab11-measurement-captured" class="lab11-measurement-caption">Loading measurement snapshotÃ¢â‚¬Â¦</p>
+            <div id="lab11-measurements" class="lab11-measurements-grid"><div class="loading-state">Loading actual shard distribution and query plansÃ¢â‚¬Â¦</div></div>
+            <details class="lab11-raw-explain"><summary>View raw explain() output</summary><pre id="lab11-explain-json">Refresh hotspot measurements to load the captured explain output.</pre></details>
+          </section>
+
+
+
+                    </div>
+
+<section class="glass-panel lab11-section">
+            <div class="lab10-feature-heading"><div><span class="eyebrow">SHARD ADVISOR</span><h2>Workload-based shard-key guidance</h2></div><span class="rel-pill info">Rule-based</span></div>
+            <p>Describe your workload to compare strategies. The fit score follows the visible rules below; it is not a performance benchmark.</p>
+            <form id="lab11-advisor-form" class="lab11-advisor-form">
+              <label>Workload profile<select id="lab11-profile" name="profile"><option value="ecommerce_orders">E-commerce orders</option><option value="customer_transactions">Customer transaction history</option><option value="time_series">Time-series events</option><option value="threat_intelligence">Threat intelligence records</option><option value="custom">Custom workload</option></select></label>
+              <label>Expected documents<input id="lab11-documents" name="expected_documents" type="number" min="1" max="100000000000" step="1" value="1000000" required></label>
+              <label>Write frequency<select id="lab11-write-frequency" name="write_frequency"><option value="low">Low</option><option value="moderate" selected>Moderate</option><option value="high">High</option></select></label>
+              <fieldset class="lab11-query-patterns"><legend>Most common query patterns</legend>
+                <label><input type="checkbox" name="query_patterns" value="customer_lookup" checked> Customer lookup</label><label><input type="checkbox" name="query_patterns" value="entity_lookup"> Entity lookup</label><label><input type="checkbox" name="query_patterns" value="entity_history"> Entity history</label><label><input type="checkbox" name="query_patterns" value="order_lookup" checked> Order lookup</label><label><input type="checkbox" name="query_patterns" value="date_range" checked> Date range</label><label><input type="checkbox" name="query_patterns" value="time_range"> Time range</label><label><input type="checkbox" name="query_patterns" value="indicator_lookup"> Indicator lookup</label>
+              </fieldset>
+              <label class="lab11-check"><input id="lab11-ranges-important" type="checkbox" checked> Range queries are important</label>
+              <label class="lab11-check"><input id="lab11-recent-writes" type="checkbox"> Writes concentrate on recent records</label>
+              <label class="lab11-check"><input id="lab11-entity-scoped" type="checkbox" checked> Queries usually target one customer or entity</label>
+              <label>Compare strategy A<select id="lab11-compare-a"></select></label><label>Compare strategy B<select id="lab11-compare-b"></select></label>
+              <button class="xs-btn" type="submit">Generate recommendation</button>
+            </form>
+            <div id="lab11-advisor-result" class="lab11-advisor-result" aria-live="polite"><div class="empty-prompt">Choose a workload and generate a transparent strategy comparison.</div></div>
+            <details class="lab11-rules"><summary>How the advisor scores strategies</summary><p>It starts from a neutral fit score, adds credit when a candidate matches selected query patterns, rewards compatible ordered ranges, accounts for entity-scoped reads, and adjusts for high write frequency on recent records. Large expected datasets add a small hashed-key preference when distinct values are available. Each adjustment and its reason is returned with the recommendation.</p></details>
+            <p class="lab11-education-warning">Planning guidance. Production choices require representative workload tests, cardinality and skew analysis, capacity planning, and evaluation of compound keys where queries combine an entity equality filter with a range such as time.</p>
+          </section>
+        </section>
+
+
+        <section id="view-admin" class="content-view" aria-labelledby="admin-title">
+          <header class="view-header"><div><span class="eyebrow">ADMINISTRATION</span><h1 id="admin-title">Admin Dashboard</h1><p>Current account, wallet, and transaction records.</p></div><span class="rel-pill info">Administrator</span></header>
+          <nav class="admin-tabs" aria-label="Administration sections">
+            <button type="button" class="admin-tab is-active" data-admin-tab="overview">Overview</button>
+            <button type="button" class="admin-tab" data-admin-tab="users">Users</button>
+            <button type="button" class="admin-tab" data-admin-tab="transactions">Transactions</button>
+            <button type="button" class="admin-tab" data-admin-tab="subscriptions">Subscriptions</button>
+          </nav>
+          <div id="admin-message" class="admin-message" role="status" aria-live="polite" hidden></div>
+          <section class="admin-panel" data-admin-panel="overview">
+            <div id="admin-period-note" class="admin-period-note">Loading database totals…</div>
+            <div id="admin-summary-cards" class="admin-summary-grid"><div class="loading-state">Loading administrator summary…</div></div>
+            <div class="admin-recent-grid"><article><h2>Recent users</h2><ul id="admin-recent-users"></ul></article><article><h2>Recent transactions</h2><ul id="admin-recent-transactions"></ul></article><article><h2>Recent administrator actions</h2><ul id="admin-recent-actions"></ul></article></div>
+          </section>
+          <section class="admin-panel" data-admin-panel="subscriptions" hidden>
+            <div class="admin-toolbar"><label>Plan<select id="admin-subscription-plan"><option value="">All plans</option><option value="free">Free</option><option value="plus">Plus</option><option value="pro">Pro</option></select></label><button id="admin-subscription-apply" class="xs-btn" type="button">Filter</button></div>
+            <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>User ID</th><th>Email</th><th>Plan</th><th>Status</th><th>Renewal</th><th>Wallet balance</th></tr></thead><tbody id="admin-subscriptions-body"><tr><td colspan="6" class="loading-state">Load subscriptions to view current records.</td></tr></tbody></table></div>
+            <div class="admin-pagination"><button id="admin-subscriptions-prev" class="xs-btn secondary" type="button">Previous</button><span id="admin-subscriptions-page">Page 1</span><button id="admin-subscriptions-next" class="xs-btn secondary" type="button">Next</button></div>
+          </section>
+          <section class="admin-panel" data-admin-panel="users" hidden>
+            <div class="admin-toolbar"><label>Search users<input id="admin-user-search" type="search" placeholder="User ID, name, or email"></label>
+              <label>Plan<select id="admin-user-plan"><option value="">All plans</option><option value="free">Free</option><option value="plus">Plus</option><option value="pro">Pro</option></select></label>
+              <label>Status<select id="admin-user-status"><option value="">All recorded statuses</option><option value="active">Active</option><option value="banned">Banned</option><option value="suspended">Suspended</option><option value="disabled">Disabled</option></select></label>
+              <label>Sort by<select id="admin-user-sort"><option value="created_at">Registration date</option><option value="user_id">User ID</option><option value="email">Email</option><option value="plan">Plan</option><option value="last_login_at">Last login</option></select></label>
+              <label>Order<select id="admin-user-order"><option value="desc">Newest first</option><option value="asc">Oldest first</option></select></label>
+              <button type="button" id="admin-user-apply" class="xs-btn">Search</button>
+            </div>
+            <div id="admin-user-detail" class="admin-detail-card" hidden></div>
+            <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>User ID</th><th>Name / Email</th><th>Plan</th><th>Status</th><th>Wallet</th><th>Last login</th><th>Transactions</th><th></th></tr></thead><tbody id="admin-users-body"><tr><td colspan="8" class="loading-state">Loading users…</td></tr></tbody></table></div>
+            <div class="admin-pagination"><button id="admin-users-prev" class="xs-btn secondary" type="button">Previous</button><span id="admin-users-page">Page 1</span><button id="admin-users-next" class="xs-btn secondary" type="button">Next</button></div>
+          </section>
+          <section class="admin-panel" data-admin-panel="transactions" hidden>
+            <div id="admin-transaction-summary" class="admin-summary-grid compact"></div>
+            <form id="admin-wallet-credit" class="admin-toolbar"><label>Credit user ID<input name="user_id" required maxlength="64"></label><label>Amount (INR)<input name="amount" type="number" min="1" max="100000" required></label><label>Reason<input name="reason" maxlength="200" required></label><button type="submit" class="xs-btn">Credit wallet</button></form>
+            <div class="admin-toolbar"><label>Search activity<input id="admin-tx-search" type="search" placeholder="Transaction ID, user ID, description"></label>
+              <label>User ID<input id="admin-tx-user" type="text" placeholder="Optional user ID"></label>
+              <label>Type<select id="admin-tx-type"><option value="">All types</option><option>wallet_top_up</option><option>subscription_purchase</option><option>wallet_transfer</option><option>wallet_opening_balance</option><option>feature_usage</option><option>wallet_refund</option></select></label>
+              <label>Status<select id="admin-tx-status"><option value="">All statuses</option><option value="committed">Committed</option><option value="failed">Failed</option><option value="rolled_back">Rolled back</option><option value="refunded">Refunded</option></select></label>
+              <label>From<input id="admin-tx-from" type="date"></label><label>To<input id="admin-tx-to" type="date"></label>
+              <label>Sort by<select id="admin-tx-sort"><option value="created_at">Date</option><option value="amount">Amount</option><option value="type">Type</option><option value="status">Status</option><option value="transaction_id">Transaction ID</option><option value="user_id">User ID</option></select></label>
+              <label>Order<select id="admin-tx-order"><option value="desc">Newest / highest first</option><option value="asc">Oldest / lowest first</option></select></label>
+              <button type="button" id="admin-tx-apply" class="xs-btn">Filter</button>
+            </div>
+            <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Transaction ID</th><th>User</th><th>Date</th><th>Type</th><th>Amount</th><th>Status</th><th>Description</th><th>Balance after</th></tr></thead><tbody id="admin-transactions-body"><tr><td colspan="8" class="loading-state">Loading transactions…</td></tr></tbody></table></div>
+            <div class="admin-pagination"><button id="admin-tx-prev" class="xs-btn secondary" type="button">Previous</button><span id="admin-tx-page">Page 1</span><button id="admin-tx-next" class="xs-btn secondary" type="button">Next</button></div>
+          </section>
+        </section>
+
+        <section id="view-manager" class="content-view" aria-labelledby="manager-title">
+          <header class="view-header"><div><span class="eyebrow">OPERATIONS OVERVIEW</span><h1 id="manager-title">Manager Dashboard</h1><p>Read-only account, subscription, wallet, transaction, and audit records.</p></div><span class="rel-pill info">Read only</span></header>
+          <div id="manager-summary" class="admin-summary-grid"><div class="loading-state">Loading management summary…</div></div>
+          <div class="admin-tabs"><button type="button" class="admin-tab is-active" data-manager-tab="users">Users</button><button type="button" class="admin-tab" data-manager-tab="subscriptions">Subscriptions</button><button type="button" class="admin-tab" data-manager-tab="transactions">Transactions</button><button type="button" class="admin-tab" data-manager-tab="audit">Audit log</button></div>
+          <section class="admin-panel" data-manager-panel="users"><label>Search users<input id="manager-search" type="search" placeholder="User ID, name, or email"></label><button id="manager-search-button" class="xs-btn" type="button">Search</button><div id="manager-users" class="admin-table-wrap"></div></section>
+          <section class="admin-panel" data-manager-panel="subscriptions" hidden><div id="manager-subscriptions" class="admin-table-wrap"></div></section>
+          <section class="admin-panel" data-manager-panel="transactions" hidden><div id="manager-transactions" class="admin-table-wrap"></div></section>
+          <section class="admin-panel" data-manager-panel="audit" hidden><div id="manager-audit" class="admin-table-wrap"></div></section>
+          <div id="manager-message" class="admin-message" role="status" aria-live="polite"></div>
+        </section>
+
+      </div>
+    </div>
+
+    <section id="upgrade-dialog" class="upgrade-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="upgrade-title">
+      <article class="upgrade-panel"><button id="upgrade-close" class="upgrade-close" type="button" aria-label="Close">Ã—</button><span class="eyebrow">PLAN ACCESS</span><h2 id="upgrade-title">Unlock this feature</h2><p id="upgrade-description"></p><div id="upgrade-usage" class="upgrade-usage"></div><div class="upgrade-actions"><a id="upgrade-account-link" class="xs-btn" href="/account#subscriptions">View plans</a><button id="upgrade-dismiss" class="xs-btn secondary" type="button">Maybe later</button></div></article>
+    </section>
+
+    <!-- DETAIL SLIDE-OVER DRAWER -->
+    <div id="drawer-backdrop" class="drawer-backdrop hidden">
+      <div class="drawer-panel">
+        <div class="drawer-header">
+          <div class="drawer-title-group">
+            <span class="tag-badge cyan" id="drawer-type">THREAT PROFILE</span>
+            <h2 id="drawer-title">Adversary Name</h2>
+          </div>
+          <button id="drawer-close" class="drawer-close-btn">&times;</button>
+        </div>
+        <div class="drawer-body" id="drawer-content">
+          <!-- Dynamic details content -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <script src="/config.js"></script>
+  <script src="app.js"></script>
+  <script src="cross-source.js"></script>
+  <script src="reliability.js"></script>
+  <script src="lab10.js"></script>
+  <script src="banking-finance.js"></script>
+  <script src="lab11.js"></script>
+  <script src="admin.js"></script>
+  <script src="manager.js"></script>
+</body>
+</html>

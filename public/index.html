@@ -371,20 +371,22 @@
 
           <!-- Live collection and cache measurements -->
           <div class="stats-row">
-            <div class="stat-card prime">
+            <div class="stat-card prime is-loading" id="ws-count-card" aria-busy="true">
               <div class="card-icon"><svg class="card-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 13h5M10 17h5"/></svg></div>
               <div class="stat-data">
                 <span class="label">Threat Reports</span>
                 <span class="big-val" id="ws-document-count">Loading...</span>
-                <span class="hint" id="ws-document-size">Collection measurements loading</span>
+                <span class="hint" id="ws-document-size">Reading collection statistics…</span>
+                <button class="stat-retry" type="button" data-ws-retry hidden>Retry</button>
               </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card is-loading" id="ws-footprint-card" aria-busy="true">
               <div class="card-icon"><svg class="card-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></div>
               <div class="stat-data">
                 <span class="label">Working Set Footprint</span>
                 <span class="big-val" id="ws-footprint">Loading...</span>
-                <span class="hint">BSON data plus collection indexes</span>
+                <span class="hint" id="ws-footprint-hint">Uncompressed BSON data plus collection indexes</span>
+                <button class="stat-retry" type="button" data-ws-retry hidden>Retry</button>
               </div>
             </div>
             <div class="stat-card">
@@ -415,9 +417,10 @@
             </div>
             <div class="cache-detail-grid">
               <div><span class="label">Dirty bytes</span><strong id="wt-dirty">Waiting...</strong></div>
-              <div><span class="label">Application-thread evictions</span><strong id="wt-evictions">Waiting...</strong></div>
-              <div><span class="label">Pages read into cache</span><strong id="wt-pages-read">Waiting...</strong></div>
+              <div><span class="label">Application-thread evictions</span><strong id="wt-evictions">Waiting...</strong><small>Total since mongod started</small></div>
+              <div><span class="label">Pages read into cache</span><strong id="wt-pages-read">Waiting...</strong><small>Total since mongod started</small></div>
             </div>
+            <div class="cache-progress-label"><span>Cache in use</span><strong id="wt-cache-progress-label">Waiting for telemetry…</strong></div>
             <div class="cache-progress" role="progressbar" aria-label="WiredTiger cache utilization" aria-valuemin="0" aria-valuemax="100">
               <div id="wt-cache-progress"></div>
             </div>
@@ -439,6 +442,7 @@
             <div id="wt-cache-chart" class="wt-cache-chart" role="img" aria-label="WiredTiger cache utilization over time"><p class="chart-empty">Waiting for live cache samples…</p></div>
             </div>
             <p class="experiment-note" id="wt-telemetry-status" aria-live="polite">Waiting for the first telemetry sample...</p>
+            <button class="stat-retry" type="button" id="wt-telemetry-retry" hidden>Retry telemetry</button>
           </div>
 
           <div class="glass-panel random-read-panel">
@@ -740,7 +744,7 @@
                 <span>New Chat</span>
               </button>
               <div class="ai-history-label">Recent conversations</div>
-              <nav class="ai-history-list" data-ai-history-list aria-label="Previous conversations" aria-live="polite"><p class="ai-history-empty">Loading conversations?</p></nav>
+              <nav class="ai-history-list" data-ai-history-list aria-label="Previous conversations" aria-live="polite"><p class="ai-history-empty">Loading conversations…</p></nav>
             </aside>
             <main class="ai-chat-main">
               <header class="ai-chat-topbar">
@@ -748,6 +752,7 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 <div class="ai-chat-context"><strong data-ai-chat-context>New conversation</strong></div>
+                <span class="ai-agent-status" data-ai-agent-status hidden title="Local laptop agent">Local agent: checking…</span>
                 <details class="ai-filter-control">
                   <summary aria-label="Conversation filters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M7 12h10m-7 5h4"/><circle cx="8" cy="7" r="1.5"/><circle cx="15" cy="12" r="1.5"/></svg><span>Filters</span></summary>
                   <div class="ai-filter-panel">
@@ -776,8 +781,19 @@
                   <textarea id="ai-chat-input" name="question" rows="1" minlength="3" maxlength="500" placeholder="Ask anything about cybersecurity..." required></textarea>
                   <button type="submit" data-ai-send aria-label="Send message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
                 </form>
-                <p>Answers use available threat evidence and include source references when present.</p>
+                <p>Answers use the platform's knowledge and threat records, and your laptop's local agent when you ask it to inspect something.</p>
               </div>
+              <dialog class="ai-confirm-dialog" data-ai-confirm-dialog aria-labelledby="ai-confirm-title">
+                <form method="dialog">
+                  <h2 id="ai-confirm-title">Allow this action?</h2>
+                  <p data-ai-confirm-description></p>
+                  <p class="ai-confirm-reason" data-ai-confirm-reason></p>
+                  <div class="ai-confirm-actions">
+                    <button type="submit" value="decline" class="ai-confirm-decline">Decline</button>
+                    <button type="submit" value="approve" class="ai-confirm-approve">Allow</button>
+                  </div>
+                </form>
+              </dialog>
             </main>
           </div>
         </section>

@@ -440,3 +440,16 @@ class SubscriptionPrimitiveTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_money_amounts_must_be_json_integers():
+    import pytest
+    from pydantic import ValidationError
+    from backend.routes.admin import WalletCredit
+    from backend.routes.subscriptions import WalletTopUp, WalletTransfer
+    assert WalletTopUp(amount=100, idempotency_key="k" * 8).amount == 100
+    for model, extra in ((WalletTopUp, {}), (WalletTransfer, {"recipient_email": "a@b.co"}),
+                         (WalletCredit, {"user_id": "u", "reason": "r"})):
+        for bad in ("100", 100.0, True):
+            with pytest.raises(ValidationError):
+                model(amount=bad, idempotency_key="k" * 8, **extra)

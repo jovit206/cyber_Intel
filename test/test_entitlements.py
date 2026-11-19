@@ -93,6 +93,44 @@ class EntitlementTests(unittest.TestCase):
         finally:
             client.close()
 
+    def test_passive_dashboard_views_are_gated_but_not_metered(self):
+        from backend.services.entitlements import counts_as_feature_use
+        for path in ("/api/metrics", "/api/lab72/analysis", "/api/virustotal/recent"):
+            with self.subTest(path=path):
+                self.assertFalse(counts_as_feature_use(path, "GET"))
+        for path, method in (("/api/search", "GET"), ("/api/virustotal/scan", "POST"),
+                             ("/api/lab72/simulate-reads", "POST"), ("/api/reports", "GET")):
+            with self.subTest(path=path):
+                self.assertTrue(counts_as_feature_use(path, method))
+
+    def test_polled_metrics_do_not_spend_plus_allowance_and_stay_denied_for_free(self):
+        from fastapi.testclient import TestClient
+        from unittest.mock import patch
+        from backend.main import app
+        import backend.routes.api as api_routes
+        db = MagicMock()
+        db.subscription_sessions.find_one.return_value = {"user_id": "plus-user"}
+        db.subscription_users.find_one.return_value = {
+            "user_id": "plus-user", "plan": "plus",
+            "renewal_at": datetime.now(timezone.utc) + timedelta(days=10),
+        }
+        app.state.database = db
+        client = TestClient(app, raise_server_exceptions=False)
+        try:
+            with patch.object(api_routes, "get_database", return_value=MagicMock()):
+                for _ in range(15):  # more polls than the Plus monthly limit of 10
+                    response = client.get("/api/virustotal/recent", cookies={"aegis_session": "plus-session-token"})
+                    self.assertNotEqual(response.status_code, 402)
+            db.feature_usage.update_one.assert_not_called()
+            db.feature_usage.insert_one.assert_not_called()
+
+            db.subscription_users.find_one.return_value = {"user_id": "free-user", "plan": "free"}
+            denied = client.get("/api/metrics", cookies={"aegis_session": "free-session-token"})
+            self.assertEqual(denied.status_code, 402)
+            self.assertEqual(denied.json()["detail"]["feature"], "working_set")
+        finally:
+            client.close()
+
 
 if __name__ == "__main__":
     unittest.main()

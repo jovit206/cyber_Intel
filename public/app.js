@@ -41,8 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const left = detail.remaining ?? state.remaining;
     const period = detail.period || state.period || entitlementState?.period;
     byId('upgrade-usage').textContent = left === undefined || left === null
-      ? `Plus â‚¹299/month Â· Pro â‚¹799/month${period ? ` Â· Usage resets ${period}` : ''}`
-      : `${left} uses remaining${period ? ` Â· Monthly period ${period}` : ''} Â· ${detail.required_plan === 'pro' ? 'Pro â‚¹799/month for unlimited access' : 'Plus â‚¹299/month Â· Pro â‚¹799/month'}`;
+      ? `Plus ₹299/month · Pro ₹799/month${period ? ` · Usage resets ${period}` : ''}`
+      : `${left} uses remaining${period ? ` · Monthly period ${period}` : ''} · ${detail.required_plan === 'pro' ? 'Pro ₹799/month for unlimited access' : 'Plus ₹299/month · Pro ₹799/month'}`;
     byId('upgrade-dialog').hidden = false;
     byId('upgrade-dismiss').focus();
   }
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
       link.classList.toggle('feature-locked', locked);
       link.setAttribute('aria-disabled', String(locked));
       let icon = link.querySelector('.feature-lock-icon');
-      if (locked && !icon) { icon = document.createElement('span'); icon.className='feature-lock-icon'; icon.textContent='ðŸ”’'; icon.setAttribute('aria-hidden','true'); link.append(icon); }
+      if (locked && !icon) { icon = document.createElement('span'); icon.className='feature-lock-icon'; icon.textContent='🔒'; icon.setAttribute('aria-hidden','true'); link.append(icon); }
       if (!locked) icon?.remove();
     });
   }
@@ -549,8 +549,8 @@ document.addEventListener('DOMContentLoaded', () => {
       panel.setAttribute('aria-busy', 'false');
       if (label) label.hidden = true;
       state.textContent = 'Threat intelligence is temporarily unavailable.';
-      updated.textContent = 'â€”';
-      count.textContent = 'â€”';
+      updated.textContent = '—';
+      count.textContent = '—';
     };
 
     Promise.all([
@@ -576,7 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.textContent = 'Active';
         updated.textContent = lastSuccessfulSync
           ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(lastSuccessfulSync)
-          : 'â€”';
+          : '—';
         count.textContent = Number(events.total).toLocaleString();
       })
       .catch(unavailable);
@@ -628,27 +628,72 @@ document.addEventListener('DOMContentLoaded', () => {
   const bytesOrNA = value => (finite(value) === null ? 'N/A' : formatBytes(finite(value)));
   const countOrNA = value => (finite(value) === null ? 'N/A' : finite(value).toLocaleString());
 
-  async function loadWorkingSetAnalysis() {
+  // Three explicit states per card: loading, available (real collStats values) and unavailable (actual error + retry).
+  function setWorkingSetCardState(state) {
+    ['ws-count-card', 'ws-footprint-card'].forEach(id => {
+      const card = byId(id);
+      if (!card) return;
+      card.classList.toggle('is-loading', state === 'loading');
+      card.classList.toggle('is-error', state === 'error');
+      card.setAttribute('aria-busy', String(state === 'loading'));
+      card.querySelector('[data-ws-retry]')?.toggleAttribute('hidden', state !== 'error');
+    });
+  }
+
+  let workingSetDetailChecks = 0;
+  let workingSetRequest = 0;
+  async function loadWorkingSetAnalysis({ quiet = false } = {}) {
+    const request = ++workingSetRequest;
+    if (!quiet) {
+      workingSetDetailChecks = 0;
+      setWorkingSetCardState('loading');
+      byId('ws-document-count').textContent = 'Loading...';
+      byId('ws-footprint').textContent = 'Loading...';
+      byId('ws-document-size').textContent = 'Reading collection statistics…';
+      byId('ws-footprint-hint').textContent = 'Uncompressed BSON data plus collection indexes';
+    }
     try {
       const data = await fetchJson('/api/lab72/analysis');
+      if (request !== workingSetRequest) return;
       const count = finite(data.count) || 0;
+      const detail = data.detail && typeof data.detail === 'object' ? data.detail : null;
+      setWorkingSetCardState('ready');
       byId('ws-document-count').textContent = count.toLocaleString();
-      byId('ws-document-size').textContent = count
-        ? `Average BSON document: ${bytesOrNA(data.avgSize)}`
-        : 'Benchmark collection is empty; build the working-set workload (see working-set measurement)';
+      if (!count) {
+        byId('ws-document-size').textContent = 'No benchmark documents yet: the collection is empty. Build the working-set workload (see working-set measurement).';
+      } else {
+        const sources = detail && detail.by_source_collection && typeof detail.by_source_collection === 'object'
+          ? Object.entries(detail.by_source_collection).map(([name, n]) => `${name} ${countOrNA(n)}`).join(' · ') : '';
+        const range = detail && finite(detail.minSize) !== null ? ` (${bytesOrNA(detail.minSize)}–${bytesOrNA(detail.maxSize)})` : '';
+        byId('ws-document-size').textContent = `Average BSON document: ${bytesOrNA(data.avgSize)}${range}`
+          + (sources ? ` · derived from ${sources}` : data.detail_status === 'computing' ? ' · per-source breakdown is being computed' : '');
+      }
       byId('ws-footprint').textContent = bytesOrNA(data.totalFootprintBytes);
+      byId('ws-footprint-hint').textContent = count
+        ? `BSON data ${bytesOrNA(data.totalBytes)} + ${countOrNA(data.indexCount)} index${data.indexCount === 1 ? '' : 'es'} ${bytesOrNA(data.indexBytes)} · ${bytesOrNA(data.storageBytes)} compressed on disk`
+        : 'No documents or indexes to measure';
+      byId('ws-footprint-card')?.setAttribute('title', data.footprint_definition || '');
       byId('ws-build-hint').hidden = count > 0;
       if (!count && !randomReadsHaveResult) {
         byId('ws-read-count').textContent = 'Benchmark collection is empty';
         byId('ws-read-pages-detail').textContent = 'Build the working-set workload to enable this measurement';
       }
+      // The per-document breakdown is computed once in the background; check back briefly while it is pending.
+      if (data.detail_status === 'computing' && workingSetDetailChecks < 6) {
+        workingSetDetailChecks += 1;
+        setTimeout(() => { if (document.getElementById('view-cache')?.classList.contains('active')) loadWorkingSetAnalysis({ quiet: true }); }, 4000);
+      }
     } catch (error) {
+      if (request !== workingSetRequest) return;
       console.error(error);
+      setWorkingSetCardState('error');
       byId('ws-document-count').textContent = 'Unavailable';
-      byId('ws-document-size').textContent = error.message;
       byId('ws-footprint').textContent = 'Unavailable';
+      byId('ws-document-size').textContent = `Collection statistics could not be read: ${error.message}`;
+      byId('ws-footprint-hint').textContent = 'The footprint needs the same collection statistics. Other cache metrics on this page are unaffected.';
     }
   }
+  document.querySelectorAll('[data-ws-retry]').forEach(button => button.addEventListener('click', () => loadWorkingSetAnalysis()));
 
   async function loadWiredTigerTelemetry() {
     if (telemetryBusy) return;
@@ -668,7 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const inCache = finite(data.bytes_in_cache);
       const cachePct = maxBytes && inCache !== null ? Math.min(100, (inCache / maxBytes) * 100) : 0;
       const hit = finite(data.hit_ratio_interval);
-      byId('wt-hit-ratio').textContent = hit === null ? 'â€”' : `${(hit * 100).toFixed(2)}%`;
+      byId('wt-hit-ratio').textContent = hit === null ? '—' : `${(hit * 100).toFixed(2)}%`;
       byId('wt-bytes-cache').textContent = bytesOrNA(data.bytes_in_cache);
       byId('wt-cache-pct').textContent = maxBytes ? `${cachePct.toFixed(2)}% of ${formatBytes(maxBytes)}` : 'Cache limit not reported';
       byId('wt-cache-capacity').textContent = `Cache limit: ${maxBytes ? formatBytes(maxBytes) : 'N/A'}`;
@@ -678,18 +723,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const progress = byId('wt-cache-progress');
       progress.style.width = `${cachePct}%`;
       progress.parentElement.setAttribute('aria-valuenow', cachePct.toFixed(2));
+      byId('wt-cache-progress-label').textContent = maxBytes && inCache !== null
+        ? `${cachePct.toFixed(1)}% · ${formatBytes(inCache)} of ${formatBytes(maxBytes)}` : 'Cache size not reported';
+      byId('wt-telemetry-retry').hidden = true;
       const points = renderCacheChart(data);
       report(points === 0
         ? 'No historical cache samples are available yet; live cache values are shown above.'
-        : `${points} actual sample${points === 1 ? '' : 's'} (one every ${Math.round((finite(data.sampling_interval_seconds) || 10))} s) Â· updated ${new Date().toLocaleTimeString()}`,
+        : `${points} actual sample${points === 1 ? '' : 's'} (one every ${Math.round((finite(data.sampling_interval_seconds) || 10))} s) · updated ${new Date().toLocaleTimeString()}`,
       false);
     } catch (error) {
       console.error(error);
-      report(`Cache telemetry unavailable: ${error.message}`, true);
+      // Keep the last measured values visible; only the status line reports the failed refresh.
+      report(`Cache telemetry unavailable: ${error.message}. The values above are from the last successful sample, if any.`, true);
+      byId('wt-telemetry-retry').hidden = false;
     } finally {
       telemetryBusy = false;
     }
   }
+  byId('wt-telemetry-retry')?.addEventListener('click', () => loadWiredTigerTelemetry());
 
   // Draw the cache chart directly from API samples; this avoids a third-party chart dependency.
   function renderCacheChart(data) {
@@ -765,7 +816,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status.classList.add('error');
       status.textContent = `Measurement failed: ${error.message}`;
       if (!randomReadsHaveResult) {
-        byId('ws-read-latency').textContent = 'â€”';
+        byId('ws-read-latency').textContent = '—';
         byId('ws-read-count').textContent = 'No measurement: the last attempt failed';
       }
     } finally {
@@ -1084,9 +1135,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   refreshRecentScans();
 
-  // Initial Load
+  // Initial Load (Working Set data loads when its view is opened, not on every dashboard page)
   loadThreatStream();
-  loadWorkingSetAnalysis();
   loadSourceSyncStatus();
   window.setInterval(loadSourceSyncStatus, 60_000);
 });

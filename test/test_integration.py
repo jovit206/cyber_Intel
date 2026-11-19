@@ -10,7 +10,13 @@ import urllib.error
 import urllib.request
 from urllib.error import HTTPError
 
-BASE = sys.argv[1].rstrip("/") if len(sys.argv) > 1 else "http://localhost:8000"
+import os
+
+# Only honour a positional base URL when run as a script; under pytest sys.argv holds pytest's own arguments.
+if __name__ == "__main__" and len(sys.argv) > 1:
+    BASE = sys.argv[1].rstrip("/")
+else:
+    BASE = os.getenv("INTEGRATION_BASE_URL", "http://localhost:8000").rstrip("/")
 
 
 def get(path):

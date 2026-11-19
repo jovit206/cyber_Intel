@@ -1,0 +1,3902 @@
+[
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61a9"
+    },
+    "asin": "B014TMV5YE",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 139.99,
+    "stars": 4.5,
+    "title": "Sion Softside Expandable Roller Luggage, Black, Checked-Large 29-Inch"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61aa"
+    },
+    "asin": "B0B12RQ9YJ",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 399.49,
+    "stars": 4.4,
+    "title": "Platinum Elite Hardside Expandable Spinner Wheel Luggage TSA Lock Hard Shell Polycarbonate Suitcase, Dark Sky Blue, Checked Large 28-Inch"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ab"
+    },
+    "asin": "B09NL1XGRT",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 139.99,
+    "stars": 4.2,
+    "title": "Luggage Set 2PCS Suitcase PC+ABS Carry On Luggage with Spinner Wheel"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ac"
+    },
+    "asin": "B081KR1T8K",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 78.9,
+    "stars": 4.6,
+    "title": "Belle Voyage Softside Luggage with Spinner Wheels, red, Checked-Medium 25-Inch"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ad"
+    },
+    "asin": "B0BTL1LDHN",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 209.99,
+    "stars": 4.5,
+    "title": "29 Inch Luggage Suitcases With Spinner Wheels Lightweight PC hardside Rolling Suitcase With TSA Lock, Checked-Large 29-Inch（Cuba Sand）"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ae"
+    },
+    "asin": "B0C5ND2298",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 137.74,
+    "stars": 4.2,
+    "title": "8028 Hardside Expandable Spinner Luggage, Black/White, Checked-Large 28-Inch"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61af"
+    },
+    "asin": "B0C951YYJ5",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 82.6,
+    "stars": 5.0,
+    "title": "MaXpace 31\" Softside UltraLight Checked Spinner, Dark Brown Camo"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61b0"
+    },
+    "asin": "B08LDPFN1K",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 320.0,
+    "stars": 4.8,
+    "title": "X-Bag Large Spinner with Frame - 25 Inch - Suitcases with Wheels - Checked Luggage - Black"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61b1"
+    },
+    "asin": "B073WJ4GFW",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 129.99,
+    "stars": 4.3,
+    "title": "Designer Luggage Collection - Large 28 Inch Expandable Softside Suitcase - Lightweight Checked Bag With 4-Rolling Spinner Wheels (Paige Silver)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61b2"
+    },
+    "asin": "B0CFL93Y9M",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 0.0,
+    "stars": 0.0,
+    "title": "OCEAN HOLIDAY Luggage with Double Spinner Wheels, Hardside, 24 Inch, Quiet, TSA Lock Suitcase, Soft Sand"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61b3"
+    },
+    "asin": "B01LY8FEW2",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 159.99,
+    "stars": 4.3,
+    "title": "Designer Luggage Collection - Expandable 28 Inch Softside Bag - Durable Large Ultra Lightweight Checked Suitcase with 8-Rolling Spinner Wheels (Royal Blue)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61b4"
+    },
+    "asin": "B089T7Y6BZ",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 530.0,
+    "stars": 3.6,
+    "title": "Capri 2.0 30\"-Inch Spinner - Expandable Luxury Carry On Luggage With Spinner Wheels - Lightweight Carry On Suitcases with Wheels Made From Durable Polycarbonate - Silver"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61b5"
+    },
+    "asin": "B08S78755Y",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 119.97,
+    "stars": 4.3,
+    "title": "Anti-scratch ABS Hardside blue luggage 28inch large luggage Lightweight Spinner Suitcase"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61b6"
+    },
+    "asin": "B073WHB7XS",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 119.99,
+    "stars": 4.6,
+    "title": "New York Luggage Collection - Designer Lightweight Softside Expandable Suitcase- 20 Inch Carry On Bag with 4-Rolling Spinner Wheels (Paige Silver)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61b7"
+    },
+    "asin": "B0BV21GZZN",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 289.0,
+    "stars": 0.0,
+    "title": "GRAND Zipper type Expandable Hardside Luggage, Light-weight, Checked-medium Suitcase, 26 inch, Black Carbon, 5604-59-BKCB"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61b8"
+    },
+    "asin": "B09WCYRVFL",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.99,
+    "stars": 4.3,
+    "title": "Travel Suitcase Protector Light skin african american Elastic Protective Washable Luggage Cover With Concealed Zipper Suitable For 18-32 Inch (L (for 25--28 inch luggage))"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61b9"
+    },
+    "asin": "B0BHBSJGCS",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 199.99,
+    "stars": 0.0,
+    "title": "DC Comics Batman 25 Inch Rolling Luggage, Molded Hardshell Suitcase with Spinner Wheels, Black (FKML0003-001)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ba"
+    },
+    "asin": "B0BQQPNB5C",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 16.1,
+    "stars": 3.4,
+    "title": "Flower Lette A Pink Luggage Cover Elastic Washable Stretch Suitcase Protector Anti-Scratch Travel Suitcase Cover for Kid and Adult M (22-24 inch suitcase)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61bb"
+    },
+    "asin": "B09XR5LYM3",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 259.0,
+    "stars": 3.3,
+    "title": "PC+ABS Durable Japanese Luggage, Expandable with double-wheeled spinner, checked-large suitcase, 30 inch, Black, 5109-69-BK"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61bc"
+    },
+    "asin": "B08PM9M6L8",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 169.99,
+    "stars": 4.2,
+    "title": "Designer Luggage Collection - Lightweight 28 Inch Expandable Softside Suitcase - Durable Rolling 4-Spinner Wheels Checked Bag (Shadow Purple) (Shadow Purple)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61bd"
+    },
+    "asin": "B09DD1S1R1",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 15.99,
+    "stars": 0.0,
+    "title": "2Pcs Black Luggage Suitcase Weels Suitcase Caster Wheels Replacement W076 3.74x3.93x2.04Inch"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61be"
+    },
+    "asin": "B01N6OE6VZ",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 19.99,
+    "stars": 3.6,
+    "title": "Suitcase cover luggage covers PVC clear luggage cover protector travel luggage protector covers 20\" 22\" 24\" 26\" 28\" 30''"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61bf"
+    },
+    "asin": "B0C7R3688L",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 31.99,
+    "stars": 0.0,
+    "title": "6 Pcs Luggage Cover Bulk Clear Luggage Cover Waterproof PVC Suitcase Cover Protector Plastic Travel Luggage Protector (28 Inch)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61c0"
+    },
+    "asin": "B0C3X83DD1",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 25.99,
+    "stars": 1.0,
+    "title": "Eiffel Tower Luggage Cover Protector Vintage Eiffel Tower Lovers Pink Cherry Flower Suitcase Covers Dustproof Washable Travel Luggage Sleeves or Covers for Suitcase 29-32 Inch"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61c1"
+    },
+    "asin": "B09KSZ1SHV",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 14.79,
+    "stars": 0.0,
+    "title": "1 Pair Luggage Swivels Wheels, A23 Luggage Replacement Wheel 360 Swivel Left & Right Suitcase Caster Wheels Mountain Camping"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61c2"
+    },
+    "asin": "B0C3X8HVZQ",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 19.99,
+    "stars": 4.0,
+    "title": "License Plates Suitcase Cover Old Car License Plates on The Wall Luggage Covers for Suitcase Colorful Printed Elastic Luggage Sleeves or Covers Travel Accessories Fit 22-24 Inch Luggage"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61c3"
+    },
+    "asin": "B0C3X9RYBW",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 16.99,
+    "stars": 5.0,
+    "title": "Polka Dot Suitcase Covers Black White Polka Dots Circle Round Luggage Cover Protector for Suitcase, Washable Elastic Luggage Sleeves or Covers Travel Accessories Fit 18-21 Inch Suitcase"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61c4"
+    },
+    "asin": "B09P337BQ2",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.99,
+    "stars": 5.0,
+    "title": "Travel Suitcase Protector Peace Love Flowers Power Hippie Sign Elastic Protective Washable Luggage Cover with Concealed Zipper Suitable for L(25-28in), colorful"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61c5"
+    },
+    "asin": "B0BNP9121R",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 124.87,
+    "stars": 0.0,
+    "title": "Fitness 35L Duffel"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61c6"
+    },
+    "asin": "B0C3X8N7BM",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 16.99,
+    "stars": 0.0,
+    "title": "Red Rose Luggage Cover Protector Roses Flowers Floral Green Leaves Black Suitcase Cover for Luggage, Fashion Printed Washable Elastic Travel Trunk Case Covers for 18-21 Inch Suitcase"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61c7"
+    },
+    "asin": "B08MPXX1RF",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 81.75,
+    "stars": 4.4,
+    "title": "Unisex-Adult's Suitcase, Champagne, zzzz-s"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61c8"
+    },
+    "asin": "B0C32QHPS7",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 23.99,
+    "stars": 5.0,
+    "title": "Lemon Suitcase Cover Anti-Scratch Luggage Covers Washable Travel Luggage Protector XL Fit 29-32 Inch Luggage"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61c9"
+    },
+    "asin": "B0BWJT84FZ",
+    "category_id": 104,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 22.99,
+    "stars": 0.0,
+    "title": "Travel Luggage Cover, Elephant Mandala Flower Patten Blue Red Spandex Elastic Suitcase Cover Protector, Washable Scratch-Resistant Suitcase Cover Fits 18-32 Inch Luggage"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ca"
+    },
+    "asin": "B00W66LQFO",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 18.48,
+    "stars": 4.6,
+    "title": "Men's Eversoft Cotton Stay Tucked Crew T-Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61cb"
+    },
+    "asin": "B09JFR8HTV",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 22.99,
+    "stars": 4.4,
+    "title": "Men's Dress Shirts Solid Long Sleeve Stretch Wrinkle-Free Formal Shirt Business Casual Button Down Shirts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61cc"
+    },
+    "asin": "B0B7NWWV3X",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 20.0,
+    "stars": 4.6,
+    "title": "Men's Max Cushioned Crew Socks, Moisture-Wicking with Odor Control, Multi-Pack, White/Grey Foot Bottom-12, 6-12"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61cd"
+    },
+    "asin": "B00IO9JCKI",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 14.98,
+    "stars": 4.5,
+    "title": "Men's Double No Show Socks 12-Pair Pack, Available in Big & Tall"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ce"
+    },
+    "asin": "B07QN3C3QJ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 17.95,
+    "stars": 4.7,
+    "title": "CelerSport 6 Pack Men's Ankle Socks with Cushion, Sport Athletic Running Socks"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61cf"
+    },
+    "asin": "B01M1K82SZ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 26.25,
+    "stars": 4.3,
+    "title": "Men's Dress Shirt Slim Fit Solid"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61d0"
+    },
+    "asin": "B00ACIFZ3W",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 18.98,
+    "stars": 4.5,
+    "title": "Ultimate Men's 6-Pack Best V-Neck T-Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61d1"
+    },
+    "asin": "B07F19MRJZ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 49.99,
+    "stars": 4.6,
+    "title": "Men's Glennaker Rain Jacket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61d2"
+    },
+    "asin": "B01NAEIODL",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 26.0,
+    "stars": 4.7,
+    "title": "Adult Cotton Crew Socks, Multipairs"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61d3"
+    },
+    "asin": "B0BTB3SRVN",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 32.95,
+    "stars": 4.4,
+    "title": "Dri-Fit UV Solar Arm Sleeves - 1 Pair - Unisex - Adult (Black, Adult S/M)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61d4"
+    },
+    "asin": "B07MKKQ8QP",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 7.93,
+    "stars": 4.6,
+    "title": "Heavy Blend 8 oz. 50/50 Fleece Crew (G180)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61d5"
+    },
+    "asin": "B014W1IA1S",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 33.99,
+    "stars": 3.9,
+    "title": "Men's Realtree Crewneck Sweatshirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61d6"
+    },
+    "asin": "B09XCCDD5V",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 29.98,
+    "stars": 4.6,
+    "title": "5 or 4 Pack Compression Shirts for Men Long Sleeve Athletic Undershirt Base Layer Rash Guard Gear T Shirt Workout Basketball"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61d7"
+    },
+    "asin": "B077XQ3L5L",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 21.5,
+    "stars": 4.6,
+    "title": "Men's Tech 2.0 Long-Sleeve T-Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61d8"
+    },
+    "asin": "B08G1YY8H7",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 57.14,
+    "stars": 4.6,
+    "title": "Club Men's Training Joggers"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61d9"
+    },
+    "asin": "B08F9P3C54",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 45.99,
+    "stars": 4.5,
+    "title": "Men's Lightweight Waterproof Hooded Rain Jacket Outdoor Raincoat Shell Jacket for Hiking Travel"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61da"
+    },
+    "asin": "B0C4S93CXQ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 80.0,
+    "stars": 4.4,
+    "title": "Official Renaissance World Tour Merch Billboard Crewneck Sweatshirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61db"
+    },
+    "asin": "B07K3H71QX",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 36.0,
+    "stars": 4.7,
+    "title": "Men’s Packaged Base 3.0 Long Sleeve Crew Neck"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61dc"
+    },
+    "asin": "B00M1SHWR8",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 70.67,
+    "stars": 4.7,
+    "title": "Men's Watertight II Rain Jacket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61dd"
+    },
+    "asin": "B08ZDP4KW2",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 14.99,
+    "stars": 4.6,
+    "title": "Men's Multi-Pack Mesh Ventilating Comfort Fit Performance Quarter Socks (6 & 12)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61de"
+    },
+    "asin": "B08GS71G9N",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 22.99,
+    "stars": 4.5,
+    "title": "Cotton Socks for Men Low Cut, Max Cushion Thick Athletic Ankle Mens Sock for Hiking Running Sport Work 6 Pack"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61df"
+    },
+    "asin": "B09JKZ7D1C",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 23.98,
+    "stars": 4.6,
+    "title": "Men's Armourfleece Straight Leg Pant"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61e0"
+    },
+    "asin": "B0828LZ2MZ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 125.98,
+    "stars": 4.5,
+    "title": "Heated Vest for Men with Battery Pack Included Size Adjustable Warm Clothing"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61e1"
+    },
+    "asin": "B07V9W41PH",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 22.99,
+    "stars": 4.5,
+    "title": "Mens Dress Socks Business Casual Solid Pattern Cotton Crew Sock 6 Pairs"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61e2"
+    },
+    "asin": "B0886G2LVQ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 9.99,
+    "stars": 4.6,
+    "title": "Unisex-adult Metro 5 Soccer Socks (1-pair)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61e3"
+    },
+    "asin": "B07TTR32Q9",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 25.99,
+    "stars": 4.7,
+    "title": "Men's Cotton Athletic Moisture Control Heavy Duty Work Boot Cushion Crew Socks Multi Pack"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61e4"
+    },
+    "asin": "B01ES407HO",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 11.39,
+    "stars": 4.3,
+    "title": "Sport Men's Compression Shorts, Men's Performance Compression Shorts, Men's Athletic Shorts, Gym Shorts for Men, 9\""
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61e5"
+    },
+    "asin": "B014K8EL02",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 54.99,
+    "stars": 4.5,
+    "title": "Men's Rebar M5 Durastretch Edge Straight Leg Jean"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61e6"
+    },
+    "asin": "B07RJ67XB2",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 36.97,
+    "stars": 4.5,
+    "title": "Men's Skinny Fit Stretch Dress Pant"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61e7"
+    },
+    "asin": "B08N5DSKPP",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 59.99,
+    "stars": 4.5,
+    "title": "Mens' Plush Bathrobe- Soft Fleece Spa Bath Robe with 2 External Pockets and Belt for Men"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61e8"
+    },
+    "asin": "B07XR5GD9C",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 17.99,
+    "stars": 4.6,
+    "title": "Realtree Men's Essential Camo Lightweight Performance Long Sleeve Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61e9"
+    },
+    "asin": "B07XQYC9FL",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 14.99,
+    "stars": 4.5,
+    "title": "Realtree Men's Essential Camo Lightweight Performance Short Sleeve Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ea"
+    },
+    "asin": "B0BX5S7X87",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 33.99,
+    "stars": 4.3,
+    "title": "3 Pack Men's UPF 50+ UV Sun Protection Hoodie Long/Short Sleeve Rash Guard Shirts Swim Shirts Fishing Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61eb"
+    },
+    "asin": "B09M2T5KFF",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 21.2,
+    "stars": 4.5,
+    "title": "Men's Long Sleeve Broadcloth Pajama Set"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ec"
+    },
+    "asin": "B0BG58NXTJ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 95.99,
+    "stars": 4.2,
+    "title": "Men's 3 Pieces Suit Slim Fit Tuxedo Set One Button Jacket Vest Pants with Tie"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ed"
+    },
+    "asin": "B09XM3GM32",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 29.99,
+    "stars": 4.4,
+    "title": "Men's Swim Trunks Quick Dry Board Shorts with Zipper Pockets Beach Shorts Bathing Suits for Men - No Mesh Liner"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ee"
+    },
+    "asin": "B09CF24T2Q",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 45.95,
+    "stars": 4.6,
+    "title": "Baggy Workout Pants with Terminator Design"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ef"
+    },
+    "asin": "B09W4RWXJD",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 85.85,
+    "stars": 4.2,
+    "title": "Men's Suits 3 Piece Slim Fit Suit Set,Two Button Wedding Business Tuxedo Solid Blazer Jacket Vest Pants with Tie"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61f0"
+    },
+    "asin": "B09W26RM6G",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 23.49,
+    "stars": 4.4,
+    "title": "Mens Printed Dress Shirts Long Sleeve Regular Fit Button Down Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61f1"
+    },
+    "asin": "B019DYG83G",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 27.94,
+    "stars": 4.6,
+    "title": "Men's Steens Mountain Vest"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61f2"
+    },
+    "asin": "B00JQRORK2",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 39.88,
+    "stars": 4.6,
+    "title": "Men's Cotton Multi-Pack Knit Boxers"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61f3"
+    },
+    "asin": "B06XW7448M",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 12.98,
+    "stars": 4.4,
+    "title": "Knee High Long Sports Socks Unisex Multicolor 3/6/12 Pairs"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61f4"
+    },
+    "asin": "B00QNAKM9A",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 32.9,
+    "stars": 4.5,
+    "title": "Men's Extreme Motion Flat Front Regular Straight Pant"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61f5"
+    },
+    "asin": "B075JXQGH4",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.86,
+    "stars": 4.5,
+    "title": "Men's Short Sleeve Classic Woven Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61f6"
+    },
+    "asin": "B08G1ZTJN3",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 44.99,
+    "stars": 4.7,
+    "title": "Club Fleece Crew Men's Sweatshirt Crewneck"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61f7"
+    },
+    "asin": "B07N4P9PMT",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 29.0,
+    "stars": 4.5,
+    "title": "Men's Quarter-Zip French Rib Sweater"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61f8"
+    },
+    "asin": "B09HRSHMYF",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 32.99,
+    "stars": 4.5,
+    "title": "Men's Dress Shirt Long Sleeve Stretch Regular Fit Button Up Shirts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61f9"
+    },
+    "asin": "B01MED6BE6",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 17.33,
+    "stars": 4.3,
+    "title": "Galeton mens RAINCOAT, Black, X-Large Tall US"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61fa"
+    },
+    "asin": "B08NX99GH4",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 28.0,
+    "stars": 4.6,
+    "title": "Men's Linerless Workout Shorts - 7'' / 9'' Quick Dry Running Sports Athletic Gym Shorts with Pockets"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61fb"
+    },
+    "asin": "B0BPLSZ83P",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 29.99,
+    "stars": 4.5,
+    "title": "Men's Golf Dress Shorts Flat Front Hybrid 7 Inch Lightweight Quick Dry Chino Casual with Pockets"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61fc"
+    },
+    "asin": "B0C81L1JDC",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 159.99,
+    "stars": 5.0,
+    "title": "[Upgraded Battery] Men's Heated Quilted Vest with Battery Pack, Lightweight Quilted Heating Vest"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61fd"
+    },
+    "asin": "B083QDVWTX",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 58.0,
+    "stars": 4.7,
+    "title": "Men's Standard Merino 250 Baselayer Bottom"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61fe"
+    },
+    "asin": "B07KD91RYD",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 49.95,
+    "stars": 4.5,
+    "title": "Men's NSW Club Jogger Jersey, Black/White, Large"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f61ff"
+    },
+    "asin": "B076CPKCBY",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 34.8,
+    "stars": 4.6,
+    "title": "Men's Phantom Patriot Cheers 20\" Board Shorts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6200"
+    },
+    "asin": "B09T6K1HGM",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.74,
+    "stars": 3.9,
+    "title": "Men Hoodies Casual Hoodies for Men with Zip Pockets Full Zip Long Sleeve Sweatshirt Sports Hooded Jacket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6201"
+    },
+    "asin": "B08R8PH5C7",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 14.99,
+    "stars": 4.7,
+    "title": "Unisex No Show Sport Socks, Black, Large-X-Large, 3 Pair"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6202"
+    },
+    "asin": "B0BXDMCR11",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 19.99,
+    "stars": 3.0,
+    "title": "T-Shirt Men's Breathable Cotton Adult Short Sleeve Crewneck Tee Shirt Tag Free, Black"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6203"
+    },
+    "asin": "B01MQJ57KY",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.23,
+    "stars": 4.1,
+    "title": "Men's Pro Action Jacket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6204"
+    },
+    "asin": "B072N2CYNR",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.99,
+    "stars": 4.7,
+    "title": "Men's Dress Cool Colorful Fancy Novelty Funny Casual Combed Cotton Crew Socks Pack"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6205"
+    },
+    "asin": "B08ZQLWLYR",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 64.99,
+    "stars": 4.7,
+    "title": "Men's Hooded Down Jacket, Quilted Coat, Sherpa Lined, True Navy, Medium"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6206"
+    },
+    "asin": "B08J94DY9P",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 19.92,
+    "stars": 4.1,
+    "title": "Men's Lightweight French Terry Quarter-Zip Mock Neck Sweatshirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6207"
+    },
+    "asin": "B08LTBWGNK",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 36.99,
+    "stars": 4.0,
+    "title": "Mens 5 Pack Athletic Running Shorts, Basketball Gym Workout Shorts for Men with Zippered Pockets"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6208"
+    },
+    "asin": "B07H12JDN6",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 33.6,
+    "stars": 4.7,
+    "title": "Men's Extreme Motion Regular Boot Jean"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6209"
+    },
+    "asin": "B014K3OI2I",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 86.95,
+    "stars": 4.6,
+    "title": "Men's M4 Low Rise Boot Cut Jeans"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f620a"
+    },
+    "asin": "B00MK906JE",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 36.99,
+    "stars": 4.4,
+    "title": "6.5-Ounce Long Sleeve Denim Shirts in Sizes XS-6XL"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f620b"
+    },
+    "asin": "B07ZZFPKTX",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 27.51,
+    "stars": 4.7,
+    "title": "Marvel Comics Men's Spiderman Classic Comic Allover Print Loungewear Pajama Pants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f620c"
+    },
+    "asin": "B07B835NWS",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 39.19,
+    "stars": 4.5,
+    "title": "Men's Premium Comfort Dress Pant - Slim Fit Flat Front Pant"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f620d"
+    },
+    "asin": "B07WJYZW95",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 14.99,
+    "stars": 4.6,
+    "title": "Men's Multi-Pack Bolt Performance Quarter Socks"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f620e"
+    },
+    "asin": "B0BXBKRNS6",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 16.98,
+    "stars": 4.5,
+    "title": "Men's Originals Crew Undershirts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f620f"
+    },
+    "asin": "B082B5LKQQ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 44.99,
+    "stars": 4.3,
+    "title": "Merino Wool T-Shirt Mens - 100% Organic Merino Wool Undershirt Lightweight Base Layer + Hiking Wool Socks"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6210"
+    },
+    "asin": "B01MXTW144",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 29.75,
+    "stars": 4.6,
+    "title": "Men's Solid Quick Dry Classic Logo Swim-Trunk"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6211"
+    },
+    "asin": "B008QL0DO8",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 28.32,
+    "stars": 4.4,
+    "title": "Men's Relaxed Fit Straight-Leg Duck Carpenter Jean"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6212"
+    },
+    "asin": "B00O1YYA48",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 32.58,
+    "stars": 4.5,
+    "title": "Men's Swimsuit Square Leg Splice"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6213"
+    },
+    "asin": "B07N1TM2SJ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.95,
+    "stars": 4.9,
+    "title": "Men's Number 2 Micro Crew Midweight with Cushion Sock (Style 1974)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6214"
+    },
+    "asin": "B0C24NSPLK",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 14.99,
+    "stars": 0.0,
+    "title": "Men's Long Sleeve Plaid Flannel Button Up Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6215"
+    },
+    "asin": "B07D92635K",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 34.95,
+    "stars": 4.5,
+    "title": "Fox River Mills 3 Pack Tactical Boot Lightweight Sock (Coyote Brown, Large)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6216"
+    },
+    "asin": "B0846PRWDF",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 89.99,
+    "stars": 4.3,
+    "title": "Men's Standard Journeyman Shirt Jacket, Navy, Large"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6217"
+    },
+    "asin": "B0779K52H7",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 19.99,
+    "stars": 4.4,
+    "title": "5/6 Pairs Mens Fuzzy Socks Grip Socks Microfiber Plush Sleeping Socks Soft Anti-Skid Solid"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6218"
+    },
+    "asin": "B0042J9GH8",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 18.99,
+    "stars": 4.7,
+    "title": "Adult Safety Vest"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6219"
+    },
+    "asin": "B07JYL22XL",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 21.99,
+    "stars": 4.3,
+    "title": "Men's Slim Fit Skinny Stretch Comfy Denim Jeans Pants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f621a"
+    },
+    "asin": "B09XFKKBTB",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 19.98,
+    "stars": 4.5,
+    "title": "Men's Essentials Single Jersey Tapered Badge of Sport Pants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f621b"
+    },
+    "asin": "B07NJPFVNS",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 37.9,
+    "stars": 4.6,
+    "title": "Men's Sportswear Club Short Basketball Graphic"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f621c"
+    },
+    "asin": "B0777N71B6",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 17.99,
+    "stars": 4.5,
+    "title": "98% Cotton Rich Dress Socks for Business Mens Womens Casual Socks 6Pack"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f621d"
+    },
+    "asin": "B0BNDSL94T",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 49.99,
+    "stars": 4.4,
+    "title": "Men's 2 Piece Outfit Casual Short Sleeve Button Down Shirt Beach Summer Loose Pant Sets"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f621e"
+    },
+    "asin": "B08HRY1PJL",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 48.99,
+    "stars": 4.1,
+    "title": "Men's Trench Coat Slim fit Double Breasted Belted Windbreaker Lapel Long Jacket Casual Windproof Overcoat"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f621f"
+    },
+    "asin": "B0C1Z4KFGZ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 43.99,
+    "stars": 4.3,
+    "title": "Men's Cotton T-Shirts Oversized Unisex Short Sleeves Casual Loose Wash Solid Basic Tee Tops"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6220"
+    },
+    "asin": "B01LWODCDX",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 11.99,
+    "stars": 4.3,
+    "title": "3 Pairs of Elastic Cotton Tabi Toe Socks (White+Grey+Black)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6221"
+    },
+    "asin": "B005P4N4FE",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 29.99,
+    "stars": 4.6,
+    "title": "Men's Circulator Moderate Graduated Compression Sock"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6222"
+    },
+    "asin": "B00ZB4FMTY",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 29.99,
+    "stars": 4.6,
+    "title": "Comfort Power Men's Crew Sock, 10 Pair Pack"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6223"
+    },
+    "asin": "B09V3G4556",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 164.47,
+    "stars": 4.6,
+    "title": "Men’s Bedford Down Parka"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6224"
+    },
+    "asin": "B09R18G62P",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 196.0,
+    "stars": 3.5,
+    "title": "3/Pack Bombas"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6225"
+    },
+    "asin": "B07Y8L5ZZH",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 48.95,
+    "stars": 4.5,
+    "title": "Men's Boxers 100% Organic Cotton, Soft Boxers for Men, 3-Pack"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6226"
+    },
+    "asin": "B0BYDG911X",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 79.99,
+    "stars": 4.1,
+    "title": "Men’s Suits Slim Fit - 3 Piece Suit Set Men Blazer with 2 Button Jacket, Vest and Pants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6227"
+    },
+    "asin": "B08KR9GHMC",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 12.99,
+    "stars": 4.7,
+    "title": "32 DEGREEES Men's Cool Classic Crew T-Shirt | Anti-Odor | 4-Way Stretch | Moisture Wicking"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6228"
+    },
+    "asin": "B08SQDS7ZK",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 25.99,
+    "stars": 4.4,
+    "title": "Men's Hawaiian Shirts Casual Button Down Short Sleeve Shirts Set Printed Shorts Beach Tropical Hawaii Suits"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6229"
+    },
+    "asin": "B0B2VJ7MJV",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 32.99,
+    "stars": 4.4,
+    "title": "Men's Luxury Shiny Silk Like Satin Dress Shirt Long Sleeve Casual Slim Fit Muscle Button Up Shirts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f622a"
+    },
+    "asin": "B07PZDH3CW",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 39.97,
+    "stars": 4.4,
+    "title": "Men's Slim Fit Heather Dress Pant"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f622b"
+    },
+    "asin": "B0BTRYJP7B",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.99,
+    "stars": 3.8,
+    "title": "CGTFY Gynecomastia Compress Tank Top, Menslim Gynecomastia Compression Tanktop, Men Compression Tank Top"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f622c"
+    },
+    "asin": "B085WGH5BF",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 25.95,
+    "stars": 4.5,
+    "title": "Performance Running Socks XXL (Men's size 15-18) (3-Pack)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f622d"
+    },
+    "asin": "B0B6HDNCKH",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 23.95,
+    "stars": 4.4,
+    "title": "Men's Business Formal Slim Fit Long Sleeve Button Up Dress Shirts with Pocket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f622e"
+    },
+    "asin": "B09BTBDVXQ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 29.99,
+    "stars": 4.1,
+    "title": "Men Workout Tank Top 2 Pack Gym Bodybuilding Sleeveless Muscle T Shirts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f622f"
+    },
+    "asin": "B077BDSZZY",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 58.95,
+    "stars": 4.7,
+    "title": "Men's Lightning Crest Full-Zippered Hooded Sweatshirt, Black"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6230"
+    },
+    "asin": "B07F2NPS35",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 19.99,
+    "stars": 4.3,
+    "title": "Men's Tastigo 19 Shorts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6231"
+    },
+    "asin": "B0B75PBG23",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 15.0,
+    "stars": 4.7,
+    "title": "Mens Staple Boxer Brief | Get At Me"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6232"
+    },
+    "asin": "B0925GLV9C",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 31.4,
+    "stars": 4.5,
+    "title": "Men's Impact Run 3 Inch Split Short 22"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6233"
+    },
+    "asin": "B099RL94B1",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 39.99,
+    "stars": 4.5,
+    "title": "Men's Fleece Lined Water Resistant Sweatpants Winter Athletic Workout Thermal Warm Pants with Zipper Pockets"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6234"
+    },
+    "asin": "B07MJBF8PN",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 69.99,
+    "stars": 4.0,
+    "title": "Men's Casual Blazer Jacket Slim Fit Sports Coat Business Suit Jackets One Button"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6235"
+    },
+    "asin": "B09JSTRX2T",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 32.99,
+    "stars": 3.8,
+    "title": "Men's Causal Flannel Plaid Shirts Long Sleeve Button Up Work Shirts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6236"
+    },
+    "asin": "B087BQMB9J",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 28.99,
+    "stars": 4.6,
+    "title": "Men's Designed 2 Move Feelready T-Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6237"
+    },
+    "asin": "B0BVG2FCTJ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 38.99,
+    "stars": 4.3,
+    "title": "Mens Jeans Slim Fit Skinny Denim Stretch Tapered Jean Pants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6238"
+    },
+    "asin": "B08SW9QGMH",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 36.99,
+    "stars": 4.7,
+    "title": "Men's Underwear - Quick Dry Performance Low Rise Briefs (5 Pack)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6239"
+    },
+    "asin": "B0BT4Z5DYZ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 21.08,
+    "stars": 4.5,
+    "title": "Men's Stretch Twill Cargo Shorts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f623a"
+    },
+    "asin": "B08XB54VRR",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 20.79,
+    "stars": 4.4,
+    "title": "Terry Cloth Robes for Man All-Cotton Bathrobe, Luxury Shower Robe Long Shawl Collar¡­"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f623b"
+    },
+    "asin": "B09PYJQPH2",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 20.99,
+    "stars": 4.4,
+    "title": "Men's Tank Tops Quick Dry Workout Swim Beach Shirts Sleeveless Shirts for Bodybuilding Gym Fitness Training"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f623c"
+    },
+    "asin": "B0BT569NPZ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 54.98,
+    "stars": 4.6,
+    "title": "Therma Men's Football Hoodie Pullover"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f623d"
+    },
+    "asin": "B08CVHLQR2",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 21.47,
+    "stars": 4.5,
+    "title": "Men's Hawaiian Shirt Short Sleeve Floral Holiday Beach Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f623e"
+    },
+    "asin": "B07HRFQ59F",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 34.99,
+    "stars": 4.6,
+    "title": "Men's Short Sleeve Color Block Performance Pique Polo Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f623f"
+    },
+    "asin": "B07MZH128L",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 46.51,
+    "stars": 4.4,
+    "title": "Mens Dri-FIT Short Sleeve Polo Shirt Sky Blue"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6240"
+    },
+    "asin": "B088GTRQY8",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 25.16,
+    "stars": 4.6,
+    "title": "Men's Vmonty Chino Shorts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6241"
+    },
+    "asin": "B09Z6JL4Z7",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 43.99,
+    "stars": 4.0,
+    "title": "150 Pairs Low Cut Ankle Socks Pack Comfortable Wicking Lightweight Ankle Sock Casual No Show Short Socks for Men Women"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6242"
+    },
+    "asin": "B0BKR2JS9Q",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 39.99,
+    "stars": 4.2,
+    "title": "Short Sleeve Performance Button Up Shirt S - 4XL Stylish Business Casual Dress Shirt Events, Dates, Nights Out"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6243"
+    },
+    "asin": "B0733771SP",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 27.99,
+    "stars": 4.5,
+    "title": "Men's Straight Fit Jeans"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6244"
+    },
+    "asin": "B09VPHRX9D",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 40.09,
+    "stars": 4.4,
+    "title": "Men's Workout Long Sleeve Fishing Shirts UPF 50+ Sun Protection Dry Fit Hoodies"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6245"
+    },
+    "asin": "B005SN5I4M",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.23,
+    "stars": 4.0,
+    "title": "5 Pack ComfortSoft T-Shirt - 5280"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6246"
+    },
+    "asin": "B015T92H66",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 12.99,
+    "stars": 4.7,
+    "title": "Sega Sonic Crew Sock with Quills OS"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6247"
+    },
+    "asin": "B07KWFWRTV",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 148.0,
+    "stars": 4.3,
+    "title": "Men's Hooded Robe | As Seen on Shark Tank!, Ultimate Comfort and Style for Men's Loungewear"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6248"
+    },
+    "asin": "B09R5QZT69",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 26.99,
+    "stars": 4.6,
+    "title": "Men's 3-Pack Signature Branding Boxer Briefs"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6249"
+    },
+    "asin": "B01H6UZWDQ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 79.99,
+    "stars": 4.6,
+    "title": "ByTheR Cloak with Hood Mens Sleeveless Mesh Layered Cut Off Open Vest Dark Goth Cardigan Black"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f624a"
+    },
+    "asin": "B08D982RXV",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 39.99,
+    "stars": 4.2,
+    "title": "Men's Elastic-Waist Travel Pant Stretchy Lightweight Pant Multi-Pockets Quick Dry Breathable"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f624b"
+    },
+    "asin": "B08S6MQKKJ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 17.41,
+    "stars": 4.3,
+    "title": "Men's Linen Shorts Casual Elastic Waist Drawstring Summer Beach Shorts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f624c"
+    },
+    "asin": "B0BZV38W2M",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 22.99,
+    "stars": 4.2,
+    "title": "Hippie Men 70s and 80s Disco Clothing Shirts Beach Drawstring Printed Short Sleeves 5-Piece Disco Theme Party"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f624d"
+    },
+    "asin": "B08B1L26W4",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 88.85,
+    "stars": 4.4,
+    "title": "Men's 3 Piece Slim Fit Tuxedo Set, One Button Shawl Collar Jacquard Jacket Vest Pants with Bow Tie"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f624e"
+    },
+    "asin": "B08MXGF96Y",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 38.99,
+    "stars": 4.4,
+    "title": "100% Merino Wool T Shirts for Men Short Sleeve Odor Resistance Lightweight Base Layer for Travel Hiking"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f624f"
+    },
+    "asin": "B0CFYVXHM5",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 98.5,
+    "stars": 0.0,
+    "title": "Slim Fit Polo Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6250"
+    },
+    "asin": "B097N2GC6V",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 25.99,
+    "stars": 4.4,
+    "title": "Men's Quick Dry Polo Shirts Polyester Casual Collared Shirts Short Sleeve, Moisture-Wicking, Sun Protection"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6251"
+    },
+    "asin": "B07L681JN3",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 34.2,
+    "stars": 4.5,
+    "title": "Men's Slim-Fit 5-Pocket Comfort Stretch Chino Pant (Previously Goodthreads)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6252"
+    },
+    "asin": "B081BNW84T",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 70.0,
+    "stars": 4.5,
+    "title": "Mens Long Sleeve Crew Neck Regular Fit Sweater"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6253"
+    },
+    "asin": "B08PK3DYCM",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 23.99,
+    "stars": 4.6,
+    "title": "Mens Sweat Shorts 7\" Above Knee Workout Gym Shorts Lounge Shorts with Zipper Pockets"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6254"
+    },
+    "asin": "B07KD79CFV",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 45.57,
+    "stars": 4.3,
+    "title": "Men's NSW Club Jogger, Charcoal Heather/Anthracite/White, Large"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6255"
+    },
+    "asin": "B0C8CZ4X3P",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 17.99,
+    "stars": 4.8,
+    "title": "Men's Ankle Athletic Socks Quarter Cushion Moisture Wicking Running Sports Work Socks(8 Pairs)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6256"
+    },
+    "asin": "B009NPJ97S",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.0,
+    "stars": 4.3,
+    "title": "Men's Underwear Classic Low Rise Brief - 3 Pack"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6257"
+    },
+    "asin": "B0B5XVRKV7",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 69.99,
+    "stars": 4.5,
+    "title": "Men's Harajuku Graphic Print Varsity Jacket Colorblock Zipper Closure Baseball Coats"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6258"
+    },
+    "asin": "B0BFHR7HNV",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 11.18,
+    "stars": 4.6,
+    "title": "Football Socks,White Soccer Socks,Scrunch Socks Football,Football Gear Athletic Socks For Men Women Football Accessories"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6259"
+    },
+    "asin": "B0BR5DMY8R",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 27.42,
+    "stars": 4.7,
+    "title": "Men's Modern Cotton Stretch 3-Pack Boxer Brief"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f625a"
+    },
+    "asin": "B0BGWHL96X",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 60.0,
+    "stars": 5.0,
+    "title": "Men's Performance Polo 3.0 Long Sleeve"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f625b"
+    },
+    "asin": "B09QB8D6N4",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 98.5,
+    "stars": 4.6,
+    "title": "Men's Classic Fit Poplin Button-Down Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f625c"
+    },
+    "asin": "B07Y9TL3YW",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 39.99,
+    "stars": 4.2,
+    "title": "Mens Classic 5 Pcs Solid Color Satin Suit Vest Set"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f625d"
+    },
+    "asin": "B0846PP85B",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 108.02,
+    "stars": 4.3,
+    "title": "Men's Journeyman Field Guide Jacket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f625e"
+    },
+    "asin": "B0BS9DXFN7",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 16.99,
+    "stars": 4.9,
+    "title": "Men's Soccer Non Skid Ball Socks Anti Slip Non Slip Grip Socks, Shin Guard sleeves, Guard Straps for Football"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f625f"
+    },
+    "asin": "B078TTNT3B",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 17.0,
+    "stars": 4.8,
+    "title": "Volleyball Runbird Crew Socks"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6260"
+    },
+    "asin": "B07Q6N1TBG",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 29.99,
+    "stars": 4.5,
+    "title": "Men's Western Pearl Snap Cowboy Button Up Casual Two Pockets Work Long Sleeve Shirts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6261"
+    },
+    "asin": "B07HNCR2S4",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 18.14,
+    "stars": 4.5,
+    "title": "Men's Classic Dress Crew Socks-3 Pair Pack-Pattern and Solid Color Designs"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6262"
+    },
+    "asin": "B0CB5D294H",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 33.99,
+    "stars": 4.0,
+    "title": "Men's Casual Shirt Shacket Long Sleeve Textured Button Down Shirts Lightweight Jacket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6263"
+    },
+    "asin": "B07MWTB2VX",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 190.95,
+    "stars": 4.8,
+    "title": "Men's The Original Westerley Zip Up Cardigan Sweater"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6264"
+    },
+    "asin": "B0BKWY9C9K",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 21.0,
+    "stars": 5.0,
+    "title": "Men's Run Targeted Cushion Ankle Socks"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6265"
+    },
+    "asin": "B07P6TJ2V9",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 26.98,
+    "stars": 4.5,
+    "title": "Men's Thermal Underwear Set, Microfiber Soft Fleece Lined Long Johns, Winter Warm Base Layer Top & Bottom"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6266"
+    },
+    "asin": "B0BJ6F3VVY",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 209.4,
+    "stars": 4.7,
+    "title": "Men's Superior Down Parka"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6267"
+    },
+    "asin": "B083JWBTBT",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 34.99,
+    "stars": 4.4,
+    "title": "Men's Stretch Skinny Fit Casual Business Pants Ankle Dress Pants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6268"
+    },
+    "asin": "B00SA7QT46",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 28.95,
+    "stars": 4.3,
+    "title": "Slim Fit Men's Dress Shirt Solid Color Long Sleeves Spread Collar Fitted by AZAR"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6269"
+    },
+    "asin": "B008EOETIS",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 17.95,
+    "stars": 4.5,
+    "title": "Men's 1/4 Lightweight Sock"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f626a"
+    },
+    "asin": "B0BYZZBW1W",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 43.99,
+    "stars": 4.4,
+    "title": "Men Linen Sets Outfits 2 Piece Short Sleeve Cuban Shirts Guayabera Linen Suit"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f626b"
+    },
+    "asin": "B09194N849",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 40.96,
+    "stars": 4.7,
+    "title": "Men's Play Off Heather Polo Shirt HeatGear Top 1351131"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f626c"
+    },
+    "asin": "B0BKLPRNLV",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 11.99,
+    "stars": 4.4,
+    "title": "Originals Men's Tri-Blend Long Sleeve Henley T-Shirt, Lightweight Long Sleeve Tee"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f626d"
+    },
+    "asin": "B0BHN8Y7ZT",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 34.99,
+    "stars": 4.0,
+    "title": "Men's Stretch Golf Pants with 6 Pockets Slim Fit Dress Pants for Men Travel Casual Work"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f626e"
+    },
+    "asin": "B001M0MN52",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 19.17,
+    "stars": 4.5,
+    "title": "Men's Give-N-Go Flyless Brief"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f626f"
+    },
+    "asin": "B077QP97NT",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 74.97,
+    "stars": 4.5,
+    "title": "Men's ColdGear Infrared Shield Jacket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6270"
+    },
+    "asin": "B08TW6HKVF",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 109.44,
+    "stars": 4.4,
+    "title": "Mens Performance Polo Shirts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6271"
+    },
+    "asin": "B09L9DTJRZ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 0.0,
+    "stars": 4.5,
+    "title": "Men's All-Terrain Boot Crew Socks"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6272"
+    },
+    "asin": "B08GF86SKG",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 39.69,
+    "stars": 4.3,
+    "title": "Men's Skull/Cobra Print Hipster Hip-Hop Distressed Frayed Denim Jean Jacket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6273"
+    },
+    "asin": "B0852YMH3F",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 29.99,
+    "stars": 4.3,
+    "title": "Men's 2 Pack Workout Hooded Tank Tops Bodybuilding Muscle Cut Off T Shirt Sleeveless Gym Hoodies"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6274"
+    },
+    "asin": "B08X2GQZYL",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 14.0,
+    "stars": 4.4,
+    "title": "Men's Sweatpants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6275"
+    },
+    "asin": "B074839KLD",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 46.74,
+    "stars": 4.6,
+    "title": "Men's Classic Fit Workday Khaki Smart 360 FLEX Pants (Standard and Big & Tall)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6276"
+    },
+    "asin": "B084HLCFY2",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 35.95,
+    "stars": 4.0,
+    "title": "Men's Cotton Classics 3-Pack Trunk"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6277"
+    },
+    "asin": "B0CD67B9P9",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 49.99,
+    "stars": 4.7,
+    "title": "Mens Rain Jacket Waterproof Windbreaker Packable Breathable Lightweight Windproof Hiking Outdoor Rain Gear"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6278"
+    },
+    "asin": "B0BFHTVYX8",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 33.98,
+    "stars": 4.6,
+    "title": "Men's Vest Tie Set 3PC Paisley Floral Jacquard Waistcoat and Necktie Pocket Square Vests for Suit Tuxedo Wedding"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6279"
+    },
+    "asin": "B0779L78WT",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 18.0,
+    "stars": 4.7,
+    "title": "Cozychic Heathered Men's Socks, Warm Gray-White"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f627a"
+    },
+    "asin": "B08C7XG7Y7",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 64.4,
+    "stars": 4.4,
+    "title": "Men's Water Resistant Ultra Loft Filled Hooded Puffer Jacket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f627b"
+    },
+    "asin": "B0BKZNFBJN",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 43.88,
+    "stars": 3.7,
+    "title": "Men's Corduroy Relaxed Vintage 60s 70s Bell Bottom Pants Stretch Fit Classic Comfort Flared Flares Retro Disco Pants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f627c"
+    },
+    "asin": "B001NSCH86",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 36.99,
+    "stars": 4.5,
+    "title": "mens Mynx Gabardine Hidden Expandable Waistband Classic Fit Front Pleated Dress Pant"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f627d"
+    },
+    "asin": "B086L5PJQS",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 15.99,
+    "stars": 4.6,
+    "title": "Men's Comfort Flex Fit Crewneck Tee Undershirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f627e"
+    },
+    "asin": "B0BNHNMPNM",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 35.99,
+    "stars": 4.1,
+    "title": "Men Skinny Slim Fit Casual Jeans Dyeing Stretch Straight Fashion Denim Pants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f627f"
+    },
+    "asin": "B07TQW2B5V",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 14.99,
+    "stars": 4.5,
+    "title": "Men's Mesh Shorts 10\" Inseam"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6280"
+    },
+    "asin": "B07Z6Q7PXV",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 28.99,
+    "stars": 4.3,
+    "title": "White Cotton Pique Tuxedo Openback(Backless) Vest, with White Pique Bowtie"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6281"
+    },
+    "asin": "B08SBRZ1JR",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 50.79,
+    "stars": 4.1,
+    "title": "Just In Trend Flame Resistant FR Coverall - 88% C / 12% Nylon (Large, Light Grey)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6282"
+    },
+    "asin": "B00LO0EYS4",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 25.76,
+    "stars": 4.6,
+    "title": "Men's Cotton Stretch No Show Brief 3-Pack"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6283"
+    },
+    "asin": "B0C9SKGCP1",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 43.0,
+    "stars": 4.4,
+    "title": "Dri-FIT Stride Men's 5\" Brief-Lined Running Shorts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6284"
+    },
+    "asin": "B08T172W7D",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 129.99,
+    "stars": 4.6,
+    "title": "Grundens Men’s Full Share Jacket | Waterproof, Breathable"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6285"
+    },
+    "asin": "B07QWV7YBR",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 56.0,
+    "stars": 4.8,
+    "title": "Sex-Ed Golf Polo (S-XXXXL)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6286"
+    },
+    "asin": "B08BLRMVBT",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 137.74,
+    "stars": 4.5,
+    "title": "Men's Tournament Wind & Water Proof Rain Jacket, Blue, X-Large"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6287"
+    },
+    "asin": "B07BJKRF4Y",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 28.5,
+    "stars": 4.2,
+    "title": "Men's Straight-Fit Stretch Jean"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6288"
+    },
+    "asin": "B08TT5VC15",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 149.95,
+    "stars": 5.0,
+    "title": "Distressed Brown Leather Trench Coat"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6289"
+    },
+    "asin": "B08D12F8MX",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 110.3,
+    "stars": 4.5,
+    "title": "Men's Heavyweight Quilted Sherpa Hooded Parka"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f628a"
+    },
+    "asin": "B07X2TQ9HF",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 46.0,
+    "stars": 4.5,
+    "title": "mens Crewneck"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f628b"
+    },
+    "asin": "B0C2X5XW1M",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 37.75,
+    "stars": 3.9,
+    "title": "Mens Pro Sleeveless Fitted Training Tee"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f628c"
+    },
+    "asin": "B007GBXJMC",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 20.99,
+    "stars": 4.2,
+    "title": "Men's RK Poplin Dress Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f628d"
+    },
+    "asin": "B0C5FTG1RH",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 25.99,
+    "stars": 4.3,
+    "title": "Active Men's Boxer Briefs 4-Pack, Stretchy Performance Mesh Boxer Briefs Active Underwear Quick Drying Boxers Multipack"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f628e"
+    },
+    "asin": "B0CBPPR8DG",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 23.99,
+    "stars": 5.0,
+    "title": "Raincoat for Men Packable Rain Jacket Waterproof with Hood Outdoor Windbreaker Jackets Lightweight Cycling Raincoats"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f628f"
+    },
+    "asin": "B07KV2M9CD",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 34.98,
+    "stars": 4.6,
+    "title": "Men's Firebird Track Pant"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6290"
+    },
+    "asin": "B0B5FJ67TN",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 270.0,
+    "stars": 0.0,
+    "title": "Men's Allover Jacquard AX Jacket, Dark Navy/Black Word, Large"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6291"
+    },
+    "asin": "B09NQ632Z3",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 10.99,
+    "stars": 3.8,
+    "title": "Mens Athletic Shorts, 2-in-1 Gym Workout Shorts for Men Mesh Quick Dry Yoga Training Running Shorts with Pockets"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6292"
+    },
+    "asin": "B0BVNP1SLR",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 14.35,
+    "stars": 3.9,
+    "title": "Men's Recycled Cushioned Sneaker Liner Socks-6 Pair Pack-Repreve Arch Support and No Slip Heel Gripper"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6293"
+    },
+    "asin": "B0BFWGV4BJ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 10.99,
+    "stars": 4.3,
+    "title": "Men's Compression Pants Sports Tights for Men Gym Running Baselayer Cool Dry Workout Athletic Leggings"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6294"
+    },
+    "asin": "B01LWCQDBB",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 103.64,
+    "stars": 4.4,
+    "title": "Men's Durham Rain Coat with Zip-Out Body"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6295"
+    },
+    "asin": "B07VQSF72F",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 35.83,
+    "stars": 4.6,
+    "title": "4 Pack Boxer Briefs"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6296"
+    },
+    "asin": "B0978LWD9L",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 34.99,
+    "stars": 4.3,
+    "title": "Men's Satin Robes with Shorts Lightweight Sleepwear Long Sleeve Kimono Print Bathrobe"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6297"
+    },
+    "asin": "B08Q9PTSBW",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 174.99,
+    "stars": 4.3,
+    "title": "Men's Overkilt Utility Kilt, Black, XX-Large"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6298"
+    },
+    "asin": "B00MFL5XCW",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 35.99,
+    "stars": 4.1,
+    "title": "Men's Athletic-Fit Cargo Pants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f6299"
+    },
+    "asin": "B0BTPG8ZBB",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 26.99,
+    "stars": 3.8,
+    "title": "Men's Quick Dry Swim Trunks Board Shorts Bathing Suits Swimsuit Beach Shorts with Pockets"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f629a"
+    },
+    "asin": "B07H2X6Z5L",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 76.84,
+    "stars": 4.4,
+    "title": "Men’s Down Jacket Packable,Water Resistant 5 Pockets Hooded Puffer Jacket Lightweight"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f629b"
+    },
+    "asin": "B0C9HDPSZR",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 21.99,
+    "stars": 0.0,
+    "title": "6 Pairs Men's Crew Boot Army Socks Cotton Dress Army Green Socks Men Plain Casual Season Grade Military Socks Regular Fit"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f629c"
+    },
+    "asin": "B01LOM3QUS",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 59.99,
+    "stars": 4.3,
+    "title": "Men's Straight Six Jeans"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f629d"
+    },
+    "asin": "B0CBTDY41Q",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 32.99,
+    "stars": 4.4,
+    "title": "Men's Linen Button Down Shirt Long Sleeve Casual Beach Shirts with Pocket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f629e"
+    },
+    "asin": "B00J5SMGPA",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 31.99,
+    "stars": 4.2,
+    "title": "White Low Cut Satin Backless Tuxedo Vest & Bow Tie - 3 Button Front"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f629f"
+    },
+    "asin": "B07S4C1L1L",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 17.95,
+    "stars": 4.8,
+    "title": "Men's Element No Show Tab Lightweight with Cushion"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62a0"
+    },
+    "asin": "B07X1ZJ6ML",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.99,
+    "stars": 4.1,
+    "title": "Men's Classic A-Shirt Undershirt Tank Top (4 Pack)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62a1"
+    },
+    "asin": "B0B8DWWMLB",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 80.21,
+    "stars": 4.4,
+    "title": "Sportswear Men's Tech Fleece Utility Pants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62a2"
+    },
+    "asin": "B095JD7Y5S",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 29.99,
+    "stars": 4.3,
+    "title": "3 Pack: Mens Dry-Fit Short Sleeve Athletic Hoodie Pullover Wicking Sweatshirt (Available in Big & Tall)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62a3"
+    },
+    "asin": "B0B79Z5G5W",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 20.99,
+    "stars": 4.6,
+    "title": "Mens Flannel Shirt Regular Fit Long Sleeve,Casual Button Down Plaid Flannel Shirt for Men"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62a4"
+    },
+    "asin": "B08F2XN859",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 60.0,
+    "stars": 4.5,
+    "title": "Men's UA Rival Fleece Full-Zip Hoodie"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62a5"
+    },
+    "asin": "B0B54Q95GR",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.3,
+    "stars": 4.5,
+    "title": "Mens 5-Pack Regular Fit Boxer Trunk"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62a6"
+    },
+    "asin": "B09TGJR7N5",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 24.99,
+    "stars": 4.3,
+    "title": "Men's Short Sleeve Waffle Henley Casual Henley T-Shirts for Men"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62a7"
+    },
+    "asin": "B0B48QVSL4",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 29.97,
+    "stars": 4.5,
+    "title": "Mens 3 Stripe Shorts with Zipper Pockets"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62a8"
+    },
+    "asin": "B07F231GS9",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 148.39,
+    "stars": 4.6,
+    "title": "Men's Cirius Packable Down Hunting Jacket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62a9"
+    },
+    "asin": "B07G5JG64W",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 35.99,
+    "stars": 4.5,
+    "title": "Men's Premium Comfort Dress Pant-Straight Fit Flat Front Reg. and Big & Tall"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62aa"
+    },
+    "asin": "B09TG3DVTJ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 68.04,
+    "stars": 4.1,
+    "title": "12 Pack Plus Size Men Cotton T-Shirt Bulk Big Tall Short Sleeve Lightweight Tees"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62ab"
+    },
+    "asin": "B00KYA61XQ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 26.99,
+    "stars": 4.5,
+    "title": "100% Polyester Two Tone Short Sleeve Men's Uniform Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62ac"
+    },
+    "asin": "B01906G9FY",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 41.9,
+    "stars": 4.5,
+    "title": "Harem Pants Men Women, Aladdin Pants, Baggy Pants, Bohemian Pants, Drop Crotch Pants, Adjustable Length, One Size"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62ad"
+    },
+    "asin": "B07KQ1LHFQ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 25.62,
+    "stars": 4.4,
+    "title": "mens Patented Graduated Compression"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62ae"
+    },
+    "asin": "B09JT6J94T",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 20.72,
+    "stars": 4.5,
+    "title": "Men's Relaxed-Fit Cotton Modal Boxer Short (Previously Amazon Aware), Pack of 3, White, Large"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62af"
+    },
+    "asin": "B0BXDCCLCY",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 21.88,
+    "stars": 4.1,
+    "title": "Mens Shorts Casual Classic Fit Athletic Workout Golf Shorts Cotton Cargo Shorts for Men Summer Beach Shorts with 4 Pockets"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62b0"
+    },
+    "asin": "B0846PRYF9",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 89.99,
+    "stars": 4.3,
+    "title": "Men's Standard Journeyman Shirt Jacket, Navy, XX-Large"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62b1"
+    },
+    "asin": "B09FRNC46J",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 65.19,
+    "stars": 4.6,
+    "title": "Men's Next Level Quick-Drying Fishing Pants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62b2"
+    },
+    "asin": "B0BQHJ8NFB",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 42.99,
+    "stars": 4.1,
+    "title": "Men's 2 Pieces Linen Set Henley Shirt Short Sleeve and Shorts Summer Beach Yoga Matching Outfits"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62b3"
+    },
+    "asin": "B078B9S348",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 16.99,
+    "stars": 4.6,
+    "title": "Men's Dress Casual Colorful Stripe Cotton Socks Patterned Business Long Socks (5 Packs)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62b4"
+    },
+    "asin": "B0C9BPMTKR",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 15.99,
+    "stars": 4.5,
+    "title": "Running Socks Breathable Athletic Socks,Cushion Ankle Socks For Men And Women 6pairs"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62b5"
+    },
+    "asin": "B0964BVY7M",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 34.99,
+    "stars": 4.6,
+    "title": "Men's Game and Go Pullover Hoodie"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62b6"
+    },
+    "asin": "B07L3QL9J2",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 47.59,
+    "stars": 4.3,
+    "title": "Men's Winter Sherpa Lined Denim Jacket Windbreaker Trucker Jacket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62b7"
+    },
+    "asin": "B09SBRLVF3",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 49.99,
+    "stars": 4.4,
+    "title": "mens Longhorn Ranchers Vest"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62b8"
+    },
+    "asin": "B09L9THSPV",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 12.99,
+    "stars": 4.7,
+    "title": "mens Force Midweight Low Cut Sock 3 Pack"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62b9"
+    },
+    "asin": "B09PPM4ZFJ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 17.99,
+    "stars": 4.5,
+    "title": "Men's Legendary Regular Fit 5-Pocket Jean Short"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62ba"
+    },
+    "asin": "B06Y3P5B41",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 38.99,
+    "stars": 4.0,
+    "title": "Life 5-Pack Men's 100% Cotton Low Rise Brief Underwear"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62bb"
+    },
+    "asin": "B07YG4QHQV",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 69.99,
+    "stars": 4.3,
+    "title": "Heated Vest for Men Women USB Electric 8 Heating Zones Heated Jacket Vest for Winter Warm, No Battery Pack"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62bc"
+    },
+    "asin": "B07H14VN2Q",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 23.95,
+    "stars": 3.8,
+    "title": "Men's Slim Fit Shallow Scoop Neck Sleeveless A-Shirts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62bd"
+    },
+    "asin": "B0C9ZY111R",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 21.99,
+    "stars": 4.4,
+    "title": "Men's Crewneck Sweatshirts Soild Color Geometric Texture Long Sleeve Casual Pullover Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62be"
+    },
+    "asin": "B08YN24CDP",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 26.99,
+    "stars": 4.1,
+    "title": "Men's Joggers Punk Cargo Baggy Techwear Hip Hop Harem Streetwear Tactical Track Pants"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62bf"
+    },
+    "asin": "B0C98FXLRK",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 35.99,
+    "stars": 3.9,
+    "title": "Mens Denim Shirts Casual Button Down Long Sleeve Shirts Work Dress Shirts for Men Chambray Shirt Regular Fit"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62c0"
+    },
+    "asin": "B0C9W83WRN",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 9.99,
+    "stars": 3.7,
+    "title": "8 Pairs Men’s Ankle Socks Low Cut Cushioned Breathable Casual Socks"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62c1"
+    },
+    "asin": "B07KD7BFYQ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 45.36,
+    "stars": 4.4,
+    "title": "Men's NSW Club Jogger, Black/Black/White, XX-Large"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62c2"
+    },
+    "asin": "B07V5DZHWG",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 23.95,
+    "stars": 4.1,
+    "title": "Mens Casual Slim Fit Basic Henley Short/Long Sleeve Fashion T-Shirt"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62c3"
+    },
+    "asin": "B0BLCKY8FT",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 45.99,
+    "stars": 4.1,
+    "title": "Men's Linen Sets Outfits: 3 Piece Beach Button Down Shirts Casual Loose Pants Short Sleeve Walking Suits"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62c4"
+    },
+    "asin": "B07R7PT5RK",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 28.99,
+    "stars": 4.5,
+    "title": "mens Copper Ultra-dri Seamless Boot Crew Socks 4 Pair Pack"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62c5"
+    },
+    "asin": "B09LZCPKYT",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 21.95,
+    "stars": 4.8,
+    "title": "womens Hiker 1/4 Socks Cushion"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62c6"
+    },
+    "asin": "B089K4YJ4Y",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 23.42,
+    "stars": 4.6,
+    "title": "Men’s PFG Terminal Tackle Long Sleeve Shirt, Sun Protection, Gulf Stream/Black Logo, Large"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62c7"
+    },
+    "asin": "B072XT24XM",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 9.03,
+    "stars": 4.7,
+    "title": "Men's 5 Pack No Show Socks"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62c8"
+    },
+    "asin": "B09GGXJ8LQ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 27.89,
+    "stars": 4.6,
+    "title": "Alpaca and Merino Wool Hiking Socks"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62c9"
+    },
+    "asin": "B00O6AGZAY",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 25.99,
+    "stars": 4.5,
+    "title": "Men's Tab Collar Clergy Shirt Short Sleeves"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62ca"
+    },
+    "asin": "B0759PBD1N",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 129.99,
+    "stars": 4.1,
+    "title": "Men's Classic Topper Jacket with Knit Bib"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62cb"
+    },
+    "asin": "B07ZB84DM2",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 78.99,
+    "stars": 4.2,
+    "title": "Men's Wool Coat Hoodie Long Trench Coat Cotton Casual Woollen Overcoat Jacket"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62cc"
+    },
+    "asin": "B07RSQ8NN4",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 10.99,
+    "stars": 4.2,
+    "title": "5 Pack Mens Ultrathin Breathable Silk Sheer Dress Socks Summer Dry Fit Crew Socks"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62cd"
+    },
+    "asin": "B09KMFJ8D9",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 226.8,
+    "stars": 3.5,
+    "title": "60 Pack of Bulk Mens Cotton Crew T-Shirts, Assorted Wholesale Mens Short Sleeve Tees T-Shirts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62ce"
+    },
+    "asin": "B0BG7F1P6F",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 40.7,
+    "stars": 4.8,
+    "title": "Men's Active Sweat Zip Through Hooded Sweatshirt (Available in Big & Tall)"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62cf"
+    },
+    "asin": "B0CB7RHV87",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 43.99,
+    "stars": 4.3,
+    "title": "Men's 2 Piece Outfits Casual Long Sleeve Quarter Zip Polo Shirt Corduroy Pant Sets Fall Fashion Tracksuits"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62d0"
+    },
+    "asin": "B09QX7B9GB",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 39.9,
+    "stars": 4.3,
+    "title": "Track Suits for Men Set Full Zip Sweatsuit Outdoor Jogging Men Tracksuits…"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62d1"
+    },
+    "asin": "B0B5GZ253V",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 20.39,
+    "stars": 4.3,
+    "title": "Men's Vintage Poker Bowling Shirt 1950s Retro Short Sleeve Button Down Hawaiian Shirts"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62d2"
+    },
+    "asin": "B08KYLJT91",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 0.0,
+    "stars": 4.7,
+    "title": "Men's Trefoil Tee"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62d3"
+    },
+    "asin": "B07TW72QFQ",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 48.95,
+    "stars": 4.6,
+    "title": "Men's 21 Inch Outseam Hybrid Stretch Walk Short"
+  },
+  {
+    "_id": {
+      "$oid": "6aa11f8aa4c42ed8613f62d4"
+    },
+    "asin": "B09KX3S4YM",
+    "category_id": 110,
+    "firstImportedAt": {
+      "$date": "2026-09-09T08:57:46.499Z"
+    },
+    "price": 130.0,
+    "stars": 4.7,
+    "title": "mens Dubliner Waterproof Rain Jacket With Packable Hood"
+  }
+]

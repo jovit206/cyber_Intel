@@ -1,0 +1,101 @@
+name: chapter11-sharding
+
+services:
+  config1:
+    image: mongo:7.0
+    container_name: c11-config1
+    hostname: c11-config1
+    command: ["mongod", "--configsvr", "--replSet", "c11-config-rs", "--port", "27019", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    ports: ["127.0.0.1:37117:27019"]
+    volumes: ["config1-data:/data/configdb", "./scripts:/lab11-scripts:ro"]
+    networks: [chapter11]
+    healthcheck: &mongo-health
+      test: ["CMD", "mongosh", "--quiet", "--port", "27019", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    restart: unless-stopped
+
+  config2:
+    image: mongo:7.0
+    container_name: c11-config2
+    hostname: c11-config2
+    command: ["mongod", "--configsvr", "--replSet", "c11-config-rs", "--port", "27019", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    ports: ["127.0.0.1:37118:27019"]
+    volumes: ["config2-data:/data/configdb", "./scripts:/lab11-scripts:ro"]
+    networks: [chapter11]
+    healthcheck: *mongo-health
+    restart: unless-stopped
+
+  config3:
+    image: mongo:7.0
+    container_name: c11-config3
+    hostname: c11-config3
+    command: ["mongod", "--configsvr", "--replSet", "c11-config-rs", "--port", "27019", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    ports: ["127.0.0.1:37119:27019"]
+    volumes: ["config3-data:/data/configdb", "./scripts:/lab11-scripts:ro"]
+    networks: [chapter11]
+    healthcheck: *mongo-health
+    restart: unless-stopped
+
+  shard1:
+    image: mongo:7.0
+    container_name: c11-shard1
+    hostname: c11-shard1
+    command: ["mongod", "--shardsvr", "--replSet", "c11-shard1-rs", "--port", "27018", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    ports: ["127.0.0.1:37217:27018"]
+    volumes: ["shard1-data:/data/db", "./scripts:/lab11-scripts:ro"]
+    networks: [chapter11]
+    healthcheck: &shard-health
+      test: ["CMD", "mongosh", "--quiet", "--port", "27018", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    restart: unless-stopped
+
+  shard2:
+    image: mongo:7.0
+    container_name: c11-shard2
+    hostname: c11-shard2
+    command: ["mongod", "--shardsvr", "--replSet", "c11-shard2-rs", "--port", "27018", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    ports: ["127.0.0.1:37218:27018"]
+    volumes: ["shard2-data:/data/db", "./scripts:/lab11-scripts:ro"]
+    networks: [chapter11]
+    healthcheck: *shard-health
+    restart: unless-stopped
+
+  mongos:
+    image: mongo:7.0
+    container_name: c11-mongos
+    hostname: c11-mongos
+    command: ["mongos", "--configdb", "c11-config-rs/c11-config1:27019,c11-config2:27019,c11-config3:27019", "--bind_ip_all", "--port", "27017"]
+    ports: ["127.0.0.1:37317:27017"]
+    volumes: ["./scripts:/lab11-scripts:ro"]
+    depends_on:
+      config1: {condition: service_healthy}
+      config2: {condition: service_healthy}
+      config3: {condition: service_healthy}
+      shard1: {condition: service_healthy}
+      shard2: {condition: service_healthy}
+    networks: [chapter11]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--port", "27017", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+    restart: unless-stopped
+
+volumes:
+  config1-data: {name: chapter11-config1-data}
+  config2-data: {name: chapter11-config2-data}
+  config3-data: {name: chapter11-config3-data}
+  shard1-data: {name: chapter11-shard1-data}
+  shard2-data: {name: chapter11-shard2-data}
+
+networks:
+  chapter11:
+    name: chapter11-sharded-net
+    driver: bridge

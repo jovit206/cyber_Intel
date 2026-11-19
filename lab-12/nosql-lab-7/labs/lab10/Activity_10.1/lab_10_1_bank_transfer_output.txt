@@ -1,0 +1,147 @@
+LAB 10.1 - BANK TRANSFER TRANSACTIONS: 14 PAYMENT SCENARIOS
+
+Setup: accounts and history
+  ACC-101      Asha                5,000  active  daily limit 20,000
+  ACC-102      Ravi                3,000  active  daily limit 20,000
+  ACC-103      Meera               1,000  active  daily limit 20,000
+  ACC-104      Kiran               2,000  frozen  daily limit 20,000
+  ACC-105      Dev                 8,000  active  daily limit 3,000
+  MERCHANT-01  Campus Cafe             0  active  daily limit 50,000
+  BANK-FEES    Bank fee account        0  active  daily limit 0
+  total money in the bank: 19,000
+
+[ 1] Normal payment
+     Asha pays Ravi 1,500
+       steps: debit  ACC-101 -1,500 | credit ACC-102 +1,500 | history TXN-5AA75B16
+       COMMITTED: TXN-5AA75B16   expected COMMITTED  ok
+     balances: ACC-101 5,000 -> 3,500, ACC-102 3,000 -> 4,500
+     history +1   total 19,000 unchanged   no negative balance   => PASS
+
+[ 2] Insufficient balance
+     Meera (1,000) pays Asha 5,000
+       REJECTED: insufficient balance (1,000 < 5,000)   expected REJECTED  ok
+     balances: no balance changed
+     history +0   total 19,000 unchanged   no negative balance   => PASS
+
+[ 3] Pay exactly the whole balance
+     Meera pays Ravi her whole balance, 1,000
+       steps: debit  ACC-103 -1,000 | credit ACC-102 +1,000 | history TXN-EF048CE3
+       COMMITTED: TXN-EF048CE3   expected COMMITTED  ok
+     balances: ACC-102 4,500 -> 5,500, ACC-103 1,000 -> 0
+     history +1   total 19,000 unchanged   no negative balance   => PASS
+
+[ 4] Payee does not exist
+     Ravi pays 700 to ACC-999, which does not exist
+       steps: debit  ACC-102 -700
+       ROLLED BACK: payee account ACC-999 does not exist or is not active   expected ROLLED BACK  ok
+     balances: no balance changed
+     history +0   total 19,000 unchanged   no negative balance   => PASS
+
+[ 5] Zero and negative amount
+     Asha pays Ravi 0
+       REJECTED: amount must be positive (got 0)   expected REJECTED  ok
+     Asha pays Ravi -500 (would pull 500 from Ravi)
+       REJECTED: amount must be positive (got -500)   expected REJECTED  ok
+     balances: no balance changed
+     history +0   total 19,000 unchanged   no negative balance   => PASS
+
+[ 6] Pay yourself
+     Asha pays Asha 100
+       REJECTED: payer and payee are the same account   expected REJECTED  ok
+     balances: no balance changed
+     history +0   total 19,000 unchanged   no negative balance   => PASS
+
+[ 7] Frozen payer, frozen payee
+     Kiran (frozen) pays Asha 100
+       REJECTED: payer account ACC-104 is frozen   expected REJECTED  ok
+     Asha pays Kiran (frozen) 100
+       steps: debit  ACC-101 -100
+       ROLLED BACK: payee account ACC-104 does not exist or is not active   expected ROLLED BACK  ok
+     balances: no balance changed
+     history +0   total 19,000 unchanged   no negative balance   => PASS
+
+[ 8] Daily limit exceeded
+     Dev (limit 3,000/day) pays Asha 2,500
+       steps: debit  ACC-105 -2,500 | credit ACC-101 +2,500 | history TXN-7137120D
+       COMMITTED: TXN-7137120D   expected COMMITTED  ok
+     Dev pays Asha another 1,000 the same day
+       REJECTED: daily limit 3,000 exceeded (2,500 already paid today + 1,000)   expected REJECTED  ok
+     balances: ACC-101 3,500 -> 6,000, ACC-105 8,000 -> 5,500
+     history +1   total 19,000 unchanged   no negative balance   => PASS
+
+[ 9] Duplicate submit (idempotency key)
+     Ravi pays Meera 300, key order-7731
+       steps: debit  ACC-102 -300 | credit ACC-103 +300 | history TXN-4375244C
+       COMMITTED: TXN-4375244C   expected COMMITTED  ok
+     same request sent again (double click)
+       steps: debit  ACC-102 -300 | credit ACC-103 +300
+       ROLLED BACK: duplicate idempotency_key   expected ROLLED BACK  ok
+     balances: ACC-102 5,500 -> 5,200, ACC-103 0 -> 300
+     history +1   total 19,000 unchanged   no negative balance   => PASS
+
+[10] Merchant payment with fee
+     Asha pays Campus Cafe 500, 2% fee to BANK-FEES
+       steps: debit  ACC-101 -500 | credit MERCHANT-01 +500 | history TXN-00F4BB7A | debit  MERCHANT-01 -10 | credit BANK-FEES +10 | history TXN-FE7F8CC3
+       COMMITTED: merchant gets 490, fee 10   expected COMMITTED  ok
+     balances: ACC-101 6,000 -> 5,500, MERCHANT-01 0 -> 490, BANK-FEES 0 -> 10
+     history +2   total 19,000 unchanged   no negative balance   => PASS
+
+[11] Batch payout, one payee invalid
+     Ravi pays 200 each to Asha, Meera and ACC-999
+       steps: debit  ACC-102 -200 | credit ACC-101 +200 | history TXN-C8CF94DF | debit  ACC-102 -200 | credit ACC-103 +200 | history TXN-9E4872D0 | debit  ACC-102 -200
+       ROLLED BACK: payee account ACC-999 does not exist or is not active   expected ROLLED BACK  ok
+     balances: no balance changed
+     history +0   total 19,000 unchanged   no negative balance   => PASS
+
+[12] Refund, then refund again
+     refund payment 1 (Ravi returns 1,500 to Asha)
+       steps: debit  ACC-102 -1,500 | credit ACC-101 +1,500 | history TXN-9124C6A4
+       COMMITTED: TXN-9124C6A4   expected COMMITTED  ok
+     refund payment 1 again
+       steps: debit  ACC-102 -1,500 | credit ACC-101 +1,500
+       ROLLED BACK: duplicate idempotency_key   expected ROLLED BACK  ok
+     balances: ACC-101 5,500 -> 7,000, ACC-102 5,200 -> 3,700
+     history +1   total 19,000 unchanged   no negative balance   => PASS
+
+[13] App dies mid-payment
+     Asha pays Meera 400, the app dies after the debit
+       steps: debit  ACC-101 -400 | app dies; server holds 1 open transaction | server aborted it after 7.5 s
+       ROLLED BACK: Asha still has 7,000   expected ROLLED BACK  ok
+     balances: no balance changed
+     history +0   total 19,000 unchanged   no negative balance   => PASS
+
+[14] Isolation during an open payment
+     Ravi pays Meera 1,000; another reader looks before the commit
+       steps: debit  ACC-102 -1,000 | credit ACC-103 +1,000 | history TXN-BECEDBCE | while open: outside reader sees 3,700, the transaction sees 2,700 | after commit: everyone sees 2,700
+       COMMITTED: uncommitted debit hidden from other readers   expected COMMITTED  ok
+     balances: ACC-102 3,700 -> 2,700, ACC-103 300 -> 1,300
+     history +1   total 19,000 unchanged   no negative balance   => PASS
+
+Summary
+   #  Scenario                             Expected                   Actual                     Result
+   1  Normal payment                       COMMITTED                  COMMITTED                  PASS
+   2  Insufficient balance                 REJECTED                   REJECTED                   PASS
+   3  Pay exactly the whole balance        COMMITTED                  COMMITTED                  PASS
+   4  Payee does not exist                 ROLLED BACK                ROLLED BACK                PASS
+   5  Zero and negative amount             REJECTED, REJECTED         REJECTED, REJECTED         PASS
+   6  Pay yourself                         REJECTED                   REJECTED                   PASS
+   7  Frozen payer, frozen payee           REJECTED, ROLLED BACK      REJECTED, ROLLED BACK      PASS
+   8  Daily limit exceeded                 COMMITTED, REJECTED        COMMITTED, REJECTED        PASS
+   9  Duplicate submit (idempotency key)   COMMITTED, ROLLED BACK     COMMITTED, ROLLED BACK     PASS
+  10  Merchant payment with fee            COMMITTED                  COMMITTED                  PASS
+  11  Batch payout, one payee invalid      ROLLED BACK                ROLLED BACK                PASS
+  12  Refund, then refund again            COMMITTED, ROLLED BACK     COMMITTED, ROLLED BACK     PASS
+  13  App dies mid-payment                 ROLLED BACK                ROLLED BACK                PASS
+  14  Isolation during an open payment     COMMITTED                  COMMITTED                  PASS
+  14 of 14 scenarios passed; total money 19,000 (started at 19,000)
+
+Final balances
+  ACC-101      Asha                 7,000   version 4
+  ACC-102      Ravi                 2,700   version 5
+  ACC-103      Meera                1,300   version 3
+  ACC-104      Kiran                2,000   version 0
+  ACC-105      Dev                  5,500   version 1
+  BANK-FEES    Bank fee account        10   version 1
+  MERCHANT-01  Campus Cafe            490   version 2
+
+MongoDB commands and replies saved to lab_10_1_bank_transfer.json

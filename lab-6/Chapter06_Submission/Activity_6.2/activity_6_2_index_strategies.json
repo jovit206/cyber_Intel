@@ -1,0 +1,242 @@
+{
+  "database": "chapter_06",
+  "collection": "products_perf",
+  "batch_size": 10000,
+  "indexes_created": [
+    {
+      "name": "idx_category_price_rating",
+      "key": {
+        "category": 1,
+        "price": 1,
+        "rating": 1
+      },
+      "serves": "Q1 (prefix), Q5 (ESR)"
+    },
+    {
+      "name": "idx_price",
+      "key": {
+        "price": 1
+      },
+      "serves": "Q2"
+    },
+    {
+      "name": "idx_tags",
+      "key": {
+        "tags": 1
+      },
+      "serves": "Q3 (multikey)"
+    },
+    {
+      "name": "idx_name_text",
+      "key": {
+        "name": "text"
+      },
+      "serves": "Q4"
+    },
+    {
+      "name": "idx_stock",
+      "key": {
+        "stock": 1
+      },
+      "serves": "none of Q1-Q5"
+    }
+  ],
+  "insert_trials": 5,
+  "insert_seconds_median": {
+    "no_indexes": 0.0849064699941664,
+    "five_indexes": 0.3352263540000422,
+    "critical_index_only": 0.11919505799596664
+  },
+  "insert_seconds_all_runs": {
+    "no_indexes": [
+      0.11002444000041578,
+      0.07938609100528993,
+      0.09591467500285944,
+      0.08303119099582545,
+      0.0849064699941664
+    ],
+    "five_indexes": [
+      0.3538978659998975,
+      0.3352263540000422,
+      0.32559536999906413,
+      0.31156548000581097,
+      0.3762241200020071
+    ],
+    "critical_index_only": [
+      0.11919505799596664,
+      0.12782915500429226,
+      0.12444602000323357,
+      0.10553498799708905,
+      0.10320556599617703
+    ]
+  },
+  "slowdown_percent": {
+    "five_indexes": 294.81838548119396,
+    "critical_index_only": 40.38395189925582
+  },
+  "critical_index": "idx_category_price_rating",
+  "queries": [
+    {
+      "id": "Q1",
+      "label": "Electronics, cheapest 20 first",
+      "filter": {
+        "category": "Electronics"
+      },
+      "sort": [
+        [
+          "price",
+          1
+        ]
+      ],
+      "limit": 20
+    },
+    {
+      "id": "Q2",
+      "label": "Price between $100 and $150",
+      "filter": {
+        "price": {
+          "$gte": 100,
+          "$lte": 150
+        }
+      }
+    },
+    {
+      "id": "Q3",
+      "label": "Tagged 'wireless'",
+      "filter": {
+        "tags": "wireless"
+      }
+    },
+    {
+      "id": "Q4",
+      "label": "Text search name: 'headphones'",
+      "filter": {
+        "$text": {
+          "$search": "headphones"
+        }
+      },
+      "fallback": {
+        "name": {
+          "$regex": "headphones",
+          "$options": "i"
+        }
+      }
+    },
+    {
+      "id": "Q5",
+      "label": "Books rated >= 4.5, by price",
+      "filter": {
+        "category": "Books",
+        "rating": {
+          "$gte": 4.5
+        }
+      },
+      "sort": [
+        [
+          "price",
+          1
+        ]
+      ]
+    }
+  ],
+  "query_runs": 20,
+  "queries_all_indexes": {
+    "Q1": {
+      "stage": "LIMIT > FETCH > IXSCAN",
+      "index": "idx_category_price_rating",
+      "totalDocsExamined": 20,
+      "totalKeysExamined": 20,
+      "nReturned": 20,
+      "avg_ms": 0.6913749002706027,
+      "note": ""
+    },
+    "Q2": {
+      "stage": "FETCH > IXSCAN",
+      "index": "idx_price",
+      "totalDocsExamined": 993,
+      "totalKeysExamined": 993,
+      "nReturned": 993,
+      "avg_ms": 6.055075000040233,
+      "note": ""
+    },
+    "Q3": {
+      "stage": "FETCH > IXSCAN",
+      "index": "idx_tags",
+      "totalDocsExamined": 4184,
+      "totalKeysExamined": 4184,
+      "nReturned": 4184,
+      "avg_ms": 20.86979665000399,
+      "note": ""
+    },
+    "Q4": {
+      "stage": "TEXT_MATCH > FETCH > IXSCAN",
+      "index": "idx_name_text",
+      "totalDocsExamined": 478,
+      "totalKeysExamined": 478,
+      "nReturned": 478,
+      "avg_ms": 4.694280650073779,
+      "note": ""
+    },
+    "Q5": {
+      "stage": "FETCH > IXSCAN",
+      "index": "idx_category_price_rating",
+      "totalDocsExamined": 347,
+      "totalKeysExamined": 2553,
+      "nReturned": 347,
+      "avg_ms": 10.14837010006886,
+      "note": ""
+    }
+  },
+  "queries_critical_index_only": {
+    "Q1": {
+      "stage": "LIMIT > FETCH > IXSCAN",
+      "index": "idx_category_price_rating",
+      "totalDocsExamined": 20,
+      "totalKeysExamined": 20,
+      "nReturned": 20,
+      "avg_ms": 0.9323253500042483,
+      "note": ""
+    },
+    "Q2": {
+      "stage": "COLLSCAN",
+      "index": "-",
+      "totalDocsExamined": 20000,
+      "totalKeysExamined": 0,
+      "nReturned": 993,
+      "avg_ms": 12.780538349761628,
+      "note": ""
+    },
+    "Q3": {
+      "stage": "COLLSCAN",
+      "index": "-",
+      "totalDocsExamined": 20000,
+      "totalKeysExamined": 0,
+      "nReturned": 4184,
+      "avg_ms": 20.158811249712016,
+      "note": ""
+    },
+    "Q4": {
+      "stage": "COLLSCAN",
+      "index": "-",
+      "totalDocsExamined": 20000,
+      "totalKeysExamined": 0,
+      "nReturned": 478,
+      "avg_ms": 15.254147199811996,
+      "note": "regex fallback"
+    },
+    "Q5": {
+      "stage": "FETCH > IXSCAN",
+      "index": "idx_category_price_rating",
+      "totalDocsExamined": 347,
+      "totalKeysExamined": 2553,
+      "nReturned": 347,
+      "avg_ms": 7.358517000102438,
+      "note": ""
+    }
+  },
+  "analysis": [
+    "Write cost. Inserting 10,000 products took 0.085s (median of 5 runs) with only the _id index and 0.335s with 5 secondary indexes: a +294.8% slowdown (117,777 -> 29,831 docs/sec). Every insert has to add an entry to every index, and the multikey tags index and the text index on name add several entries per document. idx_stock served none of the 5 queries, yet every write paid for it. With only idx_category_price_rating kept, the same insert took 0.119s (+40.4% vs no indexes).",
+    "Read cost. After dropping to idx_category_price_rating, Q1, Q5 still used an index, while Q2, Q3, Q4 fell back to a COLLSCAN that examines all 20,000 documents (Q2 993 -> 20,000 docs examined, 6.1 -> 12.8 ms; Q3 4,184 -> 20,000 docs examined, 20.9 -> 20.2 ms; Q4 478 -> 20,000 docs examined, 4.7 -> 15.3 ms). Wall-clock time moves less than documents examined because, at 20,000 documents, much of each query's time is sending its matches back to the client. Documents examined is the gap that grows with the collection: a COLLSCAN reads every document, an index scan reads only the matching keys.",
+    "Trade-off. Indexes move cost from reads to writes. A read-heavy product catalogue should keep the indexes its frequent queries actually use -- $indexStats shows which -- and drop the ones nothing reads, like idx_stock here. A write-heavy workload such as logs or sensor data should keep the fewest indexes that still meet its read latency targets. One index that serves several queries, as idx_category_price_rating does for Q1 and Q5, gives the most read benefit per unit of write cost."
+  ]
+}

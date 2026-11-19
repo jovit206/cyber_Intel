@@ -1,0 +1,216 @@
+{
+  "experiment": "lab_03_failover_recovery",
+  "run_id": "failover-20261118T182920Z-2efca2",
+  "replica_set": "rsfail",
+  "containers": [
+    "netrel-mongo1",
+    "netrel-mongo2",
+    "netrel-mongo3"
+  ],
+  "network": "netrel-net",
+  "isolated_cluster": true,
+  "started_at": "2026-11-18T18:29:20.637+00:00",
+  "steps": [
+    {
+      "step": 1,
+      "name": "primary elected",
+      "at": "2026-11-18T18:29:34.422+00:00",
+      "passed": true,
+      "primary": "netrel-mongo1",
+      "term": {
+        "high": 0,
+        "low": 1,
+        "unsigned": false
+      },
+      "wait_seconds": 11.09,
+      "members": [
+        {
+          "name": "netrel-mongo1:27017",
+          "state": "PRIMARY",
+          "health": 1,
+          "sync": null,
+          "optime": "2026-11-18T18:29:33.000Z"
+        },
+        {
+          "name": "netrel-mongo2:27017",
+          "state": "SECONDARY",
+          "health": 1,
+          "sync": null,
+          "optime": "2026-11-18T18:29:23.000Z"
+        },
+        {
+          "name": "netrel-mongo3:27017",
+          "state": "SECONDARY",
+          "health": 1,
+          "sync": null,
+          "optime": "2026-11-18T18:29:23.000Z"
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "name": "secondaries healthy and replicating",
+      "at": "2026-11-18T18:29:34.423+00:00",
+      "passed": true,
+      "secondaries": [
+        "netrel-mongo2",
+        "netrel-mongo3"
+      ],
+      "sync_sources": {
+        "netrel-mongo2:27017": null,
+        "netrel-mongo3:27017": null
+      }
+    },
+    {
+      "step": 3,
+      "name": "test document inserted with w:majority",
+      "at": "2026-11-18T18:29:35.694+00:00",
+      "passed": true,
+      "primary": "netrel-mongo1",
+      "inserted_id": "6afdee8fb17efcaf62558747"
+    },
+    {
+      "step": 4,
+      "name": "document replicated to secondaries",
+      "at": "2026-11-18T18:29:37.330+00:00",
+      "passed": true,
+      "visible_after_ms": {
+        "netrel-mongo2": 812,
+        "netrel-mongo3": 1625
+      },
+      "note": "measured from the acknowledged insert to the first successful read on each secondary, including docker exec overhead"
+    },
+    {
+      "step": 5,
+      "name": "controlled primary step-down",
+      "at": "2026-11-18T18:29:42.363+00:00",
+      "passed": true,
+      "stepped_down": "netrel-mongo1",
+      "at_time": "2026-11-18T18:29:41.331+00:00",
+      "response": {
+        "ok": 1
+      }
+    },
+    {
+      "step": 6,
+      "name": "new primary elected",
+      "at": "2026-11-18T18:29:43.133+00:00",
+      "passed": true,
+      "old_primary": "netrel-mongo1",
+      "new_primary": "netrel-mongo2",
+      "term": {
+        "high": 0,
+        "low": 2,
+        "unsigned": false
+      },
+      "election_seconds": 1.81
+    },
+    {
+      "step": 7,
+      "name": "reads and writes during failover",
+      "at": "2026-11-18T18:30:03.639+00:00",
+      "passed": true,
+      "writes": {
+        "attempted": 116,
+        "succeeded": 116,
+        "failed": 0,
+        "errors": [],
+        "slowest_success_ms": 35,
+        "longest_gap_between_successes_ms": 221
+      },
+      "reads": {
+        "attempted": 116,
+        "succeeded": 116,
+        "failed": 0,
+        "errors": [],
+        "slowest_success_ms": 16,
+        "longest_gap_between_successes_ms": 241
+      },
+      "connection": "replica-set URI with retryWrites=true",
+      "note": "w:majority writes and primary reads every 200 ms for 25 s, spanning the step-down"
+    },
+    {
+      "step": 8,
+      "name": "member restarted",
+      "at": "2026-11-18T18:30:16.110+00:00",
+      "passed": true,
+      "container": "netrel-mongo1"
+    },
+    {
+      "step": 9,
+      "name": "restarted member rejoined and caught up",
+      "at": "2026-11-18T18:30:24.954+00:00",
+      "passed": true,
+      "container": "netrel-mongo1",
+      "rejoin_seconds": 17.66,
+      "documents_on_primary": 117,
+      "documents_on_restarted_member": 117
+    },
+    {
+      "step": 10,
+      "name": "cluster recovered",
+      "at": "2026-11-18T18:30:28.922+00:00",
+      "passed": true,
+      "primary": "netrel-mongo2",
+      "secondaries": [
+        "netrel-mongo1",
+        "netrel-mongo3"
+      ],
+      "documents_per_member": {
+        "netrel-mongo1": 117,
+        "netrel-mongo2": 117,
+        "netrel-mongo3": 117
+      },
+      "final_members": [
+        {
+          "name": "netrel-mongo1:27017",
+          "state": "SECONDARY",
+          "health": 1,
+          "sync": "netrel-mongo3:27017",
+          "optime": "2026-11-18T18:30:22.000Z"
+        },
+        {
+          "name": "netrel-mongo2:27017",
+          "state": "PRIMARY",
+          "health": 1,
+          "sync": null,
+          "optime": "2026-11-18T18:30:22.000Z"
+        },
+        {
+          "name": "netrel-mongo3:27017",
+          "state": "SECONDARY",
+          "health": 1,
+          "sync": "netrel-mongo2:27017",
+          "optime": "2026-11-18T18:30:22.000Z"
+        }
+      ]
+    }
+  ],
+  "status": "passed",
+  "initialisation": {
+    "performed": true,
+    "config": {
+      "_id": "rsfail",
+      "members": [
+        {
+          "_id": 0,
+          "host": "netrel-mongo1:27017"
+        },
+        {
+          "_id": 1,
+          "host": "netrel-mongo2:27017"
+        },
+        {
+          "_id": 2,
+          "host": "netrel-mongo3:27017"
+        }
+      ]
+    },
+    "at": "2026-11-18T18:29:23.331+00:00"
+  },
+  "finished_at": "2026-11-18T18:30:28.922+00:00",
+  "summary": {
+    "steps_passed": 10,
+    "steps_total": 10
+  }
+}

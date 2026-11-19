@@ -1,0 +1,81 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Lab 7-8-9 Docker submission</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  body { font: 10.5pt/1.45 "Segoe UI", Arial, sans-serif; color: #1d1a1f; }
+  h1 { font-size: 21pt; margin: 0 0 4pt; color: #392c3b; }
+  h2 { font-size: 13pt; margin: 16pt 0 6pt; padding-bottom: 3pt; border-bottom: 1.5px solid #a65349; color: #392c3b; }
+  .sub { color: #6f606d; margin-bottom: 10pt; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 9.2pt; background: #f1ebe3; padding: 1pt 4pt; border-radius: 3pt; }
+  pre { font: 9pt/1.4 Consolas, "Courier New", monospace; background: #f6f1ea; border: 1px solid #e4d7c9; border-radius: 5pt; padding: 7pt 9pt; white-space: pre-wrap; margin: 4pt 0 8pt; }
+  table { border-collapse: collapse; width: 100%; margin: 4pt 0 8pt; }
+  .kv th { text-align: left; width: 32%; padding: 5pt 8pt; background: #f6f1ea; border: 1px solid #e4d7c9; vertical-align: top; }
+  .kv td { padding: 5pt 8pt; border: 1px solid #e4d7c9; }
+  .grid th, .grid td { border: 1px solid #e4d7c9; padding: 4pt 7pt; text-align: left; vertical-align: top; font-size: 9.5pt; }
+  .grid th { background: #392c3b; color: #fff; }
+  .res { font-weight: 700; white-space: nowrap; } .res.pass { color: #2e7d32; } .res.fail { color: #c62828; } .res.manual { color: #8b602f; }
+  .pending { background: #fff4e0; border: 1px solid #e0b060; border-left: 4px solid #c47a00; padding: 8pt 10pt; border-radius: 4pt; margin: 4pt 0; }
+  .safety { background: #fdf0ee; border: 1px solid #e3b5ae; border-left: 4px solid #a65349; padding: 8pt 12pt; border-radius: 4pt; }
+  ul { margin: 4pt 0 6pt 16pt; padding: 0; } li { margin: 2pt 0; }
+  a { color: #79536f; }
+</style></head><body>
+<h1>Threat Intelligence Platform: Labs 7, 8 and 9</h1>
+<div class="sub">Docker deployment and submission information &middot; generated 2026-10-14 19:52 UTC</div>
+
+<h2>Project description</h2>
+<p>A FastAPI / MongoDB threat-intelligence dashboard (Lab 7) running on a three-member MongoDB 7.0 replica set
+<code>rs0</code> (Lab 8), together with the Lab 9 write-concern latency benchmark and network-partition
+experiment. It is delivered as one application image plus the official <code>mongo:7.0</code> image, orchestrated by
+Docker Compose with persistent named volumes.</p>
+
+<h2>Docker Hub</h2>
+
+        <table class="kv">
+          <tr><th>Docker Hub repository</th><td><a href="https://hub.docker.com/r/jovit206/threat-intelligence-platform">https://hub.docker.com/r/jovit206/threat-intelligence-platform</a></td></tr>
+          <tr><th>Published tags</th><td>latest</td></tr>
+          <tr><th>Image digest</th><td><code>sha256:b6656e1cd864778243c72e66fe0f230876a83f2ab27da73f0571c99e27263031</code></td></tr>
+          <tr><th>Verified on Docker Hub</th><td>2026-10-14 19:52 UTC (manifest inspected; not pulled)</td></tr>
+          <tr><th>Pull command</th><td><code>docker pull jovit206/threat-intelligence-platform:latest</code></td></tr>
+        </table>
+
+<h2>Start the complete application</h2>
+<pre>cp .env.example .env
+mkdir -p labs/lab9/results
+# set APP_IMAGE=jovit206/threat-intelligence-platform:latest in .env, then:
+docker compose pull
+docker compose up -d
+# open http://localhost:8000</pre>
+<p>Compose starts the three MongoDB members, initialises <code>rs0</code> only if needed (idempotent), then starts the
+application. Data lives in named volumes and survives <code>stop</code>, <code>down</code> and upgrades.</p>
+
+<h2>Features</h2>
+<ul>
+  <li><b>Lab 7</b>: Live Threat Stream, Top Threats, Report Corpus, Search &amp; Enrich (VirusTotal, 24 h cache), Cross-Source Analysis, Working Set Monitor (live WiredTiger cache telemetry).</li>
+  <li><b>Lab 8</b>: three-member replica set, member and primary monitoring, failover observer (<code>labs/lab8</code>).</li>
+  <li><b>Lab 9.1</b>: write-concern latency for <code>w:1</code>, <code>w:majority</code>, <code>w:all</code> (numeric <code>w</code> = member count) with <code>j:false</code>/<code>j:true</code>, 1,000 inserts each; JSON/CSV artifacts; historical vs live results separated in the UI.</li>
+  <li><b>Lab 9.2</b>: confirmed, reversible network-partition simulation with prechecks, timestamps, honest write outcomes and verified recovery.</li>
+</ul>
+
+<h2>Lab 9.1 experiment (manual)</h2>
+<pre>docker compose exec lab7-backend python labs/lab9/lab_01_write_concern_latency.py
+# options: --docs 200   --dry-run   --replace-historical</pre>
+<p>Reports are written to <code>labs/lab9/results/lab_01_&lt;timestamp&gt;.json</code> and <code>.csv</code>.
+MongoDB has no <code>w: "all"</code>; it is run as <code>w:3</code> and the mapping is printed and saved.</p>
+
+<h2>Lab 9.2 experiment (manual)</h2>
+<pre>python labs/lab9/lab_02_simulate_partition.py --dry-run   # prechecks only
+python labs/lab9/lab_02_simulate_partition.py             # type the confirmation text when asked</pre>
+<p>Report: <code>labs/lab9/results/lab_02_partition_&lt;timestamp&gt;.json</code>. Losing the majority is a separate,
+separately confirmed phase (<code>--phase majority-loss</code>).</p>
+
+<h2>Safety notes</h2>
+<div class="safety"><ul>
+  <li>The partition experiment and the live benchmark never run automatically (build, start-up, tests, publication).</li>
+  <li>Only a secondary is isolated by default; the primary is never selected. Containers, volumes, replica-set configuration and documents are not removed.</li>
+  <li><code>docker compose down -v</code> deletes database volumes and is not part of any procedure.</li>
+  <li>No secrets are in the image: <code>.env</code> is excluded; the VirusTotal key is read by the backend at run time only.</li>
+  <li>MongoDB is bound to loopback host ports and runs without authentication inside the internal network.</li>
+</ul></div>
+
+<h2>Verification summary</h2>
+<p>Recorded 2026-10-15. Results are copied from the commands actually run; items marked MANUAL require a person to run them.</p><table class='grid'><thead><tr><th>Check</th><th>Result</th><th>Detail</th></tr></thead><tbody><tr><td>Unit tests (81): backend, feeds, galaxies/reports, reliability, VirusTotal, write concern, partition script</td><td class='res pass'>PASS</td><td>python -m unittest &lt;7 modules&gt;</td></tr><tr><td>Lab 9.2 logic against a fake docker cluster (prechecks, confirmation, cleanup, reconnect fallbacks, report JSON)</td><td class='res pass'>PASS</td><td>18 tests; no real docker used</td></tr><tr><td>Lab 9.2 read-only --dry-run against the real replica set</td><td class='res pass'>PASS</td><td>prechecks passed; containers/network unchanged</td></tr><tr><td>Lab 9.2 real partition experiment</td><td class='res manual'>MANUAL</td><td>not executed in this task by instruction; run python labs/lab9/lab_02_simulate_partition.py</td></tr><tr><td>Lab 9.1 benchmark</td><td class='res manual'>MANUAL</td><td>ran earlier on a disposable stack (1000 x 6 acknowledged); re-run on your cluster when presenting</td></tr><tr><td>Frontend files byte-identical before/after migration</td><td class='res pass'>PASS</td><td>6 files sha256</td></tr><tr><td>OpenAPI contract identical (32 operations)</td><td class='res pass'>PASS</td><td>methods, parameters, status codes</td></tr><tr><td>Browser DOM + computed-style fingerprint, 8 views (real Edge)</td><td class='res pass'>PASS</td><td>identical before/after</td></tr><tr><td>Integration script against migrated image and live app</td><td class='res pass'>PASS</td><td>/ , APIs, markup checks</td></tr><tr><td>docker compose config</td><td class='res pass'>PASS</td><td>valid</td></tr><tr><td>Existing MongoDB data</td><td class='res pass'>PASS</td><td>21 collections, none removed, none with fewer documents</td></tr><tr><td>Image republished to Docker Hub</td><td class='res manual'>MANUAL</td><td>not done; published latest predates this work</td></tr></tbody></table>
+</body></html>

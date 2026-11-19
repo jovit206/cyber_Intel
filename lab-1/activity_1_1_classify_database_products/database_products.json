@@ -1,0 +1,119 @@
+[
+  {
+    "_id": {
+      "$oid": "6a91a2d0da8c43b5585e0408"
+    },
+    "product": "Amazon S3",
+    "family": "Key-Value",
+    "best_for": "Large opaque blobs retrieved by a known key at scale",
+    "limitation": "Cannot query by object content without an external index",
+    "shape_tested": "kv_shape",
+    "evidence": {
+      "key_lookup": {
+        "stage": "EXPRESS_IXSCAN",
+        "totalDocsExamined": 1,
+        "totalKeysExamined": 1,
+        "nReturned": 1,
+        "executionTimeMillis": 0
+      },
+      "content_query": {
+        "stage": "COLLSCAN",
+        "totalDocsExamined": 20000,
+        "totalKeysExamined": 0,
+        "nReturned": 412,
+        "executionTimeMillis": 31
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d0da8c43b5585e0409"
+    },
+    "product": "Couchbase",
+    "family": "Document",
+    "best_for": "Semi-structured records needing nested-field queries",
+    "limitation": "Multi-document ACID and joins are limited vs. relational",
+    "shape_tested": "doc_shape",
+    "evidence": {
+      "nested_field_query": {
+        "stage": "FETCH -> IXSCAN",
+        "totalDocsExamined": 800,
+        "totalKeysExamined": 800,
+        "nReturned": 800,
+        "executionTimeMillis": 3
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d0da8c43b5585e040a"
+    },
+    "product": "Apache HBase",
+    "family": "Column-Family",
+    "best_for": "High-volume time-series writes with an engineered row key",
+    "limitation": "Flexibility is tied to row-key design",
+    "shape_tested": "wide_column_shape",
+    "evidence": {
+      "range_query": {
+        "stage": "FETCH -> IXSCAN",
+        "totalDocsExamined": 21,
+        "totalKeysExamined": 21,
+        "nReturned": 21,
+        "executionTimeMillis": 0
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d0da8c43b5585e040b"
+    },
+    "product": "Amazon Neptune",
+    "family": "Graph",
+    "best_for": "Relationship-heavy queries: fraud rings, recommendations",
+    "limitation": "Not a general-purpose store for flat records",
+    "shape_tested": "graph_shape",
+    "evidence": {
+      "graphlookup": {
+        "stage": "$graphLookup (seed $match only)",
+        "totalDocsExamined": 1,
+        "totalKeysExamined": 1,
+        "nReturned": 1,
+        "executionTimeMillis": 1
+      },
+      "manual_join": {
+        "stage": "3x IXSCAN (manual hops)",
+        "totalDocsExamined": 3,
+        "totalKeysExamined": 3,
+        "nReturned": 3,
+        "executionTimeMillis": 0
+      },
+      "hops": 3
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d0da8c43b5585e040c"
+    },
+    "product": "Memcached",
+    "family": "Key-Value",
+    "best_for": "Ephemeral caching of hot precomputed values",
+    "limitation": "No persistence and no secondary access path",
+    "shape_tested": "kv_shape",
+    "evidence": {
+      "key_lookup": {
+        "stage": "EXPRESS_IXSCAN",
+        "totalDocsExamined": 1,
+        "totalKeysExamined": 1,
+        "nReturned": 1,
+        "executionTimeMillis": 0
+      },
+      "content_query": {
+        "stage": "COLLSCAN",
+        "totalDocsExamined": 20000,
+        "totalKeysExamined": 0,
+        "nReturned": 412,
+        "executionTimeMillis": 31
+      }
+    }
+  }
+]

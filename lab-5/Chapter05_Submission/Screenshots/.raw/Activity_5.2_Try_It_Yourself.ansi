@@ -1,0 +1,81 @@
+
+========================================================================
+  Lab 5.2 Try It Yourself: $lookup with a pipeline sub-expression
+========================================================================
+
+[OK] Connected to MongoDB at mongodb://localhost:27017
+[OK] Reading 12 products and 20 orders from Chapter05 (read-only).
+[OK] Foreign-side filter: status='completed', order_date in [2024-01-01, 2024-04-01), quantity >= 2.
+
+=== 1. Sub-pipeline join: only qualifying orders come back ===
+[3m                 Q1 2024 completed orders of 2+ units, joined per product                  [0m
+┏━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┓
+┃[1m [0m[1mID  [0m[1m [0m┃[1m [0m[1mProduct            [0m[1m [0m┃[1m [0m[1mMatched[0m[1m [0m┃[1m [0m[1mOrders joined                         [0m[1m [0m┃[1m [0m[1mRevenue[0m[1m [0m┃
+┡━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━┩
+│[36m [0m[36mP001[0m[36m [0m│[35m [0m[35mLaptop Pro 14      [0m[35m [0m│       1 │ ORD-204 (Rahul x2)                     │[32m [0m[32m $2,400[0m[32m [0m│
+│[36m [0m[36mP005[0m[36m [0m│[35m [0m[35mANC Headphones     [0m[35m [0m│       2 │ ORD-206 (Arjun x2), ORD-215 (Rahul x4) │[32m [0m[32m   $900[0m[32m [0m│
+│[36m [0m[36mP008[0m[36m [0m│[35m [0m[35mErgonomic Chair    [0m[35m [0m│       1 │ ORD-210 (Rahul x3)                     │[32m [0m[32m   $780[0m[32m [0m│
+│[36m [0m[36mP003[0m[36m [0m│[35m [0m[35mMechanical Keyboard[0m[35m [0m│       2 │ ORD-203 (Kavya x3), ORD-214 (Sneha x5) │[32m [0m[32m   $680[0m[32m [0m│
+│[36m [0m[36mP002[0m[36m [0m│[35m [0m[35m27-inch Monitor    [0m[35m [0m│       1 │ ORD-202 (Sneha x2)                     │[32m [0m[32m   $640[0m[32m [0m│
+│[36m [0m[36mP006[0m[36m [0m│[35m [0m[35mDocking Station    [0m[35m [0m│       1 │ ORD-212 (Arjun x2)                     │[32m [0m[32m   $420[0m[32m [0m│
+│[36m [0m[36mP007[0m[36m [0m│[35m [0m[35mHD Webcam          [0m[35m [0m│       1 │ ORD-209 (Kavya x2)                     │[32m [0m[32m   $190[0m[32m [0m│
+└──────┴─────────────────────┴─────────┴────────────────────────────────────────┴─────────┘
+  7 products kept, 9 order documents pulled across the join.
+
+=== 2. Same answer the old way (localField/foreignField + $filter) ===
+[3m            Documents pulled across the join vs. actually needed             [0m
+┏━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃[1m [0m[1mID  [0m[1m [0m┃[1m [0m[1mProduct            [0m[1m [0m┃[1m [0m[1mPulled by join[0m[1m [0m┃[1m [0m[1mKept after $filter[0m[1m [0m┃[1m [0m[1mWasted[0m[1m [0m┃
+┡━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━┩
+│[36m [0m[36mP001[0m[36m [0m│[35m [0m[35mLaptop Pro 14      [0m[35m [0m│              5 │                  1 │[31m [0m[31m     4[0m[31m [0m│
+│[36m [0m[36mP002[0m[36m [0m│[35m [0m[35m27-inch Monitor    [0m[35m [0m│              3 │                  1 │[31m [0m[31m     2[0m[31m [0m│
+│[36m [0m[36mP005[0m[36m [0m│[35m [0m[35mANC Headphones     [0m[35m [0m│              3 │                  2 │[31m [0m[31m     1[0m[31m [0m│
+│[36m [0m[36mP003[0m[36m [0m│[35m [0m[35mMechanical Keyboard[0m[35m [0m│              2 │                  2 │[31m [0m[31m     0[0m[31m [0m│
+│[36m [0m[36mP004[0m[36m [0m│[35m [0m[35mWireless Mouse     [0m[35m [0m│              2 │                  0 │[31m [0m[31m     2[0m[31m [0m│
+│[36m [0m[36mP006[0m[36m [0m│[35m [0m[35mDocking Station    [0m[35m [0m│              2 │                  1 │[31m [0m[31m     1[0m[31m [0m│
+│[36m [0m[36mP008[0m[36m [0m│[35m [0m[35mErgonomic Chair    [0m[35m [0m│              2 │                  1 │[31m [0m[31m     1[0m[31m [0m│
+│[36m [0m[36mP007[0m[36m [0m│[35m [0m[35mHD Webcam          [0m[35m [0m│              1 │                  1 │[31m [0m[31m     0[0m[31m [0m│
+│[36m [0m[36mP009[0m[36m [0m│[35m [0m[35mStanding Desk      [0m[35m [0m│              0 │                  0 │[31m [0m[31m     0[0m[31m [0m│
+│[36m [0m[36mP010[0m[36m [0m│[35m [0m[35mUSB-C Hub          [0m[35m [0m│              0 │                  0 │[31m [0m[31m     0[0m[31m [0m│
+│[36m [0m[36mP011[0m[36m [0m│[35m [0m[35mStudio Microphone  [0m[35m [0m│              0 │                  0 │[31m [0m[31m     0[0m[31m [0m│
+│[36m [0m[36mP012[0m[36m [0m│[35m [0m[35mLaptop Stand       [0m[35m [0m│              0 │                  0 │[31m [0m[31m     0[0m[31m [0m│
+└──────┴─────────────────────┴────────────────┴────────────────────┴────────┘
+  Plain join moved 20 order documents to keep 9.
+  Sub-pipeline join moved 9 -- the filter ran on the foreign side, before the documents were returned.
+  [OK] Both forms agree on the result; only the volume differs.
+
+=== 3. Top 2 largest completed orders per product (sub-pipeline $sort + $limit) ===
+
+  P001  Laptop Pro 14
+    ORD-204  Rahul    qty  2  = $ 2,400
+    ORD-201  Arjun    qty  1  = $ 1,200
+
+  P002  27-inch Monitor
+    ORD-219  Rahul    qty  3  = $   960
+    ORD-202  Sneha    qty  2  = $   640
+
+  P003  Mechanical Keyboard
+    ORD-214  Sneha    qty  5  = $   425
+    ORD-203  Kavya    qty  3  = $   255
+
+  P005  ANC Headphones
+    ORD-215  Rahul    qty  4  = $   600
+    ORD-206  Arjun    qty  2  = $   300
+
+  P006  Docking Station
+    ORD-212  Arjun    qty  2  = $   420
+
+  P007  HD Webcam
+    ORD-209  Kavya    qty  2  = $   190
+
+  P008  Ergonomic Chair
+    ORD-210  Rahul    qty  3  = $   780
+    ORD-217  Arjun    qty  1  = $   260
+
+[OK] Wrote results JSON -> activity_5_2_try_it_yourself_filtered_joins.json
+
+========================================================================
+  Lab 5.2 Try It Yourself Complete
+========================================================================
+
+[OK] MongoDB connection closed.

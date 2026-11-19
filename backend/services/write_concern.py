@@ -1,6 +1,6 @@
 """Lab 9.1 core: measure the latency cost of different write concerns.
 
-Used by both ``labs/lab9/lab_01_write_concern_latency.py`` (manual CLI) and the API's explicit
+Used by both ``lab9/lab_01_write_concern_latency.py`` (manual CLI) and the API's explicit
 "run live benchmark" action, so there is one implementation of the measurement.
 
 Nothing here runs at import time or at application start-up.
@@ -52,7 +52,7 @@ class WriteConfig:
 
 
 def results_dir() -> Path:
-    return Path(os.getenv("LAB9_RESULTS_DIR") or PROJECT_ROOT / "labs" / "lab9" / "results")
+    return Path(os.getenv("LAB9_RESULTS_DIR") or PROJECT_ROOT / "lab9" / "results")
 
 
 # ------------------------------------------------------------------ topology

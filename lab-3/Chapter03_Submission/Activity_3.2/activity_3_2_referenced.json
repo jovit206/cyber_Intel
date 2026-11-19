@@ -1,0 +1,111 @@
+{
+  "posts": [
+    {
+      "_id": 1,
+      "title": "Why NoSQL Matters for AI",
+      "author": "arjun",
+      "tags": [
+        "nosql",
+        "ai"
+      ]
+    },
+    {
+      "_id": 2,
+      "title": "MongoDB Aggregation Tips",
+      "author": "sneha",
+      "tags": [
+        "mongodb",
+        "aggregation"
+      ]
+    },
+    {
+      "_id": 3,
+      "title": "Vector Search Deep Dive",
+      "author": "kavya",
+      "tags": [
+        "vector",
+        "search"
+      ]
+    },
+    {
+      "_id": 4,
+      "title": "CAP Theorem Explained",
+      "author": "arjun",
+      "tags": [
+        "cap",
+        "distributed"
+      ]
+    },
+    {
+      "_id": 5,
+      "title": "Graph Databases for Fraud",
+      "author": "rahul",
+      "tags": [
+        "graph",
+        "fraud"
+      ]
+    }
+  ],
+  "comments": [
+    {
+      "post_id": 1,
+      "author": "reader1",
+      "text": "Great overview!",
+      "created": "2025-03-01"
+    },
+    {
+      "post_id": 1,
+      "author": "reader2",
+      "text": "I still prefer SQL",
+      "created": "2025-03-02"
+    },
+    {
+      "post_id": 1,
+      "author": "reader3",
+      "text": "Bookmarked this",
+      "created": "2025-03-02"
+    },
+    {
+      "post_id": 1,
+      "author": "reader4",
+      "text": "Any benchmarks?",
+      "created": "2025-03-03"
+    },
+    {
+      "post_id": 2,
+      "author": "reader1",
+      "text": "$lookup is powerful",
+      "created": "2025-03-04"
+    },
+    {
+      "post_id": 2,
+      "author": "reader5",
+      "text": "Cover $facet next",
+      "created": "2025-03-04"
+    },
+    {
+      "post_id": 2,
+      "author": "reader6",
+      "text": "Very practical",
+      "created": "2025-03-05"
+    },
+    {
+      "post_id": 3,
+      "author": "reader2",
+      "text": "HNSW vs IVF?",
+      "created": "2025-03-06"
+    },
+    {
+      "post_id": 3,
+      "author": "reader7",
+      "text": "How does it scale?",
+      "created": "2025-03-07"
+    },
+    {
+      "post_id": 4,
+      "author": "reader3",
+      "text": "Good for interviews",
+      "created": "2025-03-08"
+    }
+  ]
+}

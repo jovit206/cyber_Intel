@@ -47,14 +47,18 @@ def test_existing_mobile_navigation_layout_contains_assistant_item():
     assert "data-ai-new-chat" in CHAT
 
 
-def test_chatbot_keeps_authenticated_history_filters_sources_and_keyboard_behavior():
+def test_chatbot_keeps_authenticated_history_filters_and_keyboard_behavior():
     for endpoint in ("/api/ask", "/api/ask/history?limit=30", "/api/ask/history/${encodeURIComponent(selectedConversation)}"):
         assert endpoint in CHAT
     assert "credentials: 'same-origin'" in CHAT
     assert "conversation_id: selectedConversation" in CHAT
     assert "threat_status: root.querySelector('[data-ai-threat-status]').value || null" in CHAT
-    assert "source_chunk_ids" in CHAT
-    assert "[S${index + 1}]" in CHAT
     assert "event.key === 'Enter' && !event.shiftKey" in CHAT
     assert 'role="status"' in CHAT
+
+
+def test_retrieved_sources_are_not_rendered_in_the_chat():
+    # Sources remain in API responses and stored messages; the chat no longer draws a Sources section or [S#] labels.
+    assert "ai-citations" not in CHAT and "<h3>Sources</h3>" not in CHAT
+    assert "replace(/\\s?\\[S\\d+\\]" in CHAT
 

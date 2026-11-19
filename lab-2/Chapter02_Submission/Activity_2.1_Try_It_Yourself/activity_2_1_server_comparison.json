@@ -1,0 +1,162 @@
+{
+  "activity": "2.1 Try It Yourself - Atlas vs Docker server_info() comparison",
+  "compared_at": "2026-08-31 09:28:32.749925+00:00",
+  "local": {
+    "uri": "mongodb://localhost:27018",
+    "label": "DOCKER (mongo:7)",
+    "server_info": {
+      "version": "7.0.40",
+      "gitVersion": "37741b538c02da076d1e34d66113ac0230d4523a",
+      "modules": [],
+      "allocator": "tcmalloc",
+      "javascriptEngine": "mozjs",
+      "sysInfo": "deprecated",
+      "versionArray": [
+        7,
+        0,
+        40,
+        0
+      ],
+      "openssl": {
+        "running": "OpenSSL 3.0.2 15 Mar 2022",
+        "compiled": "OpenSSL 3.0.2 15 Mar 2022"
+      },
+      "buildEnvironment": {
+        "distmod": "ubuntu2204",
+        "distarch": "x86_64",
+        "cc": "/opt/mongodbtoolchain/v4/bin/gcc: gcc (GCC) 11.3.0",
+        "ccflags": "-Werror -include mongo/platform/basic.h -ffp-contract=off -fasynchronous-unwind-tables -g2 -Wall -Wsign-compare -Wno-unknown-pragmas -Winvalid-pch -gdwarf-5 -fno-omit-frame-pointer -fno-strict-aliasing -O2 -march=sandybridge -mtune=generic -mprefer-vector-width=128 -Wno-unused-local-typedefs -Wno-unused-function -Wno-deprecated-declarations -Wno-unused-const-variable -Wno-unused-but-set-variable -Wno-missing-braces -fstack-protector-strong -gdwarf64 -Wa,--nocompress-debug-sections -fno-builtin-memcmp -Wimplicit-fallthrough=5",
+        "cxx": "/opt/mongodbtoolchain/v4/bin/g++: g++ (GCC) 11.3.0",
+        "cxxflags": "-Woverloaded-virtual -Wpessimizing-move -Wno-maybe-uninitialized -fsized-deallocation -Wno-deprecated -std=c++20",
+        "linkflags": "-Wl,--fatal-warnings -B/opt/mongodbtoolchain/v4/bin -gdwarf-5 -pthread -Wl,-z,now -fuse-ld=lld -fstack-protector-strong -gdwarf64 -Wl,--build-id -Wl,--hash-style=gnu -Wl,-z,noexecstack -Wl,--warn-execstack -Wl,-z,relro -Wl,--compress-debug-sections=none -Wl,-z,origin -Wl,--enable-new-dtags",
+        "target_arch": "x86_64",
+        "target_os": "linux",
+        "cppdefines": "SAFEINT_USE_INTRINSICS 0 PCRE2_STATIC NDEBUG _XOPEN_SOURCE 700 _GNU_SOURCE _FORTIFY_SOURCE 2 ABSL_FORCE_ALIGNED_ACCESS BOOST_ENABLE_ASSERT_DEBUG_HANDLER BOOST_FILESYSTEM_NO_CXX20_ATOMIC_REF BOOST_LOG_NO_SHORTHAND_NAMES BOOST_LOG_USE_NATIVE_SYSLOG BOOST_LOG_WITHOUT_THREAD_ATTR BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS BOOST_SYSTEM_NO_DEPRECATED BOOST_THREAD_USES_DATETIME BOOST_THREAD_VERSION 5"
+      },
+      "bits": 64,
+      "debug": false,
+      "maxBsonObjectSize": 16777216,
+      "storageEngines": [
+        "devnull",
+        "wiredTiger"
+      ],
+      "ok": 1.0
+    },
+    "facts": {
+      "host": "31bd34c612b0",
+      "process": "mongod",
+      "uptime_seconds": 3335,
+      "storage_engine": "wiredTiger",
+      "current_connections": 3,
+      "topology": "standalone",
+      "replica_set": null,
+      "is_writable_primary": true,
+      "databases": [
+        "admin",
+        "bookstore",
+        "chapter02",
+        "config",
+        "local"
+      ],
+      "deployment_type": "Docker container",
+      "container": "mongodb-docker",
+      "image": "mongo:7"
+    }
+  },
+  "atlas": {
+    "uri": "<hidden - credentials redacted>",
+    "label": "ATLAS (managed cloud)",
+    "server_info": {
+      "version": "8.0.29",
+      "gitVersion": "559d67c651f7393e62757234a0b25cb7a8622148",
+      "modules": [
+        "enterprise"
+      ],
+      "allocator": "tcmalloc-google",
+      "javascriptEngine": "mozjs",
+      "sysInfo": "deprecated",
+      "versionArray": [
+        8,
+        0,
+        29,
+        0
+      ],
+      "bits": 64,
+      "debug": false,
+      "maxBsonObjectSize": 16777216,
+      "storageEngines": [
+        "devnull",
+        "inMemory",
+        "queryable_wt",
+        "wiredTiger"
+      ],
+      "ok": 1.0,
+      "$clusterTime": {
+        "clusterTime": "Timestamp(1788168512, 48)",
+        "signature": {
+          "hash": "b'=\\xe7`\\xceT\\xf1bM\\xb9a\\xa7\\xe5\\xbd\\xe99\\xc0\\xe9\\xb1\\x136'",
+          "keyId": 7631615100637413380
+        }
+      },
+      "operationTime": "Timestamp(1788168512, 48)"
+    },
+    "facts": {
+      "host": "ac-ifcgtm5-shard-00-01.odq8n6o.mongodb.net:27017",
+      "process": "mongod",
+      "uptime_seconds": 579778,
+      "storage_engine": "wiredTiger",
+      "current_connections": 7,
+      "topology": "replica set",
+      "replica_set": "atlas-o97zn2-shard-0",
+      "is_writable_primary": true,
+      "databases": [
+        "admin",
+        "bookstore",
+        "chapter02",
+        "local",
+        "sample_mflix"
+      ]
+    }
+  },
+  "differences": [
+    {
+      "property": "Server version",
+      "local": "7.0.40",
+      "atlas": "8.0.29"
+    },
+    {
+      "property": "Git version",
+      "local": "37741b538c02da076d1e34d66113ac0230d4523a",
+      "atlas": "559d67c651f7393e62757234a0b25cb7a8622148"
+    },
+    {
+      "property": "Version array",
+      "local": "7, 0, 40, 0",
+      "atlas": "8, 0, 29, 0"
+    },
+    {
+      "property": "OpenSSL",
+      "local": {
+        "running": "OpenSSL 3.0.2 15 Mar 2022",
+        "compiled": "OpenSSL 3.0.2 15 Mar 2022"
+      },
+      "atlas": "n/a"
+    },
+    {
+      "property": "Storage engines",
+      "local": "devnull, wiredTiger",
+      "atlas": "devnull, inMemory, queryable_wt, wiredTiger"
+    },
+    {
+      "property": "Modules",
+      "local": "-",
+      "atlas": "enterprise"
+    },
+    {
+      "property": "Allocator",
+      "local": "tcmalloc",
+      "atlas": "tcmalloc-google"
+    }
+  ],
+  "both_connected": true
+}

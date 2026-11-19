@@ -39,13 +39,32 @@ _PLATFORM_FIELDS = ("platform", "platforms", "affected_platforms", "operating_sy
 _TEXT_FIELDS = ("info", "tags", "text", "description", "indicator", "normalized_indicator", "name", "aliases", "entities", "threat_ids", "target", "source_reference", "source_pdf")
 
 
+_QUESTION_STOP_TERMS = frozenset({
+    "a", "about", "all", "also", "an", "and", "any", "are", "as", "at", "be", "been", "being", "by",
+    "can", "could", "did", "do", "does", "doing", "for", "from", "had", "has", "have", "how", "i",
+    "if", "in", "into", "is", "it", "its", "me", "my", "no", "not", "of", "on", "or", "our", "please",
+    "should", "so", "than", "that", "the", "their", "them", "then", "there", "these", "they", "this",
+    "those", "to", "us", "was", "we", "were", "what", "when", "where", "which", "who", "whom", "whose",
+    "why", "will", "with", "would", "you", "your",
+    # Generic request phrasing in this application; never a discriminating CTI term on its own.
+    "tell", "show", "list", "give", "explain", "describe", "summarize", "summarise", "find", "know",
+    "platform", "application", "app", "recorded", "stored", "available", "mention", "mentions",
+    "mentioned", "related", "associated", "threat", "threats", "today", "tomorrow", "yesterday",
+})
+
+
 def _terms(question: str) -> list[str]:
     # Exact vulnerability identifiers are stronger than prose around them. Search
     # only those IDs so generic question words cannot outrank the requested CVE.
     cve_ids = re.findall(r"\bCVE-\d{4}-\d{4,}\b", question, flags=re.IGNORECASE)
     if cve_ids:
         return list(dict.fromkeys(cve_ids))[:MAX_TERMS]
-    return list(dict.fromkeys(re.findall(r"[\w.-]{2,}", question.strip(), flags=re.UNICODE)))[:MAX_TERMS]
+    # Terms are matched as case-insensitive substrings, so function words such as
+    # "is" or "the" would match nearly every record and turn any question (even an
+    # unrelated one) into apparent evidence. Search only the discriminating words.
+    words = re.findall(r"[\w.-]{2,}", question.strip(), flags=re.UNICODE)
+    terms = [word for word in words if word.casefold() not in _QUESTION_STOP_TERMS]
+    return list(dict.fromkeys(terms))[:MAX_TERMS]
 
 
 def _regex_any(fields: tuple[str, ...], value: str) -> dict[str, Any]:
@@ -56,8 +75,10 @@ def _regex_any(fields: tuple[str, ...], value: str) -> dict[str, Any]:
 def _text_query(terms: list[str], fields: tuple[str, ...]) -> dict[str, Any]:
     if not terms:
         return {"_id": {"$exists": False}}
+    # Anchor at a word start: "ltd" must not match inside "9sltd81l.example", while
+    # prefixes/plurals ("ransomware-as-a-service", "LockBit3") and dotted indicator parts still match.
     return {"$or": [
-        {field: {"$regex": re.escape(term), "$options": "i"}}
+        {field: {"$regex": r"\b" + re.escape(term), "$options": "i"}}
         for term in terms for field in fields
     ]}
 
@@ -104,9 +125,12 @@ def build_source_query(
         # MISP CVE attributes are stored as exact indicator values. Use the
         # indexed identity fields instead of a multi-field regex scan over the
         # large attributes collection.
-        exact_ids = [term.upper() for term in terms]
+        # Only normalized_indicator is indexed (normalized_indicator_1_is_current_1); an $or that also matched the
+        # unindexed raw indicator field forced a scan of every attribute and hit the 3 s query limit. Stored CVE
+        # attributes carry the upper-case identifier in normalized_indicator.
+        exact_ids = list(dict.fromkeys(term.upper() for term in terms))
         return _combine(
-            {"$or": [{field: value} for value in exact_ids for field in ("indicator", "normalized_indicator")]},
+            {"normalized_indicator": {"$in": exact_ids}},
             {"is_current": {"$ne": False}},
         )
     conditions = [_text_query(terms, fields)]
@@ -132,10 +156,17 @@ def _as_evidence(collection_name: str, row: dict[str, Any], evidence_fields: tup
     source_id = next((row.get(field) for field in id_fields if row.get(field) is not None), "record")
     reference = row.get("source_pdf") or row.get("source_url") or row.get("source_reference") or row.get("report_id")
     source = row.get("source_feed_name") or row.get("from_source") or row.get("source") or collection_name
+    # Attribute citations carry their originating feed so an indicator is traceable to the exact source feed.
+    # Stored attribute ids are usually already feed-qualified ("botvrij:<hash>"); never qualify twice.
+    feed = row.get("source_feed_name") if collection_name == "attributes" else None
+    if feed and not str(source_id).startswith(f"{feed}:"):
+        chunk_id = f"{collection_name}:{feed}:{source_id}"
+    else:
+        chunk_id = f"{collection_name}:{source_id}"
     return {
         "text": _evidence_text(row, evidence_fields),
         "source": str(source),
-        "chunk_id": f"{collection_name}:{source_id}",
+        "chunk_id": chunk_id,
         "source_reference": str(reference) if reference else f"mongodb:{collection_name}/{source_id}",
         "evidence_type": collection_name,
         "score": None,

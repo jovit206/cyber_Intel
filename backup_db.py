@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 from dotenv import load_dotenv
 from pymongo import MongoClient
@@ -28,7 +29,9 @@ for name in sorted(db.list_collection_names()):
     print(f"backed up {name}: {len(rows)} docs -> {target.name} ({target.stat().st_size:,} bytes)")
 
 with (backup_dir / "manifest.json").open("w", encoding="utf-8") as handle:
-    json.dump({"database": dbname, "uri": uri, "backed_up_at": stamp,
+    parts = urlsplit(uri)
+    safe_uri = urlunsplit(parts._replace(netloc=parts.netloc.rsplit("@", 1)[-1])) if "@" in parts.netloc else uri
+    json.dump({"database": dbname, "uri": safe_uri, "backed_up_at": stamp,
                "collections": manifest, "method": "pymongo json_util export (mongodump unavailable)"},
               handle, indent=2)
 print(f"backup complete: {backup_dir}")

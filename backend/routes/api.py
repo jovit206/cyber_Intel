@@ -3,6 +3,7 @@ from __future__ import annotations
 import ipaddress
 import logging
 import re
+import threading
 import time
 
 import httpx
@@ -368,44 +369,93 @@ def get_metrics(request: Request) -> dict[str, Any]:
     }
 
 
+# Per-document detail (min/max BSON size, benchmark/non-benchmark split, source breakdown) needs one pass over
+# the ~240 MB benchmark collection. It is computed in the background at most once per collection state (keyed by
+# collStats count and data size) instead of on every page view, which previously read the whole collection
+# through the WiredTiger cache each time the dashboard loaded.
+_WS_DETAIL_LOCK = threading.Lock()
+_WS_DETAIL: dict[str, Any] = {"signature": None, "result": None, "running": False, "error": None}
+
+
+def _working_set_detail(database: Database, signature: tuple) -> None:
+    try:
+        started = time.perf_counter()
+        rows = list(database[WORKING_SET_COLLECTION].aggregate([
+            {"$project": {"size": {"$bsonSize": "$$ROOT"}, "benchmark": {"$ne": [{"$type": "$derived_from"}, "missing"]},
+                          "source": {"$ifNull": ["$source_collection", "unknown"]}}},
+            {"$group": {"_id": {"source": "$source", "benchmark": "$benchmark"}, "count": {"$sum": 1},
+                        "bytes": {"$sum": "$size"}, "min": {"$min": "$size"}, "max": {"$max": "$size"}}},
+        ], allowDiskUse=True, maxTimeMS=120_000))
+        benchmark = [row for row in rows if row["_id"]["benchmark"]]
+        breakdown: dict[str, int] = {}
+        for row in benchmark:
+            breakdown[row["_id"]["source"]] = breakdown.get(row["_id"]["source"], 0) + row["count"]
+        result = {
+            "benchmark_documents": sum(row["count"] for row in benchmark),
+            "non_benchmark_documents": sum(row["count"] for row in rows if not row["_id"]["benchmark"]),
+            "minSize": min((row["min"] for row in benchmark), default=None),
+            "maxSize": max((row["max"] for row in benchmark), default=None),
+            "benchmark_bytes": sum(row["bytes"] for row in benchmark),
+            "by_source_collection": dict(sorted(breakdown.items(), key=lambda item: -item[1])),
+            "computed_at": datetime.now(timezone.utc).isoformat(),
+            "computation_ms": round((time.perf_counter() - started) * 1000),
+        }
+        with _WS_DETAIL_LOCK:
+            _WS_DETAIL.update(signature=signature, result=result, error=None)
+    except PyMongoError as error:
+        logger.warning("Working-set detail pass failed: %s", error)
+        with _WS_DETAIL_LOCK:
+            _WS_DETAIL["error"] = type(error).__name__
+    finally:
+        with _WS_DETAIL_LOCK:
+            _WS_DETAIL["running"] = False
+
+
 @router.get("/lab72/analysis")
 def get_working_set_analysis() -> dict[str, Any]:
+    """Benchmark-collection size and footprint from collStats (no document scan per request)."""
     database = get_database()
-    stats = list(database[WORKING_SET_COLLECTION].aggregate([
-        {"$match": {"derived_from": {"$exists": True}}},
-        {"$project": {"size": {"$bsonSize": "$$ROOT"}}},
-        {"$group": {
-            "_id": None,
-            "count": {"$sum": 1},
-            "avgSize": {"$avg": "$size"},
-            "minSize": {"$min": "$size"},
-            "maxSize": {"$max": "$size"},
-            "totalBytes": {"$sum": "$size"},
-        }},
-    ]))
-    if not stats:
-        return {
-            "collection": WORKING_SET_COLLECTION,
-            "count": 0,
-            "avgSize": 0,
-            "minSize": 0,
-            "maxSize": 0,
-            "totalBytes": 0,
-            "indexBytes": 0,
-            "totalFootprintBytes": 0,
-        }
-    measured = stats[0]
-    index_bytes = database.command({"collStats": WORKING_SET_COLLECTION}).get("totalIndexSize", 0)
-    total_bytes = measured["totalBytes"]
+    started = time.perf_counter()
+    try:
+        stats = database.command({"collStats": WORKING_SET_COLLECTION})
+    except PyMongoError as error:
+        if "not found" not in str(error).lower() and getattr(error, "code", None) != 26:
+            raise HTTPException(status_code=503, detail=f"MongoDB collStats failed: {type(error).__name__}") from error
+        stats = {}
+    query_ms = round((time.perf_counter() - started) * 1000, 1)
+    count = int(stats.get("count", 0) or 0)
+    data_bytes = int(stats.get("size", 0) or 0)
+    index_bytes = int(stats.get("totalIndexSize", 0) or 0)
+    signature = (count, data_bytes)
+    with _WS_DETAIL_LOCK:
+        detail = _WS_DETAIL["result"] if _WS_DETAIL["signature"] == signature else None
+        start_detail = count > 0 and detail is None and not _WS_DETAIL["running"]
+        if start_detail:
+            _WS_DETAIL["running"] = True
+        detail_error = _WS_DETAIL["error"] if detail is None else None
+    if start_detail:
+        threading.Thread(target=_working_set_detail, args=(database, signature), name="working-set-detail",
+                         daemon=True).start()
     return {
         "collection": WORKING_SET_COLLECTION,
-        "count": measured["count"],
-        "avgSize": round(measured["avgSize"]),
-        "minSize": measured["minSize"],
-        "maxSize": measured["maxSize"],
-        "totalBytes": total_bytes,
+        "count": count,
+        "avgSize": int(stats.get("avgObjSize", 0) or 0),
+        "minSize": detail["minSize"] if detail else None,
+        "maxSize": detail["maxSize"] if detail else None,
+        "totalBytes": data_bytes,
         "indexBytes": index_bytes,
-        "totalFootprintBytes": total_bytes + index_bytes,
+        "indexCount": int(stats.get("nindexes", 0) or 0),
+        "storageBytes": int(stats.get("storageSize", 0) or 0),
+        "totalFootprintBytes": data_bytes + index_bytes,
+        "footprint_definition": ("Uncompressed BSON size of every document in the collection (collStats size) plus "
+                                 "the size of all its indexes (collStats totalIndexSize). This is the data a query "
+                                 "touching every document would need in the WiredTiger cache; it is not the cache usage."),
+        "source": "collStats",
+        "query_ms": query_ms,
+        "measured_at": datetime.now(timezone.utc).isoformat(),
+        "detail": detail,
+        "detail_status": "ready" if detail else ("failed: " + detail_error if detail_error else
+                                                  ("computing" if count else "not_applicable")),
     }
 
 

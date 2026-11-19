@@ -1,0 +1,760 @@
+{
+  "activity": "Activity 10.1 - Bank Server Failover During Payments",
+  "script": "failover_experiment.py",
+  "steps": [
+    {
+      "step": "Setup",
+      "executedAt": {
+        "$date": "2026-10-14T05:14:39.071Z"
+      },
+      "command": {
+        "replSetGetConfig": 1
+      },
+      "result": {
+        "priorities": {
+          "bank-primary:27017": 2.0,
+          "bank-backup:27017": 1.0,
+          "bank-dr:27017": 0.0
+        },
+        "accounts": [
+          "ACC-301",
+          "ACC-302",
+          "ACC-303",
+          "ACC-304"
+        ],
+        "total": 400000
+      }
+    },
+    {
+      "step": "docker",
+      "executedAt": {
+        "$date": "2026-10-14T05:14:44.429Z"
+      },
+      "command": {
+        "shell": "docker kill bank-primary"
+      },
+      "result": {
+        "exitCode": 0,
+        "output": [
+          "bank-primary"
+        ]
+      }
+    },
+    {
+      "step": "docker",
+      "executedAt": {
+        "$date": "2026-10-14T05:14:59.737Z"
+      },
+      "command": {
+        "shell": "docker start bank-primary"
+      },
+      "result": {
+        "exitCode": 0,
+        "output": [
+          "bank-primary"
+        ]
+      }
+    },
+    {
+      "step": "docker",
+      "executedAt": {
+        "$date": "2026-10-14T05:15:16.066Z"
+      },
+      "command": {
+        "shell": "docker kill bank-backup bank-dr"
+      },
+      "result": {
+        "exitCode": 0,
+        "output": [
+          "bank-backup",
+          "bank-dr"
+        ]
+      }
+    },
+    {
+      "step": "docker",
+      "executedAt": {
+        "$date": "2026-10-14T05:15:48.459Z"
+      },
+      "command": {
+        "shell": "docker start bank-backup bank-dr"
+      },
+      "result": {
+        "exitCode": 0,
+        "output": [
+          "bank-backup",
+          "bank-dr"
+        ]
+      }
+    },
+    {
+      "step": "Checks",
+      "executedAt": {
+        "$date": "2026-10-14T05:16:00.399Z"
+      },
+      "command": {
+        "compare": "client results with bank_failover.transfers"
+      },
+      "result": {
+        "sent": 59,
+        "acknowledged": 58,
+        "refused": 0,
+        "inHistory": 59,
+        "acknowledgedButMissing": [],
+        "refusedButApplied": [],
+        "unknownApplied": [
+          "pay-0053"
+        ],
+        "unknownNotApplied": [],
+        "totalMoney": 400000,
+        "perServer": {
+          "bank-primary": 24,
+          "bank-backup": 34
+        },
+        "payments": [
+          {
+            "number": 1,
+            "key": "pay-0001",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.011506080627441406,
+            "errors": []
+          },
+          {
+            "number": 2,
+            "key": "pay-0002",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.010137557983398438,
+            "errors": []
+          },
+          {
+            "number": 3,
+            "key": "pay-0003",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.01361227035522461,
+            "errors": []
+          },
+          {
+            "number": 4,
+            "key": "pay-0004",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.009377479553222656,
+            "errors": []
+          },
+          {
+            "number": 5,
+            "key": "pay-0005",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.013386011123657227,
+            "errors": []
+          },
+          {
+            "number": 6,
+            "key": "pay-0006",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.011560916900634766,
+            "errors": []
+          },
+          {
+            "number": 7,
+            "key": "pay-0007",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.01230764389038086,
+            "errors": []
+          },
+          {
+            "number": 8,
+            "key": "pay-0008",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.01344752311706543,
+            "errors": []
+          },
+          {
+            "number": 9,
+            "key": "pay-0009",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.008929967880249023,
+            "errors": []
+          },
+          {
+            "number": 10,
+            "key": "pay-0010",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.011827707290649414,
+            "errors": []
+          },
+          {
+            "number": 11,
+            "key": "pay-0011",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 4,
+            "seconds": 10.10567593574524,
+            "errors": [
+              "ServerSelectionTimeoutError/TransientTransactionError",
+              "ServerSelectionTimeoutError/TransientTransactionError",
+              "ServerSelectionTimeoutError/TransientTransactionError"
+            ]
+          },
+          {
+            "number": 12,
+            "key": "pay-0012",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.009295225143432617,
+            "errors": []
+          },
+          {
+            "number": 13,
+            "key": "pay-0013",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.00948643684387207,
+            "errors": []
+          },
+          {
+            "number": 14,
+            "key": "pay-0014",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.01060342788696289,
+            "errors": []
+          },
+          {
+            "number": 15,
+            "key": "pay-0015",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.02101302146911621,
+            "errors": []
+          },
+          {
+            "number": 16,
+            "key": "pay-0016",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.014222145080566406,
+            "errors": []
+          },
+          {
+            "number": 17,
+            "key": "pay-0017",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.009860038757324219,
+            "errors": []
+          },
+          {
+            "number": 18,
+            "key": "pay-0018",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.009596824645996094,
+            "errors": []
+          },
+          {
+            "number": 19,
+            "key": "pay-0019",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.010051965713500977,
+            "errors": []
+          },
+          {
+            "number": 20,
+            "key": "pay-0020",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.013412714004516602,
+            "errors": []
+          },
+          {
+            "number": 21,
+            "key": "pay-0021",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.011805057525634766,
+            "errors": []
+          },
+          {
+            "number": 22,
+            "key": "pay-0022",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.008601903915405273,
+            "errors": []
+          },
+          {
+            "number": 23,
+            "key": "pay-0023",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.00905156135559082,
+            "errors": []
+          },
+          {
+            "number": 24,
+            "key": "pay-0024",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.008906364440917969,
+            "errors": []
+          },
+          {
+            "number": 25,
+            "key": "pay-0025",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.017380237579345703,
+            "errors": []
+          },
+          {
+            "number": 26,
+            "key": "pay-0026",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.011617660522460938,
+            "errors": []
+          },
+          {
+            "number": 27,
+            "key": "pay-0027",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.009754657745361328,
+            "errors": []
+          },
+          {
+            "number": 28,
+            "key": "pay-0028",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.009570598602294922,
+            "errors": []
+          },
+          {
+            "number": 29,
+            "key": "pay-0029",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.01013493537902832,
+            "errors": []
+          },
+          {
+            "number": 30,
+            "key": "pay-0030",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.012185335159301758,
+            "errors": []
+          },
+          {
+            "number": 31,
+            "key": "pay-0031",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.024603605270385742,
+            "errors": []
+          },
+          {
+            "number": 32,
+            "key": "pay-0032",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.009779214859008789,
+            "errors": []
+          },
+          {
+            "number": 33,
+            "key": "pay-0033",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.012065887451171875,
+            "errors": []
+          },
+          {
+            "number": 34,
+            "key": "pay-0034",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.009816408157348633,
+            "errors": []
+          },
+          {
+            "number": 35,
+            "key": "pay-0035",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.011821269989013672,
+            "errors": []
+          },
+          {
+            "number": 36,
+            "key": "pay-0036",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.011696100234985352,
+            "errors": []
+          },
+          {
+            "number": 37,
+            "key": "pay-0037",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.011640310287475586,
+            "errors": []
+          },
+          {
+            "number": 38,
+            "key": "pay-0038",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.010944604873657227,
+            "errors": []
+          },
+          {
+            "number": 39,
+            "key": "pay-0039",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.009813308715820312,
+            "errors": []
+          },
+          {
+            "number": 40,
+            "key": "pay-0040",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.012540578842163086,
+            "errors": []
+          },
+          {
+            "number": 41,
+            "key": "pay-0041",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.013094902038574219,
+            "errors": []
+          },
+          {
+            "number": 42,
+            "key": "pay-0042",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.009500265121459961,
+            "errors": []
+          },
+          {
+            "number": 43,
+            "key": "pay-0043",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.011649131774902344,
+            "errors": []
+          },
+          {
+            "number": 44,
+            "key": "pay-0044",
+            "outcome": "committed",
+            "server": "bank-backup:27017",
+            "attempts": 1,
+            "seconds": 0.009983062744140625,
+            "errors": []
+          },
+          {
+            "number": 45,
+            "key": "pay-0045",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.01359105110168457,
+            "errors": []
+          },
+          {
+            "number": 46,
+            "key": "pay-0046",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.013579845428466797,
+            "errors": []
+          },
+          {
+            "number": 47,
+            "key": "pay-0047",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.012056827545166016,
+            "errors": []
+          },
+          {
+            "number": 48,
+            "key": "pay-0048",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.011965751647949219,
+            "errors": []
+          },
+          {
+            "number": 49,
+            "key": "pay-0049",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.01083827018737793,
+            "errors": []
+          },
+          {
+            "number": 50,
+            "key": "pay-0050",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.013201475143432617,
+            "errors": []
+          },
+          {
+            "number": 51,
+            "key": "pay-0051",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.014363765716552734,
+            "errors": []
+          },
+          {
+            "number": 52,
+            "key": "pay-0052",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.011675596237182617,
+            "errors": []
+          },
+          {
+            "number": 53,
+            "key": "pay-0053",
+            "outcome": "unknown",
+            "server": "",
+            "attempts": 1,
+            "seconds": 30.91723394393921,
+            "errors": [
+              "WriteConcernError/UnknownTransactionCommitResult",
+              "ServerSelectionTimeoutError/UnknownTransactionCommitResult",
+              "ServerSelectionTimeoutError/UnknownTransactionCommitResult",
+              "ServerSelectionTimeoutError/UnknownTransactionCommitResult",
+              "ServerSelectionTimeoutError/UnknownTransactionCommitResult",
+              "ServerSelectionTimeoutError/UnknownTransactionCommitResult"
+            ]
+          },
+          {
+            "number": 54,
+            "key": "pay-0054",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 4,
+            "seconds": 10.154710531234741,
+            "errors": [
+              "ServerSelectionTimeoutError/TransientTransactionError",
+              "ServerSelectionTimeoutError/TransientTransactionError",
+              "ServerSelectionTimeoutError/TransientTransactionError"
+            ]
+          },
+          {
+            "number": 55,
+            "key": "pay-0055",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.011318206787109375,
+            "errors": []
+          },
+          {
+            "number": 56,
+            "key": "pay-0056",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.014487743377685547,
+            "errors": []
+          },
+          {
+            "number": 57,
+            "key": "pay-0057",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.008975505828857422,
+            "errors": []
+          },
+          {
+            "number": 58,
+            "key": "pay-0058",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.010437488555908203,
+            "errors": []
+          },
+          {
+            "number": 59,
+            "key": "pay-0059",
+            "outcome": "committed",
+            "server": "bank-primary:27017",
+            "attempts": 1,
+            "seconds": 0.015057802200317383,
+            "errors": []
+          }
+        ]
+      }
+    },
+    {
+      "step": "Timeline",
+      "executedAt": {
+        "$date": "2026-10-14T05:16:00.399Z"
+      },
+      "command": {
+        "note": "key moments logged by the script"
+      },
+      "result": [
+        {
+          "at": {
+            "$date": "2026-10-14T05:14:44.429Z"
+          },
+          "seconds": 5.6050403118133545,
+          "event": "bank-primary crashed (docker kill)"
+        },
+        {
+          "at": {
+            "$date": "2026-10-14T05:14:54.448Z"
+          },
+          "seconds": 15.624683141708374,
+          "event": "bank-backup elected primary"
+        },
+        {
+          "at": {
+            "$date": "2026-10-14T05:14:54.448Z"
+          },
+          "seconds": 15.624761819839478,
+          "event": "payments continue on bank-backup"
+        },
+        {
+          "at": {
+            "$date": "2026-10-14T05:14:59.737Z"
+          },
+          "seconds": 20.912899494171143,
+          "event": "bank-primary restarted (docker start)"
+        },
+        {
+          "at": {
+            "$date": "2026-10-14T05:15:11.454Z"
+          },
+          "seconds": 32.63048696517944,
+          "event": "bank-primary is primary again (priority 2 > 1)"
+        },
+        {
+          "at": {
+            "$date": "2026-10-14T05:15:11.705Z"
+          },
+          "seconds": 32.88106870651245,
+          "event": "payments are back on bank-primary"
+        },
+        {
+          "at": {
+            "$date": "2026-10-14T05:15:16.066Z"
+          },
+          "seconds": 37.24275016784668,
+          "event": "bank-backup and bank-dr crashed (docker kill)"
+        },
+        {
+          "at": {
+            "$date": "2026-10-14T05:15:27.939Z"
+          },
+          "seconds": 49.1155309677124,
+          "event": "bank-primary stepped down: no majority, no primary"
+        },
+        {
+          "at": {
+            "$date": "2026-10-14T05:15:46.721Z"
+          },
+          "seconds": 67.89723038673401,
+          "event": "payment #053 gives up: unknown"
+        },
+        {
+          "at": {
+            "$date": "2026-10-14T05:15:48.459Z"
+          },
+          "seconds": 69.63490295410156,
+          "event": "bank-backup and bank-dr restarted (docker start)"
+        },
+        {
+          "at": {
+            "$date": "2026-10-14T05:15:57.144Z"
+          },
+          "seconds": 78.32025265693665,
+          "event": "bank-primary is primary again"
+        },
+        {
+          "at": {
+            "$date": "2026-10-14T05:15:57.394Z"
+          },
+          "seconds": 78.57071542739868,
+          "event": "payments resume"
+        }
+      ]
+    }
+  ]
+}

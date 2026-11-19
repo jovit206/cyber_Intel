@@ -1,0 +1,32 @@
+MongoDB version : 8.3.7
+Server address  : localhost:27017
+Database        : nosql_labs
+------------------------------------------------------------------------
+Generating 300 products, 1000 carts, 5000 orders (seed=42)...
+
+Cart TTL index: {'v': 2, 'key': [('updated_at', 1)], 'expireAfterSeconds': 1800}
+
+2-hop 'customers who bought prod-0010 also bought': prod-0011, prod-0012, prod-0013, prod-0014
+
+$text search for "gaming device", ranked by $meta: "textScore":
+Product    Category     textScore  
+-----------------------------------
+prod-0000  electronics  1.167      
+prod-0003  electronics  1.167      
+prod-0006  electronics  1.167      
+prod-0009  electronics  1.167      
+prod-0012  electronics  1.167      
+
+MEASURED EXPLAIN STATS (executionStats)
+Domain / Query                          Stage                                   DocsExamined  Returned  TimeMs  
+----------------------------------------------------------------------------------------------------------------
+catalogue: electronics screen_size>=13  FETCH -> IXSCAN                         34            34        2       
+cart: key-only _id lookup               EXPRESS_IXSCAN                          1             1         0       
+cart: content query on items.sku        COLLSCAN                                1000          5         2       
+orders: compound index range            FETCH -> IXSCAN                         1             1         1       
+recommendations: $graphLookup 2-hop     EXPRESS_IXSCAN                          1             1         0       
+search: $text + textScore               PROJECTION_DEFAULT -> TEXT_MATCH -> ... 200           200       2       
+
+Persisted 5 domain-mapping document(s) to 'ecommerce_domain_mapping'.
+
+Exported 5 document(s) from 'ecommerce_domain_mapping' -> ecommerce_domain_mapping.json

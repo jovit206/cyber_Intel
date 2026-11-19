@@ -390,7 +390,7 @@ def change_user_status(user_id: str, payload: StatusChange, request: Request):
 
 class WalletCredit(BaseModel):
     user_id: str = Field(min_length=1, max_length=64)
-    amount: int = Field(gt=0, le=100_000)
+    amount: int = Field(gt=0, le=100_000, strict=True)  # a JSON integer; "100" is not coerced
     reason: str = Field(min_length=1, max_length=200)
     idempotency_key: str = Field(min_length=8, max_length=128)
 

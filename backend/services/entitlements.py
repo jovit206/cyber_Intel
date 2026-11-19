@@ -66,6 +66,22 @@ def effective_plan(user: dict, now: datetime | None = None) -> str:
     return plan
 
 
+# Passive views that the dashboard loads or polls automatically. They stay gated to plans that
+# include the feature, but must not consume the monthly allowance: the Working Set view polls
+# /api/metrics every 10 seconds, which would otherwise exhaust a Plus allowance in under two minutes,
+# and every dashboard load would spend Search & Enrich and Working Set uses without any user action.
+PASSIVE_VIEW_PATHS = frozenset({"/api/metrics", "/api/lab72/analysis", "/api/virustotal/recent"})
+
+
+def counts_as_feature_use(path: str, method: str = "GET") -> bool:
+    return not (method.upper() == "GET" and path in PASSIVE_VIEW_PATHS)
+
+
+def plan_includes_feature(user: dict, feature: str) -> bool:
+    limit = feature_limit(effective_plan(user), feature)
+    return limit is None or limit > 0
+
+
 def feature_for_path(path: str, method: str = "GET") -> str | None:
     if method.upper() not in {"GET", "POST"}:
         return None

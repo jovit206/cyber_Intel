@@ -1,0 +1,78 @@
+
+========================================================================
+  Lab 5.2: Join Data with $lookup
+========================================================================
+
+[OK] Connected to MongoDB at mongodb://localhost:27017
+[OK] Dropped collection: Chapter05.products
+[OK] Dropped collection: Chapter05.product_orders
+[OK] Inserted 12 products into Chapter05.products.
+[OK] Inserted 20 orders into Chapter05.product_orders.
+
+=== 1. Orders Joined to Products (order date, product, qty, total) ===
+[3m                         Order Lines (orders ⋈ products)                         [0m
+┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━┳━━━━━━━━┳━━━━━━━━┓
+┃[1m [0m[1mOrder  [0m[1m [0m┃[1m [0m[1mDate      [0m[1m [0m┃[1m [0m[1mCustomer[0m[1m [0m┃[1m [0m[1mProduct            [0m[1m [0m┃[1m [0m[1mQty[0m[1m [0m┃[1m [0m[1m  Unit[0m[1m [0m┃[1m [0m[1m Total[0m[1m [0m┃
+┡━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━╇━━━━━━━━╇━━━━━━━━┩
+│[36m [0m[36mORD-201[0m[36m [0m│ 2024-01-05 │ Arjun    │[35m [0m[35mLaptop Pro 14      [0m[35m [0m│   1 │ $1,200 │[32m [0m[32m$1,200[0m[32m [0m│
+│[36m [0m[36mORD-202[0m[36m [0m│ 2024-01-11 │ Sneha    │[35m [0m[35m27-inch Monitor    [0m[35m [0m│   2 │   $320 │[32m [0m[32m  $640[0m[32m [0m│
+│[36m [0m[36mORD-203[0m[36m [0m│ 2024-01-17 │ Kavya    │[35m [0m[35mMechanical Keyboard[0m[35m [0m│   3 │    $85 │[32m [0m[32m  $255[0m[32m [0m│
+│[36m [0m[36mORD-204[0m[36m [0m│ 2024-01-23 │ Rahul    │[35m [0m[35mLaptop Pro 14      [0m[35m [0m│   2 │ $1,200 │[32m [0m[32m$2,400[0m[32m [0m│
+│[36m [0m[36mORD-205[0m[36m [0m│ 2024-01-29 │ Divya    │[35m [0m[35mWireless Mouse     [0m[35m [0m│   4 │    $45 │[32m [0m[32m  $180[0m[32m [0m│
+│[36m [0m[36mORD-206[0m[36m [0m│ 2024-02-03 │ Arjun    │[35m [0m[35mANC Headphones     [0m[35m [0m│   2 │   $150 │[32m [0m[32m  $300[0m[32m [0m│
+│[36m [0m[36mORD-207[0m[36m [0m│ 2024-02-08 │ Imran    │[35m [0m[35mDocking Station    [0m[35m [0m│   1 │   $210 │[32m [0m[32m  $210[0m[32m [0m│
+│[36m [0m[36mORD-208[0m[36m [0m│ 2024-02-12 │ Sneha    │[35m [0m[35mLaptop Pro 14      [0m[35m [0m│   1 │ $1,200 │[32m [0m[32m$1,200[0m[32m [0m│
+│[36m [0m[36mORD-209[0m[36m [0m│ 2024-02-16 │ Kavya    │[35m [0m[35mHD Webcam          [0m[35m [0m│   2 │    $95 │[32m [0m[32m  $190[0m[32m [0m│
+│[36m [0m[36mORD-210[0m[36m [0m│ 2024-02-21 │ Rahul    │[35m [0m[35mErgonomic Chair    [0m[35m [0m│   3 │   $260 │[32m [0m[32m  $780[0m[32m [0m│
+│[36m [0m[36mORD-211[0m[36m [0m│ 2024-02-27 │ Divya    │[35m [0m[35m27-inch Monitor    [0m[35m [0m│   1 │   $320 │[32m [0m[32m  $320[0m[32m [0m│
+│[36m [0m[36mORD-212[0m[36m [0m│ 2024-03-04 │ Arjun    │[35m [0m[35mDocking Station    [0m[35m [0m│   2 │   $210 │[32m [0m[32m  $420[0m[32m [0m│
+│[36m [0m[36mORD-213[0m[36m [0m│ 2024-03-09 │ Imran    │[35m [0m[35mLaptop Pro 14      [0m[35m [0m│   1 │ $1,200 │[32m [0m[32m$1,200[0m[32m [0m│
+│[36m [0m[36mORD-214[0m[36m [0m│ 2024-03-14 │ Sneha    │[35m [0m[35mMechanical Keyboard[0m[35m [0m│   5 │    $85 │[32m [0m[32m  $425[0m[32m [0m│
+│[36m [0m[36mORD-215[0m[36m [0m│ 2024-03-19 │ Rahul    │[35m [0m[35mANC Headphones     [0m[35m [0m│   4 │   $150 │[32m [0m[32m  $600[0m[32m [0m│
+│[36m [0m[36mORD-216[0m[36m [0m│ 2024-03-25 │ Kavya    │[35m [0m[35mWireless Mouse     [0m[35m [0m│   6 │    $45 │[32m [0m[32m  $270[0m[32m [0m│
+│[36m [0m[36mORD-217[0m[36m [0m│ 2024-04-02 │ Arjun    │[35m [0m[35mErgonomic Chair    [0m[35m [0m│   1 │   $260 │[32m [0m[32m  $260[0m[32m [0m│
+│[36m [0m[36mORD-218[0m[36m [0m│ 2024-04-07 │ Divya    │[35m [0m[35mLaptop Pro 14      [0m[35m [0m│   1 │ $1,200 │[32m [0m[32m$1,200[0m[32m [0m│
+│[36m [0m[36mORD-219[0m[36m [0m│ 2024-04-13 │ Rahul    │[35m [0m[35m27-inch Monitor    [0m[35m [0m│   3 │   $320 │[32m [0m[32m  $960[0m[32m [0m│
+│[36m [0m[36mORD-220[0m[36m [0m│ 2024-04-18 │ Imran    │[35m [0m[35mANC Headphones     [0m[35m [0m│   2 │   $150 │[32m [0m[32m  $300[0m[32m [0m│
+└─────────┴────────────┴──────────┴─────────────────────┴─────┴────────┴────────┘
+  20 of 20 orders matched a product (an $unwind with no preserveNullAndEmptyArrays drops the misses).
+  Grand total: $13,310
+
+=== 2. Products Never Ordered (left outer join + empty-array filter) ===
+[3m               Products With Zero Orders               [0m
+┏━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃[1m [0m[1mID  [0m[1m [0m┃[1m [0m[1mProduct          [0m[1m [0m┃[1m [0m[1mCategory   [0m[1m [0m┃[1m [0m[1mBase Price[0m[1m [0m┃
+┡━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━┩
+│[36m [0m[36mP009[0m[36m [0m│[35m [0m[35mStanding Desk    [0m[35m [0m│ Furniture   │       $540 │
+│[36m [0m[36mP010[0m[36m [0m│[35m [0m[35mUSB-C Hub        [0m[35m [0m│ Accessories │        $65 │
+│[36m [0m[36mP011[0m[36m [0m│[35m [0m[35mStudio Microphone[0m[35m [0m│ Audio       │       $180 │
+│[36m [0m[36mP012[0m[36m [0m│[35m [0m[35mLaptop Stand     [0m[35m [0m│ Furniture   │        $70 │
+└──────┴───────────────────┴─────────────┴────────────┘
+  4 of 12 products have never been ordered.
+
+=== 3. Revenue per Product (let/pipeline $lookup, completed orders only) ===
+[3m                  Product Revenue (completed orders)                   [0m
+┏━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━━┓
+┃[1m [0m[1mID  [0m[1m [0m┃[1m [0m[1mProduct            [0m[1m [0m┃[1m [0m[1mCategory   [0m[1m [0m┃[1m [0m[1mOrders[0m[1m [0m┃[1m [0m[1mUnits[0m[1m [0m┃[1m [0m[1mRevenue[0m[1m [0m┃
+┡━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━━┩
+│[36m [0m[36mP001[0m[36m [0m│[35m [0m[35mLaptop Pro 14      [0m[35m [0m│ Electronics │      4 │     5 │[32m [0m[32m $6,000[0m[32m [0m│
+│[36m [0m[36mP002[0m[36m [0m│[35m [0m[35m27-inch Monitor    [0m[35m [0m│ Electronics │      3 │     6 │[32m [0m[32m $1,920[0m[32m [0m│
+│[36m [0m[36mP005[0m[36m [0m│[35m [0m[35mANC Headphones     [0m[35m [0m│ Audio       │      3 │     8 │[32m [0m[32m $1,200[0m[32m [0m│
+│[36m [0m[36mP008[0m[36m [0m│[35m [0m[35mErgonomic Chair    [0m[35m [0m│ Furniture   │      2 │     4 │[32m [0m[32m $1,040[0m[32m [0m│
+│[36m [0m[36mP003[0m[36m [0m│[35m [0m[35mMechanical Keyboard[0m[35m [0m│ Accessories │      2 │     8 │[32m [0m[32m   $680[0m[32m [0m│
+│[36m [0m[36mP006[0m[36m [0m│[35m [0m[35mDocking Station    [0m[35m [0m│ Accessories │      1 │     2 │[32m [0m[32m   $420[0m[32m [0m│
+│[36m [0m[36mP007[0m[36m [0m│[35m [0m[35mHD Webcam          [0m[35m [0m│ Electronics │      1 │     2 │[32m [0m[32m   $190[0m[32m [0m│
+│[36m [0m[36mP004[0m[36m [0m│[35m [0m[35mWireless Mouse     [0m[35m [0m│ Accessories │      0 │     0 │[32m [0m[32m     $0[0m[32m [0m│
+│[36m [0m[36mP009[0m[36m [0m│[35m [0m[35mStanding Desk      [0m[35m [0m│ Furniture   │      0 │     0 │[32m [0m[32m     $0[0m[32m [0m│
+│[36m [0m[36mP010[0m[36m [0m│[35m [0m[35mUSB-C Hub          [0m[35m [0m│ Accessories │      0 │     0 │[32m [0m[32m     $0[0m[32m [0m│
+│[36m [0m[36mP011[0m[36m [0m│[35m [0m[35mStudio Microphone  [0m[35m [0m│ Audio       │      0 │     0 │[32m [0m[32m     $0[0m[32m [0m│
+│[36m [0m[36mP012[0m[36m [0m│[35m [0m[35mLaptop Stand       [0m[35m [0m│ Furniture   │      0 │     0 │[32m [0m[32m     $0[0m[32m [0m│
+└──────┴─────────────────────┴─────────────┴────────┴───────┴─────────┘
+
+[OK] Wrote {'products': 12, 'product_orders': 20} -> activity_5_2_products_and_orders.json
+
+========================================================================
+  Lab 5.2 Complete
+========================================================================
+
+[OK] MongoDB connection closed.

@@ -1,0 +1,144 @@
+[
+  {
+    "_id": {
+      "$oid": "6a91a2d613e1e40ea6cb8409"
+    },
+    "app": "ride-sharing",
+    "domain": "driver_locations",
+    "family": "Key-Value (production: Redis geo)",
+    "evidence": {
+      "geoNear": {
+        "stage": "FETCH -> GEO_NEAR_2DSPHERE -> IXSCAN",
+        "totalDocsExamined": 128,
+        "totalKeysExamined": 132,
+        "nReturned": 62,
+        "executionTimeMillis": 23
+      },
+      "ttl_index": {
+        "v": 2,
+        "key": [
+          [
+            "updated_at",
+            1
+          ]
+        ],
+        "expireAfterSeconds": 300
+      },
+      "nearest_sample": [
+        "drv-0204",
+        "drv-0249",
+        "drv-0192",
+        "drv-0157",
+        "drv-0252"
+      ]
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d613e1e40ea6cb840a"
+    },
+    "app": "ride-sharing",
+    "domain": "user_profiles",
+    "family": "Document (MongoDB)",
+    "evidence": {
+      "fetch_by_id": {
+        "stage": "EXPRESS_IXSCAN",
+        "totalDocsExamined": 1,
+        "totalKeysExamined": 1,
+        "nReturned": 1,
+        "executionTimeMillis": 0
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d613e1e40ea6cb840b"
+    },
+    "app": "ride-sharing",
+    "domain": "ride_history",
+    "family": "Document or Column-Family (production: Cassandra at scale)",
+    "evidence": {
+      "indexed": {
+        "stage": "FETCH -> IXSCAN",
+        "totalDocsExamined": 3,
+        "totalKeysExamined": 3,
+        "nReturned": 3,
+        "executionTimeMillis": 1
+      },
+      "unindexed_forced": {
+        "stage": "SORT -> COLLSCAN",
+        "totalDocsExamined": 20000,
+        "totalKeysExamined": 0,
+        "nReturned": 3,
+        "executionTimeMillis": 12
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d613e1e40ea6cb840c"
+    },
+    "app": "ride-sharing",
+    "domain": "driver_rider_graph",
+    "family": "Graph (production: Neo4j / Neptune)",
+    "evidence": {
+      "graphlookup": {
+        "stage": "EXPRESS_IXSCAN",
+        "totalDocsExamined": 1,
+        "totalKeysExamined": 1,
+        "nReturned": 1,
+        "executionTimeMillis": 0
+      },
+      "ring_found": [
+        "drv-0001",
+        "drv-0002",
+        "rdr-0001",
+        "rdr-0002"
+      ],
+      "control_found": []
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d613e1e40ea6cb840d"
+    },
+    "app": "social-media-analytics",
+    "domain": "raw_post_storage",
+    "family": "Column-Family (production: Cassandra)",
+    "evidence": {
+      "one_day_indexed": {
+        "stage": "FETCH -> IXSCAN",
+        "totalDocsExamined": 500,
+        "totalKeysExamined": 500,
+        "nReturned": 500,
+        "executionTimeMillis": 2
+      },
+      "keyword_scan": {
+        "stage": "COLLSCAN",
+        "totalDocsExamined": 5000,
+        "totalKeysExamined": 0,
+        "nReturned": 1228,
+        "executionTimeMillis": 5
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d613e1e40ea6cb840e"
+    },
+    "app": "social-media-analytics",
+    "domain": "real_time_analytics",
+    "family": "Key-Value (production: Redis INCR)",
+    "evidence": {
+      "inc_explain": {
+        "stage": "EXPRESS_UPDATE",
+        "totalDocsExamined": 1,
+        "totalKeysExamined": 1,
+        "nReturned": 0,
+        "executionTimeMillis": 0
+      },
+      "wall_clock_ms": 277.7,
+      "n_updates": 1000
+    }
+  }
+]

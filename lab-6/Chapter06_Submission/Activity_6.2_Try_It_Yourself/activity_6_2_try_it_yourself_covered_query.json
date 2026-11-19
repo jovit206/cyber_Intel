@@ -1,0 +1,120 @@
+{
+  "database": "chapter_06",
+  "collection": "products_perf",
+  "index": {
+    "name": "idx_category_price_rating",
+    "key": {
+      "category": 1,
+      "price": 1,
+      "rating": 1
+    }
+  },
+  "filter": {
+    "category": "Electronics",
+    "price": {
+      "$gte": 100,
+      "$lte": 150
+    }
+  },
+  "sort": {
+    "price": 1
+  },
+  "timed_runs": 500,
+  "variants": [
+    {
+      "variant": "A",
+      "label": "No projection (whole document)",
+      "projection": null,
+      "stages": "FETCH > IXSCAN",
+      "fetch_stage": true,
+      "totalKeysExamined": 170,
+      "totalDocsExamined": 170,
+      "nReturned": 170,
+      "covered": false,
+      "why": "returns every field, so each match is fetched",
+      "avg_ms": 1.966371110000182
+    },
+    {
+      "variant": "B",
+      "label": "Indexed fields, _id left in",
+      "projection": {
+        "category": 1,
+        "price": 1,
+        "rating": 1
+      },
+      "stages": "PROJECTION_SIMPLE > FETCH > IXSCAN",
+      "fetch_stage": true,
+      "totalKeysExamined": 170,
+      "totalDocsExamined": 170,
+      "nReturned": 170,
+      "covered": false,
+      "why": "_id is returned by default and is not in the index",
+      "avg_ms": 2.031875740009127
+    },
+    {
+      "variant": "C",
+      "label": "Indexed fields + name (not indexed)",
+      "projection": {
+        "_id": 0,
+        "category": 1,
+        "price": 1,
+        "rating": 1,
+        "name": 1
+      },
+      "stages": "PROJECTION_SIMPLE > FETCH > IXSCAN",
+      "fetch_stage": true,
+      "totalKeysExamined": 170,
+      "totalDocsExamined": 170,
+      "nReturned": 170,
+      "covered": false,
+      "why": "name is not in the index",
+      "avg_ms": 2.035895608001738
+    },
+    {
+      "variant": "D",
+      "label": "Indexed fields only, _id excluded",
+      "projection": {
+        "_id": 0,
+        "category": 1,
+        "price": 1,
+        "rating": 1
+      },
+      "stages": "PROJECTION_COVERED > IXSCAN",
+      "fetch_stage": false,
+      "totalKeysExamined": 170,
+      "totalDocsExamined": 0,
+      "nReturned": 170,
+      "covered": true,
+      "why": "every returned field comes from the index keys",
+      "avg_ms": 1.5121504840062698
+    }
+  ],
+  "covered_query_verified": true,
+  "covered_query_sample": [
+    {
+      "category": "Electronics",
+      "price": 100.03,
+      "rating": 2.2
+    },
+    {
+      "category": "Electronics",
+      "price": 100.52,
+      "rating": 2.2
+    },
+    {
+      "category": "Electronics",
+      "price": 100.72,
+      "rating": 3.1
+    },
+    {
+      "category": "Electronics",
+      "price": 100.92,
+      "rating": 2.3
+    },
+    {
+      "category": "Electronics",
+      "price": 101.24,
+      "rating": 2.7
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+# Threat Intelligence Platform (Lab 7) + MongoDB replica set rs0 (Lab 8) + Lab 9 experiments.
+#
+# Fresh machine (pull the published image, start everything):
+#     cp .env.example .env              # optional: set VIRUSTOTAL_API_KEY, APP_IMAGE ...
+#     docker compose pull
+#     docker compose up -d
+#     open http://localhost:8000
+#
+# Build from source instead of pulling:   docker compose up -d --build
+#
+# Named volumes (mongo1-data ...) are never removed by `up`, `stop`, `down` or an upgrade.
+# `docker compose down -v` is the ONLY command here that deletes data; do not use it unless you mean to.
+#
+# The project name matches labs/lab8/docker-compose.yml, so both files share the same replica-set
+# containers, network and volumes: Lab 8 and the full application run on one cluster.
+name: mongodb-lab
+
+x-mongo-member: &mongo-member
+  image: mongo:7.0
+  restart: unless-stopped
+  command:
+    - mongod
+    - --replSet
+    - rs0
+    - --bind_ip_all
+    - --wiredTigerCacheSizeGB
+    - "${MONGO_CACHE_GB:-1}"
+  healthcheck:
+    test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+    interval: 5s
+    timeout: 5s
+    retries: 24
+    start_period: 10s
+  networks:
+    - mongo-net
+
+services:
+  mongo1:
+    <<: *mongo-member
+    container_name: ${MONGO1_CONTAINER:-mongo1}
+    hostname: mongo1
+    ports:
+      - "${MONGO1_BIND:-127.0.0.1:27017}:27017"   # loopback only: MongoDB is not exposed to the network
+    volumes:
+      - mongo1-data:/data/db
+
+  mongo2:
+    <<: *mongo-member
+    container_name: ${MONGO2_CONTAINER:-mongo2}
+    hostname: mongo2
+    ports:
+      - "${MONGO2_BIND:-127.0.0.1:27018}:27017"
+    volumes:
+      - mongo2-data:/data/db
+
+  mongo3:
+    <<: *mongo-member
+    container_name: ${MONGO3_CONTAINER:-mongo3}
+    hostname: mongo3
+    ports:
+      - "${MONGO3_BIND:-127.0.0.1:27019}:27017"
+    volumes:
+      - mongo3-data:/data/db
+
+  # One-shot, idempotent: initialises rs0 only when it is not initialised yet, then waits for a
+  # PRIMARY and three healthy members. An already-initialised replica set is never reconfigured.
+  mongo-init:
+    image: mongo:7.0
+    restart: "no"
+    depends_on:
+      mongo1:
+        condition: service_healthy
+      mongo2:
+        condition: service_healthy
+      mongo3:
+        condition: service_healthy
+    networks:
+      - mongo-net
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -u
+        MEMBERS="mongo1:27017 mongo2:27017 mongo3:27017"
+        initialised=0
+        for m in $$MEMBERS; do
+          out=$$(mongosh --host "$$m" --quiet --eval 'try { rs.status(); print("INITIALISED") } catch (e) { print(e.codeName || "ERR") }' 2>/dev/null | tail -1)
+          if [ "$$out" = "INITIALISED" ]; then initialised=1; break; fi
+        done
+        if [ "$$initialised" = "1" ]; then
+          echo "[mongo-init] replica set already initialised; configuration left untouched"
+        else
+          echo "[mongo-init] initialising replica set rs0"
+          mongosh --host mongo1:27017 --quiet --eval 'rs.initiate({_id:"rs0", members:[{_id:0,host:"mongo1:27017"},{_id:1,host:"mongo2:27017"},{_id:2,host:"mongo3:27017"}]})'
+        fi
+        for i in $$(seq 1 60); do
+          ok=$$(mongosh --host mongo1:27017 --quiet --eval 'try { const m = rs.status().members; print(m.length === 3 && m.every(x => x.health === 1) && m.filter(x => x.stateStr === "PRIMARY").length === 1 ? "READY" : "WAIT") } catch (e) { print("WAIT") }' 2>/dev/null | tail -1)
+          if [ "$$ok" = "READY" ]; then echo "[mongo-init] replica set rs0 is ready"; exit 0; fi
+          sleep 2
+        done
+        echo "[mongo-init] timed out waiting for a healthy replica set" >&2
+        exit 1
+
+  lab7-backend:
+    # APP_IMAGE is set to the published Docker Hub tag in .env (see README); `build:` is the fallback.
+    image: ${APP_IMAGE:-lab7-threat-intel:v1.0.0}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ${BACKEND_CONTAINER:-lab7-backend}
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      MONGO_URI: "mongodb://mongo1:27017,mongo2:27017,mongo3:27017/?replicaSet=rs0"
+      MONGO_DATABASE: "${MONGO_DATABASE:-chapter07}"
+      FRONTEND_ORIGIN: "http://localhost:${APP_PORT:-8000}"
+      LAB9_RESULTS_DIR: /app/labs/lab9/results
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+    volumes:
+      # Lab 9.1 / 9.2 reports appear here on the host.
+      - ./labs/lab9/results:/app/labs/lab9/results
+    networks:
+      - mongo-net
+
+volumes:
+  mongo1-data:
+  mongo2-data:
+  mongo3-data:
+
+networks:
+  mongo-net:
+    name: ${MONGO_NETWORK:-mongo-net}

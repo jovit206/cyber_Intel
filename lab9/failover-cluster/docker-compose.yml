@@ -1,0 +1,52 @@
+# Isolated three-member MongoDB replica set for the Lab 9 failover and recovery tests.
+#
+# It is deliberately separate from the application's replica set (fresh-mongo1/2/3, rs0) and from every
+# other experiment: its own project name, containers, network and named volumes, and no published host
+# ports. lab9/lab_03_failover_recovery.py steps down and restarts members of THIS cluster only.
+#
+#   docker compose -f lab9/failover-cluster/docker-compose.yml up -d
+#   python lab9/lab_03_failover_recovery.py --dry-run
+#   python lab9/lab_03_failover_recovery.py
+#
+# Stopping it (data kept):   docker compose -f lab9/failover-cluster/docker-compose.yml stop
+name: netrel-failover
+
+x-member: &member
+  image: mongo:7.0
+  restart: unless-stopped
+  command: ["mongod", "--replSet", "rsfail", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+  networks: [netrel-net]
+  healthcheck:
+    test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+    interval: 10s
+    timeout: 5s
+    retries: 10
+    start_period: 20s
+  labels:
+    aegis.purpose: "lab9-isolated-failover-tests"
+
+services:
+  netrel-mongo1:
+    <<: *member
+    container_name: netrel-mongo1
+    hostname: netrel-mongo1
+    volumes: [netrel-mongo1-data:/data/db]
+  netrel-mongo2:
+    <<: *member
+    container_name: netrel-mongo2
+    hostname: netrel-mongo2
+    volumes: [netrel-mongo2-data:/data/db]
+  netrel-mongo3:
+    <<: *member
+    container_name: netrel-mongo3
+    hostname: netrel-mongo3
+    volumes: [netrel-mongo3-data:/data/db]
+
+volumes:
+  netrel-mongo1-data:
+  netrel-mongo2-data:
+  netrel-mongo3-data:
+
+networks:
+  netrel-net:
+    name: netrel-net

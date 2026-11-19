@@ -11,6 +11,8 @@
 
 The backend policy is centralized in `backend/services/entitlements.py`. Free includes Live Threat Stream and Top Threats. Plus includes the supported premium features with monthly request limits; Search & Enrich is limited to three successful API operations per UTC calendar month. Pro has no monthly feature-use limit. Expired paid plans receive Free entitlements; no database migration or balance rewrite is performed.
 
+Passive views that the dashboard loads or polls automatically (`GET /api/metrics`, `GET /api/lab72/analysis`, `GET /api/virustotal/recent`) require a plan that includes the feature but do not consume the monthly allowance; user-initiated operations such as searches, VirusTotal lookups, simulations and experiment runs are counted.
+
 Default monthly Plus limits can be configured in the backend environment:
 
 ```text

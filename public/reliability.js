@@ -338,6 +338,45 @@
       </div>`;
   }
 
+  // Lab 9.3 results come from the separate, isolated test replica set, never from the application's cluster.
+  function failoverTestCard(test) {
+    if (!test) {
+      return `<div class="rel-card"><div class="rel-card-head"><h4>Saved failover &amp; recovery test</h4><span class="rel-pill plain">None yet</span></div>
+        <p class="rel-note">No report found. Start <span class="rel-mono">lab9/failover-cluster</span> and run
+        <span class="rel-mono">python lab9/lab_03_failover_recovery.py</span> to record one.</p></div>`;
+    }
+    const steps = arr(test.steps);
+    const byName = name => obj(steps.find(s => s.name === name));
+    const election = byName('new primary elected');
+    const traffic = byName('reads and writes during failover');
+    const writes = obj(traffic.writes);
+    const reads = obj(traffic.reads);
+    const rejoin = byName('restarted member rejoined and caught up');
+    const replicated = obj(byName('document replicated to secondaries').visible_after_ms);
+    const passed = test.status === 'passed';
+    const rows = steps.map(s => `<tr><td class="num">${count(s.step)}</td><td>${esc(s.name)}</td>
+      <td><span class="rel-pill ${s.passed ? 'ok' : 'bad'}">${s.passed ? 'Passed' : 'Failed'}</span></td><td>${when(s.at)}</td></tr>`).join('');
+    return `
+      <div class="rel-card">
+        <div class="rel-card-head"><h4>Saved failover &amp; recovery test</h4><span class="rel-pill ${passed ? 'ok' : 'bad'}">${passed ? 'All steps passed' : esc(words(test.status))} &middot; ${when(test.finished_at)}</span></div>
+        <p class="rel-note" style="margin-bottom:10px;">Run on the isolated replica set <span class="rel-mono">${show(test.replica_set)}</span>
+          (${arr(test.containers).map(c => `<span class="rel-mono">${esc(c)}</span>`).join(', ')}), not on the application's cluster above.</p>
+        <div class="rel-grid rel-grid-stats" style="margin-bottom:12px;">
+          <div class="rel-stat"><span class="rel-label">Step-down</span><div class="rel-stat-value">${show(election.old_primary)} &rarr; ${show(election.new_primary)}</div>
+            <div class="rel-stat-note">New primary observed after ${show(election.election_seconds)} s</div></div>
+          <div class="rel-stat"><span class="rel-label">Writes during failover</span><div class="rel-stat-value">${count(writes.succeeded)} / ${count(writes.attempted)}</div>
+            <div class="rel-stat-note">${count(writes.failed)} failed &middot; longest gap ${count(writes.longest_gap_between_successes_ms)} ms</div></div>
+          <div class="rel-stat"><span class="rel-label">Reads during failover</span><div class="rel-stat-value">${count(reads.succeeded)} / ${count(reads.attempted)}</div>
+            <div class="rel-stat-note">${count(reads.failed)} failed</div></div>
+          <div class="rel-stat"><span class="rel-label">Restarted member</span><div class="rel-stat-value">${show(rejoin.container)}</div>
+            <div class="rel-stat-note">Rejoined in ${show(rejoin.rejoin_seconds)} s &middot; ${count(rejoin.documents_on_restarted_member)} / ${count(rejoin.documents_on_primary)} documents</div></div>
+        </div>
+        <p class="rel-note" style="margin-bottom:10px;">Replication of the test document: ${Object.entries(replicated).map(([m, ms]) => `<span class="rel-mono">${esc(m)}</span> ${count(ms)} ms`).join(' &middot; ') || '&mdash;'}</p>
+        ${rows ? `<div class="rel-table-wrap"><table class="rel-table"><thead><tr><th class="num">#</th><th>Step</th><th>Result</th><th>Time</th></tr></thead><tbody>${rows}</tbody></table></div>` : ''}
+        ${test.error ? `<div class="rel-note rel-bad">${esc(test.error)}</div>` : ''}
+      </div>`;
+  }
+
   function simulationCard(sim, primary) {
     const checks = obj(sim.static_checks);
     const checkRow = (label, ok) => `<li>${esc(label)}: <span class="${ok ? 'rel-ok' : 'rel-warn'}">${ok ? 'found' : 'not found'}</span></li>`;
@@ -439,6 +478,8 @@
       <p class="rel-note" style="margin:-6px 0 18px;">Counts are documents stored in each collection. Whether a write was acknowledged is printed by the script and is not stored in the database.</p>
 
       ${saved ? savedPartitionCard(saved) : '<div class="rel-card"><div class="rel-card-head"><h4>Saved partition report</h4><span class="rel-pill plain">None yet</span></div><p class="rel-note">No report found. Run the manual simulation to save a report.</p></div>'}
+
+      ${failoverTestCard(isObject(data.saved_failover_test) ? data.saved_failover_test : null)}
 
       ${simulationCard(obj(data.simulation), cr.detected_primary)}`;
   }

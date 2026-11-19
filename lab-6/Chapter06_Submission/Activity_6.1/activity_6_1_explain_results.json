@@ -1,0 +1,232 @@
+{
+  "database": "chapter_06",
+  "collection": "products",
+  "documents": 50000,
+  "sample_documents": [
+    {
+      "sku": "SKU-00000",
+      "name": "Essential Orbit Novel",
+      "category": "Books",
+      "price": 227.09,
+      "rating": 3.9,
+      "stock": 346,
+      "tags": [
+        "budget"
+      ]
+    },
+    {
+      "sku": "SKU-00001",
+      "name": "Premium Zenith Moisturizer",
+      "category": "Beauty",
+      "price": 222.54,
+      "rating": 3.0,
+      "stock": 13,
+      "tags": [
+        "clearance",
+        "imported"
+      ]
+    },
+    {
+      "sku": "SKU-00002",
+      "name": "Smart Summit Perfume",
+      "category": "Beauty",
+      "price": 810.38,
+      "rating": 1.0,
+      "stock": 412,
+      "tags": [
+        "clearance",
+        "limited-edition"
+      ]
+    }
+  ],
+  "queries": [
+    {
+      "id": "Q1",
+      "label": "Electronics, cheapest 20 first",
+      "filter": {
+        "category": "Electronics"
+      },
+      "sort": [
+        [
+          "price",
+          1
+        ]
+      ],
+      "limit": 20
+    },
+    {
+      "id": "Q2",
+      "label": "Price between $100 and $150",
+      "filter": {
+        "price": {
+          "$gte": 100,
+          "$lte": 150
+        }
+      }
+    },
+    {
+      "id": "Q3",
+      "label": "Tagged 'wireless'",
+      "filter": {
+        "tags": "wireless"
+      }
+    },
+    {
+      "id": "Q4",
+      "label": "Text search name: 'headphones'",
+      "filter": {
+        "$text": {
+          "$search": "headphones"
+        }
+      },
+      "fallback": {
+        "name": {
+          "$regex": "headphones",
+          "$options": "i"
+        }
+      }
+    },
+    {
+      "id": "Q5",
+      "label": "Books rated >= 4.5, by price",
+      "filter": {
+        "category": "Books",
+        "rating": {
+          "$gte": 4.5
+        }
+      },
+      "sort": [
+        [
+          "price",
+          1
+        ]
+      ]
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_category_price_rating",
+      "key": {
+        "category": 1,
+        "price": 1,
+        "rating": 1
+      },
+      "serves": "Q1 (prefix), Q5 (ESR)"
+    },
+    {
+      "name": "idx_price",
+      "key": {
+        "price": 1
+      },
+      "serves": "Q2"
+    },
+    {
+      "name": "idx_tags",
+      "key": {
+        "tags": 1
+      },
+      "serves": "Q3 (multikey)"
+    },
+    {
+      "name": "idx_name_text",
+      "key": {
+        "name": "text"
+      },
+      "serves": "Q4"
+    }
+  ],
+  "explain_before": {
+    "Q1": {
+      "stage": "SORT > COLLSCAN",
+      "index": "-",
+      "totalDocsExamined": 50000,
+      "totalKeysExamined": 0,
+      "nReturned": 20,
+      "executionTimeMillis": 30,
+      "note": ""
+    },
+    "Q2": {
+      "stage": "COLLSCAN",
+      "index": "-",
+      "totalDocsExamined": 50000,
+      "totalKeysExamined": 0,
+      "nReturned": 2532,
+      "executionTimeMillis": 22,
+      "note": ""
+    },
+    "Q3": {
+      "stage": "COLLSCAN",
+      "index": "-",
+      "totalDocsExamined": 50000,
+      "totalKeysExamined": 0,
+      "nReturned": 10459,
+      "executionTimeMillis": 26,
+      "note": ""
+    },
+    "Q4": {
+      "stage": "COLLSCAN",
+      "index": "-",
+      "totalDocsExamined": 50000,
+      "totalKeysExamined": 0,
+      "nReturned": 1236,
+      "executionTimeMillis": 36,
+      "note": "regex fallback"
+    },
+    "Q5": {
+      "stage": "SORT > COLLSCAN",
+      "index": "-",
+      "totalDocsExamined": 50000,
+      "totalKeysExamined": 0,
+      "nReturned": 880,
+      "executionTimeMillis": 34,
+      "note": ""
+    }
+  },
+  "explain_after": {
+    "Q1": {
+      "stage": "LIMIT > FETCH > IXSCAN",
+      "index": "idx_category_price_rating",
+      "totalDocsExamined": 20,
+      "totalKeysExamined": 20,
+      "nReturned": 20,
+      "executionTimeMillis": 13,
+      "note": ""
+    },
+    "Q2": {
+      "stage": "FETCH > IXSCAN",
+      "index": "idx_price",
+      "totalDocsExamined": 2532,
+      "totalKeysExamined": 2532,
+      "nReturned": 2532,
+      "executionTimeMillis": 7,
+      "note": ""
+    },
+    "Q3": {
+      "stage": "FETCH > IXSCAN",
+      "index": "idx_tags",
+      "totalDocsExamined": 10459,
+      "totalKeysExamined": 10459,
+      "nReturned": 10459,
+      "executionTimeMillis": 21,
+      "note": ""
+    },
+    "Q4": {
+      "stage": "TEXT_MATCH > FETCH > IXSCAN",
+      "index": "idx_name_text",
+      "totalDocsExamined": 1236,
+      "totalKeysExamined": 1236,
+      "nReturned": 1236,
+      "executionTimeMillis": 4,
+      "note": ""
+    },
+    "Q5": {
+      "stage": "FETCH > IXSCAN",
+      "index": "idx_category_price_rating",
+      "totalDocsExamined": 880,
+      "totalKeysExamined": 6148,
+      "nReturned": 880,
+      "executionTimeMillis": 17,
+      "note": ""
+    }
+  }
+}

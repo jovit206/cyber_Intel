@@ -1,0 +1,5193 @@
+{
+  "captured_at_utc": "2026-10-30T09:11:01.035265+00:00",
+  "experiment": "11.1 - Shard Key Evaluation",
+  "dataset": {
+    "label": "Transaction Dataset",
+    "source_collection": "chapter07.demo_financial_activity",
+    "record_count": 1400,
+    "filter": {
+      "source": "synthetic-demo-v1",
+      "is_synthetic": true
+    },
+    "unique_transaction_ids": 1400
+  },
+  "mongodb_version": "7.0.45",
+  "router": "mongos",
+  "shards": [
+    "c11-shard1-rs",
+    "c11-shard2-rs"
+  ],
+  "workload": {
+    "name": "customer-centric transaction lookup with order and date access",
+    "query_weights": {
+      "customer_id_equality": 0.45,
+      "order_id_equality": 0.3,
+      "date_range": 0.15,
+      "customer_id_range": 0.1
+    },
+    "score_formula": "70% measured weighted single-shard query coverage + 20% measured shard balance + 10% non-monotonic insert-key credit."
+  },
+  "recommendation": "customer_id",
+  "reason": "customer_id scored highest (0.615) under the displayed workload weights using measured query plans, shard balance, and key progression. Hashed keys can improve distribution but reduce range locality; here their measured results are shown rather than assumed.",
+  "matrix": [
+    {
+      "candidate": "order_id",
+      "shard_key": "{\"order_id\": 1}",
+      "cardinality": "1,400/1,400 distinct; 1\u20131 rows/value",
+      "distribution": "c11-shard1-rs: 700, c11-shard2-rs: 700",
+      "query_targeting": "customer id equality: 2 shard(s); order id equality: 1 shard(s); date range: 2 shard(s); customer id range: 2 shard(s)",
+      "targeted_query_count": 1,
+      "hotspot_risk": "High: input key values increase in insert order; the active upper range is a write hotspot risk.",
+      "range_efficiency": "Date range: scatter/gather; customer range: scatter/gather",
+      "fit": "Measured score 0.410"
+    },
+    {
+      "candidate": "customer_id",
+      "shard_key": "{\"customer_id\": 1}",
+      "cardinality": "100/1,400 distinct; 14\u201314 rows/value",
+      "distribution": "c11-shard1-rs: 700, c11-shard2-rs: 700",
+      "query_targeting": "customer id equality: 1 shard(s); order id equality: 2 shard(s); date range: 2 shard(s); customer id range: 2 shard(s)",
+      "targeted_query_count": 1,
+      "hotspot_risk": "Low in this dataset: values are not monotonic and the most frequent key represents 1.0% of rows.",
+      "range_efficiency": "Date range: scatter/gather; customer range: scatter/gather",
+      "fit": "Measured score 0.615"
+    },
+    {
+      "candidate": "order_date",
+      "shard_key": "{\"order_date\": 1}",
+      "cardinality": "1,400/1,400 distinct; 1\u20131 rows/value",
+      "distribution": "c11-shard1-rs: 699, c11-shard2-rs: 701",
+      "query_targeting": "customer id equality: 2 shard(s); order id equality: 2 shard(s); date range: 2 shard(s); customer id range: 2 shard(s)",
+      "targeted_query_count": 0,
+      "hotspot_risk": "High: input key values increase in insert order; the active upper range is a write hotspot risk.",
+      "range_efficiency": "Date range: scatter/gather; customer range: scatter/gather",
+      "fit": "Measured score 0.200"
+    },
+    {
+      "candidate": "hashed customer_id",
+      "shard_key": "{\"customer_id\": \"hashed\"}",
+      "cardinality": "100/1,400 distinct; 14\u201314 rows/value",
+      "distribution": "c11-shard1-rs: 630, c11-shard2-rs: 770",
+      "query_targeting": "customer id equality: 1 shard(s); order id equality: 2 shard(s); date range: 2 shard(s); customer id range: 2 shard(s)",
+      "targeted_query_count": 1,
+      "hotspot_risk": "Low in this dataset: values are not monotonic and the most frequent key represents 1.0% of rows.",
+      "range_efficiency": "Date range: scatter/gather; customer range: scatter/gather",
+      "fit": "Measured score 0.595"
+    }
+  ],
+  "collections": {
+    "transactions_by_order_id": {
+      "candidate": "order_id",
+      "shard_key": {
+        "order_id": 1
+      },
+      "source_collection": "chapter07.demo_financial_activity",
+      "total_documents": 1400,
+      "cardinality": {
+        "distinct_values": 1400,
+        "ratio": 1.0,
+        "minimum_rows_per_value": 1,
+        "maximum_rows_per_value": 1,
+        "most_frequent_share": 0.0007142857142857143
+      },
+      "distribution": {
+        "per_shard": [
+          {
+            "shard": "c11-shard1-rs",
+            "owned_documents": 700,
+            "storage_size_bytes": 180224,
+            "logical_size_bytes": 147000,
+            "index_size_bytes": 204800
+          },
+          {
+            "shard": "c11-shard2-rs",
+            "owned_documents": 700,
+            "storage_size_bytes": 118784,
+            "logical_size_bytes": 147000,
+            "index_size_bytes": 98304
+          }
+        ],
+        "balance_score": 1.0,
+        "imbalance_percent": 0.0
+      },
+      "monotonic_in_input_order": true,
+      "hotspot_risk": "High: input key values increase in insert order; the active upper range is a write hotspot risk.",
+      "query_targeting_score": 0.3,
+      "recommendation_score": 0.41,
+      "query_weights": {
+        "customer_id_equality": 0.45,
+        "order_id_equality": 0.3,
+        "date_range": 0.15,
+        "customer_id_range": 0.1
+      },
+      "range_efficiency": {
+        "date_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "date_range_scatter_gather": true,
+        "date_range_returned": 701,
+        "date_range_examined": 1400,
+        "customer_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "customer_range_scatter_gather": true
+      },
+      "per_shard": [
+        {
+          "shard": "c11-shard1-rs",
+          "owned_documents": 700,
+          "storage_size_bytes": 180224,
+          "logical_size_bytes": 147000,
+          "index_size_bytes": 204800
+        },
+        {
+          "shard": "c11-shard2-rs",
+          "owned_documents": 700,
+          "storage_size_bytes": 118784,
+          "logical_size_bytes": 147000,
+          "index_size_bytes": 98304
+        }
+      ],
+      "queries": {
+        "customer_id_equality": {
+          "filter": {
+            "customer_id": "DEMO-CUSTOMER-038"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 14,
+          "docs_examined": 1400,
+          "execution_millis": 1,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "customer_id": {
+                        "$eq": "DEMO-CUSTOMER-038"
+                      }
+                    },
+                    "queryHash": "912E527C",
+                    "planCacheKey": "912E527C",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "customer_id": {
+                            "$eq": "DEMO-CUSTOMER-038"
+                          }
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "customer_id": {
+                        "$eq": "DEMO-CUSTOMER-038"
+                      }
+                    },
+                    "queryHash": "912E527C",
+                    "planCacheKey": "912E527C",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "customer_id": {
+                            "$eq": "DEMO-CUSTOMER-038"
+                          }
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 14,
+              "executionTimeMillis": 1,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 1400,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 14,
+                "executionTimeMillis": 1,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 1400,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 7,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 700,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 7,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 701,
+                      "advanced": 7,
+                      "needTime": 693,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "customer_id": {
+                            "$eq": "DEMO-CUSTOMER-038"
+                          }
+                        },
+                        "nReturned": 7,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 701,
+                        "advanced": 7,
+                        "needTime": 693,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 700
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 7,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 700,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 7,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 701,
+                      "advanced": 7,
+                      "needTime": 693,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "customer_id": {
+                            "$eq": "DEMO-CUSTOMER-038"
+                          }
+                        },
+                        "nReturned": 7,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 701,
+                        "advanced": 7,
+                        "needTime": 693,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 700
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_order_id",
+              "filter": {
+                "customer_id": "DEMO-CUSTOMER-038"
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        },
+        "order_id_equality": {
+          "filter": {
+            "order_id": "DEMO-ORDER-0701"
+          },
+          "targeted_shards": [
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": false,
+          "n_returned": 1,
+          "docs_examined": 1,
+          "execution_millis": 0,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SINGLE_SHARD",
+                "shards": [
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "order_id": {
+                        "$eq": "DEMO-ORDER-0701"
+                      }
+                    },
+                    "queryHash": "B978774D",
+                    "planCacheKey": "AED50004",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "FETCH",
+                      "inputStage": {
+                        "stage": "IXSCAN",
+                        "keyPattern": {
+                          "order_id": 1
+                        },
+                        "indexName": "demo_shard_key",
+                        "isMultiKey": false,
+                        "multiKeyPaths": {
+                          "order_id": []
+                        },
+                        "isUnique": false,
+                        "isSparse": false,
+                        "isPartial": false,
+                        "indexVersion": 2,
+                        "direction": "forward",
+                        "indexBounds": {
+                          "order_id": [
+                            "[\"DEMO-ORDER-0701\", \"DEMO-ORDER-0701\"]"
+                          ]
+                        }
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 1,
+              "executionTimeMillis": 0,
+              "totalKeysExamined": 1,
+              "totalDocsExamined": 1,
+              "executionStages": {
+                "stage": "SINGLE_SHARD",
+                "nReturned": 1,
+                "executionTimeMillis": 0,
+                "totalKeysExamined": 1,
+                "totalDocsExamined": 1,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 1,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 1,
+                    "totalDocsExamined": 1,
+                    "executionStages": {
+                      "stage": "FETCH",
+                      "nReturned": 1,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 2,
+                      "advanced": 1,
+                      "needTime": 0,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "docsExamined": 1,
+                      "alreadyHasObj": 0,
+                      "inputStage": {
+                        "stage": "IXSCAN",
+                        "nReturned": 1,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 2,
+                        "advanced": 1,
+                        "needTime": 0,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "keyPattern": {
+                          "order_id": 1
+                        },
+                        "indexName": "demo_shard_key",
+                        "isMultiKey": false,
+                        "multiKeyPaths": {
+                          "order_id": []
+                        },
+                        "isUnique": false,
+                        "isSparse": false,
+                        "isPartial": false,
+                        "indexVersion": 2,
+                        "direction": "forward",
+                        "indexBounds": {
+                          "order_id": [
+                            "[\"DEMO-ORDER-0701\", \"DEMO-ORDER-0701\"]"
+                          ]
+                        },
+                        "keysExamined": 1,
+                        "seeks": 1,
+                        "dupsTested": 0,
+                        "dupsDropped": 0
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_order_id",
+              "filter": {
+                "order_id": "DEMO-ORDER-0701"
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        },
+        "date_range": {
+          "filter": {
+            "order_date": {
+              "$gte": {
+                "$date": "2025-01-05T15:09:00Z"
+              },
+              "$lte": {
+                "$date": "2025-01-14T20:49:00Z"
+              }
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 701,
+          "docs_examined": 1400,
+          "execution_millis": 1,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "order_date": {
+                            "$lte": {
+                              "$date": "2025-01-14T20:49:00Z"
+                            }
+                          }
+                        },
+                        {
+                          "order_date": {
+                            "$gte": {
+                              "$date": "2025-01-05T15:09:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "E0BA25F6",
+                    "planCacheKey": "E0BA25F6",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "order_date": {
+                                "$lte": {
+                                  "$date": "2025-01-14T20:49:00Z"
+                                }
+                              }
+                            },
+                            {
+                              "order_date": {
+                                "$gte": {
+                                  "$date": "2025-01-05T15:09:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "order_date": {
+                            "$lte": {
+                              "$date": "2025-01-14T20:49:00Z"
+                            }
+                          }
+                        },
+                        {
+                          "order_date": {
+                            "$gte": {
+                              "$date": "2025-01-05T15:09:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "E0BA25F6",
+                    "planCacheKey": "E0BA25F6",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "order_date": {
+                                "$lte": {
+                                  "$date": "2025-01-14T20:49:00Z"
+                                }
+                              }
+                            },
+                            {
+                              "order_date": {
+                                "$gte": {
+                                  "$date": "2025-01-05T15:09:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 701,
+              "executionTimeMillis": 1,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 1400,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 701,
+                "executionTimeMillis": 1,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 1400,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 350,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 700,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 350,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 701,
+                      "advanced": 350,
+                      "needTime": 350,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "order_date": {
+                                "$lte": {
+                                  "$date": "2025-01-14T20:49:00Z"
+                                }
+                              }
+                            },
+                            {
+                              "order_date": {
+                                "$gte": {
+                                  "$date": "2025-01-05T15:09:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 350,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 701,
+                        "advanced": 350,
+                        "needTime": 350,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 700
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 351,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 700,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 351,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 701,
+                      "advanced": 351,
+                      "needTime": 349,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "order_date": {
+                                "$lte": {
+                                  "$date": "2025-01-14T20:49:00Z"
+                                }
+                              }
+                            },
+                            {
+                              "order_date": {
+                                "$gte": {
+                                  "$date": "2025-01-05T15:09:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 351,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 701,
+                        "advanced": 351,
+                        "needTime": 349,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 700
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_order_id",
+              "filter": {
+                "order_date": {
+                  "$gte": {
+                    "$date": "2025-01-05T15:09:00Z"
+                  },
+                  "$lte": {
+                    "$date": "2025-01-14T20:49:00Z"
+                  }
+                }
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        },
+        "customer_id_range": {
+          "filter": {
+            "customer_id": {
+              "$gte": "DEMO-CUSTOMER-026",
+              "$lte": "DEMO-CUSTOMER-076"
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 714,
+          "docs_examined": 1400,
+          "execution_millis": 1,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "customer_id": {
+                            "$lte": "DEMO-CUSTOMER-076"
+                          }
+                        },
+                        {
+                          "customer_id": {
+                            "$gte": "DEMO-CUSTOMER-026"
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "191DD7BA",
+                    "planCacheKey": "191DD7BA",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "customer_id": {
+                                "$lte": "DEMO-CUSTOMER-076"
+                              }
+                            },
+                            {
+                              "customer_id": {
+                                "$gte": "DEMO-CUSTOMER-026"
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "customer_id": {
+                            "$lte": "DEMO-CUSTOMER-076"
+                          }
+                        },
+                        {
+                          "customer_id": {
+                            "$gte": "DEMO-CUSTOMER-026"
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "191DD7BA",
+                    "planCacheKey": "191DD7BA",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "customer_id": {
+                                "$lte": "DEMO-CUSTOMER-076"
+                              }
+                            },
+                            {
+                              "customer_id": {
+                                "$gte": "DEMO-CUSTOMER-026"
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 714,
+              "executionTimeMillis": 1,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 1400,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 714,
+                "executionTimeMillis": 1,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 1400,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 357,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 700,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 357,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 701,
+                      "advanced": 357,
+                      "needTime": 343,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "customer_id": {
+                                "$lte": "DEMO-CUSTOMER-076"
+                              }
+                            },
+                            {
+                              "customer_id": {
+                                "$gte": "DEMO-CUSTOMER-026"
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 357,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 701,
+                        "advanced": 357,
+                        "needTime": 343,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 700
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 357,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 700,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 357,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 701,
+                      "advanced": 357,
+                      "needTime": 343,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "customer_id": {
+                                "$lte": "DEMO-CUSTOMER-076"
+                              }
+                            },
+                            {
+                              "customer_id": {
+                                "$gte": "DEMO-CUSTOMER-026"
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 357,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 701,
+                        "advanced": 357,
+                        "needTime": 343,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 700
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_order_id",
+              "filter": {
+                "customer_id": {
+                  "$gte": "DEMO-CUSTOMER-026",
+                  "$lte": "DEMO-CUSTOMER-076"
+                }
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        }
+      },
+      "write_elapsed_seconds": 0.0722,
+      "fit": "Best when order lookups dominate; customer and date filters scatter, and sequential IDs can make the upper range hot."
+    },
+    "transactions_by_customer_id": {
+      "candidate": "customer_id",
+      "shard_key": {
+        "customer_id": 1
+      },
+      "source_collection": "chapter07.demo_financial_activity",
+      "total_documents": 1400,
+      "cardinality": {
+        "distinct_values": 100,
+        "ratio": 0.07142857142857142,
+        "minimum_rows_per_value": 14,
+        "maximum_rows_per_value": 14,
+        "most_frequent_share": 0.01
+      },
+      "distribution": {
+        "per_shard": [
+          {
+            "shard": "c11-shard1-rs",
+            "owned_documents": 700,
+            "storage_size_bytes": 249856,
+            "logical_size_bytes": 147000,
+            "index_size_bytes": 200704
+          },
+          {
+            "shard": "c11-shard2-rs",
+            "owned_documents": 700,
+            "storage_size_bytes": 118784,
+            "logical_size_bytes": 147000,
+            "index_size_bytes": 98304
+          }
+        ],
+        "balance_score": 1.0,
+        "imbalance_percent": 0.0
+      },
+      "monotonic_in_input_order": false,
+      "hotspot_risk": "Low in this dataset: values are not monotonic and the most frequent key represents 1.0% of rows.",
+      "query_targeting_score": 0.45,
+      "recommendation_score": 0.615,
+      "query_weights": {
+        "customer_id_equality": 0.45,
+        "order_id_equality": 0.3,
+        "date_range": 0.15,
+        "customer_id_range": 0.1
+      },
+      "range_efficiency": {
+        "date_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "date_range_scatter_gather": true,
+        "date_range_returned": 701,
+        "date_range_examined": 1400,
+        "customer_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "customer_range_scatter_gather": true
+      },
+      "per_shard": [
+        {
+          "shard": "c11-shard1-rs",
+          "owned_documents": 700,
+          "storage_size_bytes": 249856,
+          "logical_size_bytes": 147000,
+          "index_size_bytes": 200704
+        },
+        {
+          "shard": "c11-shard2-rs",
+          "owned_documents": 700,
+          "storage_size_bytes": 118784,
+          "logical_size_bytes": 147000,
+          "index_size_bytes": 98304
+        }
+      ],
+      "queries": {
+        "customer_id_equality": {
+          "filter": {
+            "customer_id": "DEMO-CUSTOMER-038"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": false,
+          "n_returned": 14,
+          "docs_examined": 14,
+          "execution_millis": 0,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SINGLE_SHARD",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "customer_id": {
+                        "$eq": "DEMO-CUSTOMER-038"
+                      }
+                    },
+                    "queryHash": "912E527C",
+                    "planCacheKey": "EB59B595",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "FETCH",
+                      "inputStage": {
+                        "stage": "IXSCAN",
+                        "keyPattern": {
+                          "customer_id": 1
+                        },
+                        "indexName": "demo_shard_key",
+                        "isMultiKey": false,
+                        "multiKeyPaths": {
+                          "customer_id": []
+                        },
+                        "isUnique": false,
+                        "isSparse": false,
+                        "isPartial": false,
+                        "indexVersion": 2,
+                        "direction": "forward",
+                        "indexBounds": {
+                          "customer_id": [
+                            "[\"DEMO-CUSTOMER-038\", \"DEMO-CUSTOMER-038\"]"
+                          ]
+                        }
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 14,
+              "executionTimeMillis": 0,
+              "totalKeysExamined": 14,
+              "totalDocsExamined": 14,
+              "executionStages": {
+                "stage": "SINGLE_SHARD",
+                "nReturned": 14,
+                "executionTimeMillis": 0,
+                "totalKeysExamined": 14,
+                "totalDocsExamined": 14,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 14,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 14,
+                    "totalDocsExamined": 14,
+                    "executionStages": {
+                      "stage": "FETCH",
+                      "nReturned": 14,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 15,
+                      "advanced": 14,
+                      "needTime": 0,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "docsExamined": 14,
+                      "alreadyHasObj": 0,
+                      "inputStage": {
+                        "stage": "IXSCAN",
+                        "nReturned": 14,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 15,
+                        "advanced": 14,
+                        "needTime": 0,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "keyPattern": {
+                          "customer_id": 1
+                        },
+                        "indexName": "demo_shard_key",
+                        "isMultiKey": false,
+                        "multiKeyPaths": {
+                          "customer_id": []
+                        },
+                        "isUnique": false,
+                        "isSparse": false,
+                        "isPartial": false,
+                        "indexVersion": 2,
+                        "direction": "forward",
+                        "indexBounds": {
+                          "customer_id": [
+                            "[\"DEMO-CUSTOMER-038\", \"DEMO-CUSTOMER-038\"]"
+                          ]
+                        },
+                        "keysExamined": 14,
+                        "seeks": 1,
+                        "dupsTested": 0,
+                        "dupsDropped": 0
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_customer_id",
+              "filter": {
+                "customer_id": "DEMO-CUSTOMER-038"
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351454,
+                "i": 1
+              }
+            }
+          }
+        },
+        "order_id_equality": {
+          "filter": {
+            "order_id": "DEMO-ORDER-0701"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 1,
+          "docs_examined": 1400,
+          "execution_millis": 1,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "order_id": {
+                        "$eq": "DEMO-ORDER-0701"
+                      }
+                    },
+                    "queryHash": "B978774D",
+                    "planCacheKey": "B978774D",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "order_id": {
+                            "$eq": "DEMO-ORDER-0701"
+                          }
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "order_id": {
+                        "$eq": "DEMO-ORDER-0701"
+                      }
+                    },
+                    "queryHash": "B978774D",
+                    "planCacheKey": "B978774D",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "order_id": {
+                            "$eq": "DEMO-ORDER-0701"
+                          }
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 1,
+              "executionTimeMillis": 1,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 1400,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 1,
+                "executionTimeMillis": 1,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 1400,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 1,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 700,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 1,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 701,
+                      "advanced": 1,
+                      "needTime": 699,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "order_id": {
+                            "$eq": "DEMO-ORDER-0701"
+                          }
+                        },
+                        "nReturned": 1,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 701,
+                        "advanced": 1,
+                        "needTime": 699,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 700
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 0,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 700,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 0,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 701,
+                      "advanced": 0,
+                      "needTime": 700,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "order_id": {
+                            "$eq": "DEMO-ORDER-0701"
+                          }
+                        },
+                        "nReturned": 0,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 701,
+                        "advanced": 0,
+                        "needTime": 700,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 700
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_customer_id",
+              "filter": {
+                "order_id": "DEMO-ORDER-0701"
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        },
+        "date_range": {
+          "filter": {
+            "order_date": {
+              "$gte": {
+                "$date": "2025-01-05T15:09:00Z"
+              },
+              "$lte": {
+                "$date": "2025-01-14T20:49:00Z"
+              }
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 701,
+          "docs_examined": 1400,
+          "execution_millis": 1,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "order_date": {
+                            "$lte": {
+                              "$date": "2025-01-14T20:49:00Z"
+                            }
+                          }
+                        },
+                        {
+                          "order_date": {
+                            "$gte": {
+                              "$date": "2025-01-05T15:09:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "E0BA25F6",
+                    "planCacheKey": "E0BA25F6",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "order_date": {
+                                "$lte": {
+                                  "$date": "2025-01-14T20:49:00Z"
+                                }
+                              }
+                            },
+                            {
+                              "order_date": {
+                                "$gte": {
+                                  "$date": "2025-01-05T15:09:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "order_date": {
+                            "$lte": {
+                              "$date": "2025-01-14T20:49:00Z"
+                            }
+                          }
+                        },
+                        {
+                          "order_date": {
+                            "$gte": {
+                              "$date": "2025-01-05T15:09:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "E0BA25F6",
+                    "planCacheKey": "E0BA25F6",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "order_date": {
+                                "$lte": {
+                                  "$date": "2025-01-14T20:49:00Z"
+                                }
+                              }
+                            },
+                            {
+                              "order_date": {
+                                "$gte": {
+                                  "$date": "2025-01-05T15:09:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 701,
+              "executionTimeMillis": 1,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 1400,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 701,
+                "executionTimeMillis": 1,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 1400,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 350,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 700,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 350,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 701,
+                      "advanced": 350,
+                      "needTime": 350,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "order_date": {
+                                "$lte": {
+                                  "$date": "2025-01-14T20:49:00Z"
+                                }
+                              }
+                            },
+                            {
+                              "order_date": {
+                                "$gte": {
+                                  "$date": "2025-01-05T15:09:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 350,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 701,
+                        "advanced": 350,
+                        "needTime": 350,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 700
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 351,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 700,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 351,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 701,
+                      "advanced": 351,
+                      "needTime": 349,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "order_date": {
+                                "$lte": {
+                                  "$date": "2025-01-14T20:49:00Z"
+                                }
+                              }
+                            },
+                            {
+                              "order_date": {
+                                "$gte": {
+                                  "$date": "2025-01-05T15:09:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 351,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 701,
+                        "advanced": 351,
+                        "needTime": 349,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 700
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_customer_id",
+              "filter": {
+                "order_date": {
+                  "$gte": {
+                    "$date": "2025-01-05T15:09:00Z"
+                  },
+                  "$lte": {
+                    "$date": "2025-01-14T20:49:00Z"
+                  }
+                }
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        },
+        "customer_id_range": {
+          "filter": {
+            "customer_id": {
+              "$gte": "DEMO-CUSTOMER-026",
+              "$lte": "DEMO-CUSTOMER-076"
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 714,
+          "docs_examined": 714,
+          "execution_millis": 2,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "customer_id": {
+                            "$lte": "DEMO-CUSTOMER-076"
+                          }
+                        },
+                        {
+                          "customer_id": {
+                            "$gte": "DEMO-CUSTOMER-026"
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "191DD7BA",
+                    "planCacheKey": "A100F1FB",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "FETCH",
+                      "inputStage": {
+                        "stage": "SHARDING_FILTER",
+                        "inputStage": {
+                          "stage": "IXSCAN",
+                          "keyPattern": {
+                            "customer_id": 1
+                          },
+                          "indexName": "demo_shard_key",
+                          "isMultiKey": false,
+                          "multiKeyPaths": {
+                            "customer_id": []
+                          },
+                          "isUnique": false,
+                          "isSparse": false,
+                          "isPartial": false,
+                          "indexVersion": 2,
+                          "direction": "forward",
+                          "indexBounds": {
+                            "customer_id": [
+                              "[\"DEMO-CUSTOMER-026\", \"DEMO-CUSTOMER-076\"]"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "customer_id": {
+                            "$lte": "DEMO-CUSTOMER-076"
+                          }
+                        },
+                        {
+                          "customer_id": {
+                            "$gte": "DEMO-CUSTOMER-026"
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "191DD7BA",
+                    "planCacheKey": "A100F1FB",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "FETCH",
+                      "inputStage": {
+                        "stage": "SHARDING_FILTER",
+                        "inputStage": {
+                          "stage": "IXSCAN",
+                          "keyPattern": {
+                            "customer_id": 1
+                          },
+                          "indexName": "demo_shard_key",
+                          "isMultiKey": false,
+                          "multiKeyPaths": {
+                            "customer_id": []
+                          },
+                          "isUnique": false,
+                          "isSparse": false,
+                          "isPartial": false,
+                          "indexVersion": 2,
+                          "direction": "forward",
+                          "indexBounds": {
+                            "customer_id": [
+                              "[\"DEMO-CUSTOMER-026\", \"DEMO-CUSTOMER-076\"]"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 714,
+              "executionTimeMillis": 2,
+              "totalKeysExamined": 714,
+              "totalDocsExamined": 714,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 714,
+                "executionTimeMillis": 2,
+                "totalKeysExamined": 714,
+                "totalDocsExamined": 714,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 364,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 364,
+                    "totalDocsExamined": 364,
+                    "executionStages": {
+                      "stage": "FETCH",
+                      "nReturned": 364,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 365,
+                      "advanced": 364,
+                      "needTime": 0,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "docsExamined": 364,
+                      "alreadyHasObj": 0,
+                      "inputStage": {
+                        "stage": "SHARDING_FILTER",
+                        "nReturned": 364,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 365,
+                        "advanced": 364,
+                        "needTime": 0,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "chunkSkips": 0,
+                        "inputStage": {
+                          "stage": "IXSCAN",
+                          "nReturned": 364,
+                          "executionTimeMillisEstimate": 0,
+                          "works": 365,
+                          "advanced": 364,
+                          "needTime": 0,
+                          "needYield": 0,
+                          "saveState": 0,
+                          "restoreState": 0,
+                          "isEOF": 1,
+                          "keyPattern": {
+                            "customer_id": 1
+                          },
+                          "indexName": "demo_shard_key",
+                          "isMultiKey": false,
+                          "multiKeyPaths": {
+                            "customer_id": []
+                          },
+                          "isUnique": false,
+                          "isSparse": false,
+                          "isPartial": false,
+                          "indexVersion": 2,
+                          "direction": "forward",
+                          "indexBounds": {
+                            "customer_id": [
+                              "[\"DEMO-CUSTOMER-026\", \"DEMO-CUSTOMER-076\"]"
+                            ]
+                          },
+                          "keysExamined": 364,
+                          "seeks": 1,
+                          "dupsTested": 0,
+                          "dupsDropped": 0
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 350,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 350,
+                    "totalDocsExamined": 350,
+                    "executionStages": {
+                      "stage": "FETCH",
+                      "nReturned": 350,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 351,
+                      "advanced": 350,
+                      "needTime": 0,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "docsExamined": 350,
+                      "alreadyHasObj": 0,
+                      "inputStage": {
+                        "stage": "SHARDING_FILTER",
+                        "nReturned": 350,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 351,
+                        "advanced": 350,
+                        "needTime": 0,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "chunkSkips": 0,
+                        "inputStage": {
+                          "stage": "IXSCAN",
+                          "nReturned": 350,
+                          "executionTimeMillisEstimate": 0,
+                          "works": 351,
+                          "advanced": 350,
+                          "needTime": 0,
+                          "needYield": 0,
+                          "saveState": 0,
+                          "restoreState": 0,
+                          "isEOF": 1,
+                          "keyPattern": {
+                            "customer_id": 1
+                          },
+                          "indexName": "demo_shard_key",
+                          "isMultiKey": false,
+                          "multiKeyPaths": {
+                            "customer_id": []
+                          },
+                          "isUnique": false,
+                          "isSparse": false,
+                          "isPartial": false,
+                          "indexVersion": 2,
+                          "direction": "forward",
+                          "indexBounds": {
+                            "customer_id": [
+                              "[\"DEMO-CUSTOMER-026\", \"DEMO-CUSTOMER-076\"]"
+                            ]
+                          },
+                          "keysExamined": 350,
+                          "seeks": 1,
+                          "dupsTested": 0,
+                          "dupsDropped": 0
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_customer_id",
+              "filter": {
+                "customer_id": {
+                  "$gte": "DEMO-CUSTOMER-026",
+                  "$lte": "DEMO-CUSTOMER-076"
+                }
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        }
+      },
+      "write_elapsed_seconds": 0.0603,
+      "fit": "Keeps customer equality/range reads local. Check hot-customer skew; this source dataset's frequency counts are measured above."
+    },
+    "transactions_by_order_date": {
+      "candidate": "order_date",
+      "shard_key": {
+        "order_date": 1
+      },
+      "source_collection": "chapter07.demo_financial_activity",
+      "total_documents": 1400,
+      "cardinality": {
+        "distinct_values": 1400,
+        "ratio": 1.0,
+        "minimum_rows_per_value": 1,
+        "maximum_rows_per_value": 1,
+        "most_frequent_share": 0.0007142857142857143
+      },
+      "distribution": {
+        "per_shard": [
+          {
+            "shard": "c11-shard1-rs",
+            "owned_documents": 699,
+            "storage_size_bytes": 180224,
+            "logical_size_bytes": 146790,
+            "index_size_bytes": 204800
+          },
+          {
+            "shard": "c11-shard2-rs",
+            "owned_documents": 701,
+            "storage_size_bytes": 118784,
+            "logical_size_bytes": 147210,
+            "index_size_bytes": 98304
+          }
+        ],
+        "balance_score": 0.9986,
+        "imbalance_percent": 0.14
+      },
+      "monotonic_in_input_order": true,
+      "hotspot_risk": "High: input key values increase in insert order; the active upper range is a write hotspot risk.",
+      "query_targeting_score": 0,
+      "recommendation_score": 0.1997,
+      "query_weights": {
+        "customer_id_equality": 0.45,
+        "order_id_equality": 0.3,
+        "date_range": 0.15,
+        "customer_id_range": 0.1
+      },
+      "range_efficiency": {
+        "date_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "date_range_scatter_gather": true,
+        "date_range_returned": 701,
+        "date_range_examined": 701,
+        "customer_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "customer_range_scatter_gather": true
+      },
+      "per_shard": [
+        {
+          "shard": "c11-shard1-rs",
+          "owned_documents": 699,
+          "storage_size_bytes": 180224,
+          "logical_size_bytes": 146790,
+          "index_size_bytes": 204800
+        },
+        {
+          "shard": "c11-shard2-rs",
+          "owned_documents": 701,
+          "storage_size_bytes": 118784,
+          "logical_size_bytes": 147210,
+          "index_size_bytes": 98304
+        }
+      ],
+      "queries": {
+        "customer_id_equality": {
+          "filter": {
+            "customer_id": "DEMO-CUSTOMER-038"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 14,
+          "docs_examined": 1400,
+          "execution_millis": 1,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_date",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "customer_id": {
+                        "$eq": "DEMO-CUSTOMER-038"
+                      }
+                    },
+                    "queryHash": "912E527C",
+                    "planCacheKey": "912E527C",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "customer_id": {
+                            "$eq": "DEMO-CUSTOMER-038"
+                          }
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_date",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "customer_id": {
+                        "$eq": "DEMO-CUSTOMER-038"
+                      }
+                    },
+                    "queryHash": "912E527C",
+                    "planCacheKey": "912E527C",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "customer_id": {
+                            "$eq": "DEMO-CUSTOMER-038"
+                          }
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 14,
+              "executionTimeMillis": 1,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 1400,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 14,
+                "executionTimeMillis": 1,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 1400,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 7,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 699,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 7,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 700,
+                      "advanced": 7,
+                      "needTime": 692,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "customer_id": {
+                            "$eq": "DEMO-CUSTOMER-038"
+                          }
+                        },
+                        "nReturned": 7,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 700,
+                        "advanced": 7,
+                        "needTime": 692,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 699
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 7,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 701,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 7,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 702,
+                      "advanced": 7,
+                      "needTime": 694,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "customer_id": {
+                            "$eq": "DEMO-CUSTOMER-038"
+                          }
+                        },
+                        "nReturned": 7,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 702,
+                        "advanced": 7,
+                        "needTime": 694,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 701
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_order_date",
+              "filter": {
+                "customer_id": "DEMO-CUSTOMER-038"
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        },
+        "order_id_equality": {
+          "filter": {
+            "order_id": "DEMO-ORDER-0701"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 1,
+          "docs_examined": 1400,
+          "execution_millis": 1,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_date",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "order_id": {
+                        "$eq": "DEMO-ORDER-0701"
+                      }
+                    },
+                    "queryHash": "B978774D",
+                    "planCacheKey": "B978774D",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "order_id": {
+                            "$eq": "DEMO-ORDER-0701"
+                          }
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_date",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "order_id": {
+                        "$eq": "DEMO-ORDER-0701"
+                      }
+                    },
+                    "queryHash": "B978774D",
+                    "planCacheKey": "B978774D",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "order_id": {
+                            "$eq": "DEMO-ORDER-0701"
+                          }
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 1,
+              "executionTimeMillis": 1,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 1400,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 1,
+                "executionTimeMillis": 1,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 1400,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 0,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 699,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 0,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 700,
+                      "advanced": 0,
+                      "needTime": 699,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "order_id": {
+                            "$eq": "DEMO-ORDER-0701"
+                          }
+                        },
+                        "nReturned": 0,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 700,
+                        "advanced": 0,
+                        "needTime": 699,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 699
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 1,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 701,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 1,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 702,
+                      "advanced": 1,
+                      "needTime": 700,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "order_id": {
+                            "$eq": "DEMO-ORDER-0701"
+                          }
+                        },
+                        "nReturned": 1,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 702,
+                        "advanced": 1,
+                        "needTime": 700,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 701
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_order_date",
+              "filter": {
+                "order_id": "DEMO-ORDER-0701"
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        },
+        "date_range": {
+          "filter": {
+            "order_date": {
+              "$gte": {
+                "$date": "2025-01-05T15:09:00Z"
+              },
+              "$lte": {
+                "$date": "2025-01-14T20:49:00Z"
+              }
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 701,
+          "docs_examined": 701,
+          "execution_millis": 1,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_date",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "order_date": {
+                            "$lte": {
+                              "$date": "2025-01-14T20:49:00Z"
+                            }
+                          }
+                        },
+                        {
+                          "order_date": {
+                            "$gte": {
+                              "$date": "2025-01-05T15:09:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "E0BA25F6",
+                    "planCacheKey": "162A3841",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "FETCH",
+                      "inputStage": {
+                        "stage": "SHARDING_FILTER",
+                        "inputStage": {
+                          "stage": "IXSCAN",
+                          "keyPattern": {
+                            "order_date": 1
+                          },
+                          "indexName": "demo_shard_key",
+                          "isMultiKey": false,
+                          "multiKeyPaths": {
+                            "order_date": []
+                          },
+                          "isUnique": false,
+                          "isSparse": false,
+                          "isPartial": false,
+                          "indexVersion": 2,
+                          "direction": "forward",
+                          "indexBounds": {
+                            "order_date": [
+                              "[new Date(1736089740000), new Date(1736887740000)]"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_date",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "order_date": {
+                            "$lte": {
+                              "$date": "2025-01-14T20:49:00Z"
+                            }
+                          }
+                        },
+                        {
+                          "order_date": {
+                            "$gte": {
+                              "$date": "2025-01-05T15:09:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "E0BA25F6",
+                    "planCacheKey": "162A3841",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "FETCH",
+                      "inputStage": {
+                        "stage": "SHARDING_FILTER",
+                        "inputStage": {
+                          "stage": "IXSCAN",
+                          "keyPattern": {
+                            "order_date": 1
+                          },
+                          "indexName": "demo_shard_key",
+                          "isMultiKey": false,
+                          "multiKeyPaths": {
+                            "order_date": []
+                          },
+                          "isUnique": false,
+                          "isSparse": false,
+                          "isPartial": false,
+                          "indexVersion": 2,
+                          "direction": "forward",
+                          "indexBounds": {
+                            "order_date": [
+                              "[new Date(1736089740000), new Date(1736887740000)]"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 701,
+              "executionTimeMillis": 1,
+              "totalKeysExamined": 701,
+              "totalDocsExamined": 701,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 701,
+                "executionTimeMillis": 1,
+                "totalKeysExamined": 701,
+                "totalDocsExamined": 701,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 349,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 349,
+                    "totalDocsExamined": 349,
+                    "executionStages": {
+                      "stage": "FETCH",
+                      "nReturned": 349,
+                      "executionTimeMillisEstimate": 1,
+                      "works": 350,
+                      "advanced": 349,
+                      "needTime": 0,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "docsExamined": 349,
+                      "alreadyHasObj": 0,
+                      "inputStage": {
+                        "stage": "SHARDING_FILTER",
+                        "nReturned": 349,
+                        "executionTimeMillisEstimate": 1,
+                        "works": 350,
+                        "advanced": 349,
+                        "needTime": 0,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "chunkSkips": 0,
+                        "inputStage": {
+                          "stage": "IXSCAN",
+                          "nReturned": 349,
+                          "executionTimeMillisEstimate": 0,
+                          "works": 350,
+                          "advanced": 349,
+                          "needTime": 0,
+                          "needYield": 0,
+                          "saveState": 0,
+                          "restoreState": 0,
+                          "isEOF": 1,
+                          "keyPattern": {
+                            "order_date": 1
+                          },
+                          "indexName": "demo_shard_key",
+                          "isMultiKey": false,
+                          "multiKeyPaths": {
+                            "order_date": []
+                          },
+                          "isUnique": false,
+                          "isSparse": false,
+                          "isPartial": false,
+                          "indexVersion": 2,
+                          "direction": "forward",
+                          "indexBounds": {
+                            "order_date": [
+                              "[new Date(1736089740000), new Date(1736887740000)]"
+                            ]
+                          },
+                          "keysExamined": 349,
+                          "seeks": 1,
+                          "dupsTested": 0,
+                          "dupsDropped": 0
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 352,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 352,
+                    "totalDocsExamined": 352,
+                    "executionStages": {
+                      "stage": "FETCH",
+                      "nReturned": 352,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 353,
+                      "advanced": 352,
+                      "needTime": 0,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "docsExamined": 352,
+                      "alreadyHasObj": 0,
+                      "inputStage": {
+                        "stage": "SHARDING_FILTER",
+                        "nReturned": 352,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 353,
+                        "advanced": 352,
+                        "needTime": 0,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "chunkSkips": 0,
+                        "inputStage": {
+                          "stage": "IXSCAN",
+                          "nReturned": 352,
+                          "executionTimeMillisEstimate": 0,
+                          "works": 353,
+                          "advanced": 352,
+                          "needTime": 0,
+                          "needYield": 0,
+                          "saveState": 0,
+                          "restoreState": 0,
+                          "isEOF": 1,
+                          "keyPattern": {
+                            "order_date": 1
+                          },
+                          "indexName": "demo_shard_key",
+                          "isMultiKey": false,
+                          "multiKeyPaths": {
+                            "order_date": []
+                          },
+                          "isUnique": false,
+                          "isSparse": false,
+                          "isPartial": false,
+                          "indexVersion": 2,
+                          "direction": "forward",
+                          "indexBounds": {
+                            "order_date": [
+                              "[new Date(1736089740000), new Date(1736887740000)]"
+                            ]
+                          },
+                          "keysExamined": 352,
+                          "seeks": 1,
+                          "dupsTested": 0,
+                          "dupsDropped": 0
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_order_date",
+              "filter": {
+                "order_date": {
+                  "$gte": {
+                    "$date": "2025-01-05T15:09:00Z"
+                  },
+                  "$lte": {
+                    "$date": "2025-01-14T20:49:00Z"
+                  }
+                }
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        },
+        "customer_id_range": {
+          "filter": {
+            "customer_id": {
+              "$gte": "DEMO-CUSTOMER-026",
+              "$lte": "DEMO-CUSTOMER-076"
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 714,
+          "docs_examined": 1400,
+          "execution_millis": 2,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_date",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "customer_id": {
+                            "$lte": "DEMO-CUSTOMER-076"
+                          }
+                        },
+                        {
+                          "customer_id": {
+                            "$gte": "DEMO-CUSTOMER-026"
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "191DD7BA",
+                    "planCacheKey": "191DD7BA",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "customer_id": {
+                                "$lte": "DEMO-CUSTOMER-076"
+                              }
+                            },
+                            {
+                              "customer_id": {
+                                "$gte": "DEMO-CUSTOMER-026"
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_order_date",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "customer_id": {
+                            "$lte": "DEMO-CUSTOMER-076"
+                          }
+                        },
+                        {
+                          "customer_id": {
+                            "$gte": "DEMO-CUSTOMER-026"
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "191DD7BA",
+                    "planCacheKey": "191DD7BA",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "customer_id": {
+                                "$lte": "DEMO-CUSTOMER-076"
+                              }
+                            },
+                            {
+                              "customer_id": {
+                                "$gte": "DEMO-CUSTOMER-026"
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 714,
+              "executionTimeMillis": 2,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 1400,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 714,
+                "executionTimeMillis": 2,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 1400,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 357,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 699,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 357,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 700,
+                      "advanced": 357,
+                      "needTime": 342,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "customer_id": {
+                                "$lte": "DEMO-CUSTOMER-076"
+                              }
+                            },
+                            {
+                              "customer_id": {
+                                "$gte": "DEMO-CUSTOMER-026"
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 357,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 700,
+                        "advanced": 357,
+                        "needTime": 342,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 699
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 357,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 701,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 357,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 702,
+                      "advanced": 357,
+                      "needTime": 344,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "customer_id": {
+                                "$lte": "DEMO-CUSTOMER-076"
+                              }
+                            },
+                            {
+                              "customer_id": {
+                                "$gte": "DEMO-CUSTOMER-026"
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 357,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 702,
+                        "advanced": 357,
+                        "needTime": 344,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 701
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_order_date",
+              "filter": {
+                "customer_id": {
+                  "$gte": "DEMO-CUSTOMER-026",
+                  "$lte": "DEMO-CUSTOMER-076"
+                }
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        }
+      },
+      "write_elapsed_seconds": 0.064,
+      "fit": "Targets time windows, but increasing dates route new writes to the active upper range."
+    },
+    "transactions_by_hashed_customer_id": {
+      "candidate": "hashed customer_id",
+      "shard_key": {
+        "customer_id": "hashed"
+      },
+      "source_collection": "chapter07.demo_financial_activity",
+      "total_documents": 1400,
+      "cardinality": {
+        "distinct_values": 100,
+        "ratio": 0.07142857142857142,
+        "minimum_rows_per_value": 14,
+        "maximum_rows_per_value": 14,
+        "most_frequent_share": 0.01
+      },
+      "distribution": {
+        "per_shard": [
+          {
+            "shard": "c11-shard1-rs",
+            "owned_documents": 630,
+            "storage_size_bytes": 110592,
+            "logical_size_bytes": 132300,
+            "index_size_bytes": 65536
+          },
+          {
+            "shard": "c11-shard2-rs",
+            "owned_documents": 770,
+            "storage_size_bytes": 126976,
+            "logical_size_bytes": 161700,
+            "index_size_bytes": 98304
+          }
+        ],
+        "balance_score": 0.9,
+        "imbalance_percent": 10.0
+      },
+      "monotonic_in_input_order": false,
+      "hotspot_risk": "Low in this dataset: values are not monotonic and the most frequent key represents 1.0% of rows.",
+      "query_targeting_score": 0.45,
+      "recommendation_score": 0.595,
+      "query_weights": {
+        "customer_id_equality": 0.45,
+        "order_id_equality": 0.3,
+        "date_range": 0.15,
+        "customer_id_range": 0.1
+      },
+      "range_efficiency": {
+        "date_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "date_range_scatter_gather": true,
+        "date_range_returned": 701,
+        "date_range_examined": 1400,
+        "customer_range_targets": [
+          "c11-shard1-rs",
+          "c11-shard2-rs"
+        ],
+        "customer_range_scatter_gather": true
+      },
+      "per_shard": [
+        {
+          "shard": "c11-shard1-rs",
+          "owned_documents": 630,
+          "storage_size_bytes": 110592,
+          "logical_size_bytes": 132300,
+          "index_size_bytes": 65536
+        },
+        {
+          "shard": "c11-shard2-rs",
+          "owned_documents": 770,
+          "storage_size_bytes": 126976,
+          "logical_size_bytes": 161700,
+          "index_size_bytes": 98304
+        }
+      ],
+      "queries": {
+        "customer_id_equality": {
+          "filter": {
+            "customer_id": "DEMO-CUSTOMER-038"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": false,
+          "n_returned": 14,
+          "docs_examined": 14,
+          "execution_millis": 1,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SINGLE_SHARD",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_hashed_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "customer_id": {
+                        "$eq": "DEMO-CUSTOMER-038"
+                      }
+                    },
+                    "queryHash": "912E527C",
+                    "planCacheKey": "EB59B595",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "FETCH",
+                      "filter": {
+                        "customer_id": {
+                          "$eq": "DEMO-CUSTOMER-038"
+                        }
+                      },
+                      "inputStage": {
+                        "stage": "IXSCAN",
+                        "keyPattern": {
+                          "customer_id": "hashed"
+                        },
+                        "indexName": "demo_shard_key",
+                        "isMultiKey": false,
+                        "isUnique": false,
+                        "isSparse": false,
+                        "isPartial": false,
+                        "indexVersion": 2,
+                        "direction": "forward",
+                        "indexBounds": {
+                          "customer_id": [
+                            "[7648820882562298752, 7648820882562298752]"
+                          ]
+                        }
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 14,
+              "executionTimeMillis": 1,
+              "totalKeysExamined": 14,
+              "totalDocsExamined": 14,
+              "executionStages": {
+                "stage": "SINGLE_SHARD",
+                "nReturned": 14,
+                "executionTimeMillis": 1,
+                "totalKeysExamined": 14,
+                "totalDocsExamined": 14,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 14,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 14,
+                    "totalDocsExamined": 14,
+                    "executionStages": {
+                      "stage": "FETCH",
+                      "filter": {
+                        "customer_id": {
+                          "$eq": "DEMO-CUSTOMER-038"
+                        }
+                      },
+                      "nReturned": 14,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 15,
+                      "advanced": 14,
+                      "needTime": 0,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "docsExamined": 14,
+                      "alreadyHasObj": 0,
+                      "inputStage": {
+                        "stage": "IXSCAN",
+                        "nReturned": 14,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 15,
+                        "advanced": 14,
+                        "needTime": 0,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "keyPattern": {
+                          "customer_id": "hashed"
+                        },
+                        "indexName": "demo_shard_key",
+                        "isMultiKey": false,
+                        "isUnique": false,
+                        "isSparse": false,
+                        "isPartial": false,
+                        "indexVersion": 2,
+                        "direction": "forward",
+                        "indexBounds": {
+                          "customer_id": [
+                            "[7648820882562298752, 7648820882562298752]"
+                          ]
+                        },
+                        "keysExamined": 14,
+                        "seeks": 1,
+                        "dupsTested": 0,
+                        "dupsDropped": 0
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_hashed_customer_id",
+              "filter": {
+                "customer_id": "DEMO-CUSTOMER-038"
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351454,
+                "i": 1
+              }
+            }
+          }
+        },
+        "order_id_equality": {
+          "filter": {
+            "order_id": "DEMO-ORDER-0701"
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 1,
+          "docs_examined": 1400,
+          "execution_millis": 1,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_hashed_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "order_id": {
+                        "$eq": "DEMO-ORDER-0701"
+                      }
+                    },
+                    "queryHash": "B978774D",
+                    "planCacheKey": "B978774D",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "order_id": {
+                            "$eq": "DEMO-ORDER-0701"
+                          }
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_hashed_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "order_id": {
+                        "$eq": "DEMO-ORDER-0701"
+                      }
+                    },
+                    "queryHash": "B978774D",
+                    "planCacheKey": "B978774D",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "order_id": {
+                            "$eq": "DEMO-ORDER-0701"
+                          }
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 1,
+              "executionTimeMillis": 1,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 1400,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 1,
+                "executionTimeMillis": 1,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 1400,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 1,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 630,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 1,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 631,
+                      "advanced": 1,
+                      "needTime": 629,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "order_id": {
+                            "$eq": "DEMO-ORDER-0701"
+                          }
+                        },
+                        "nReturned": 1,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 631,
+                        "advanced": 1,
+                        "needTime": 629,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 630
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 0,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 770,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 0,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 771,
+                      "advanced": 0,
+                      "needTime": 770,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "order_id": {
+                            "$eq": "DEMO-ORDER-0701"
+                          }
+                        },
+                        "nReturned": 0,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 771,
+                        "advanced": 0,
+                        "needTime": 770,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 770
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_hashed_customer_id",
+              "filter": {
+                "order_id": "DEMO-ORDER-0701"
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        },
+        "date_range": {
+          "filter": {
+            "order_date": {
+              "$gte": {
+                "$date": "2025-01-05T15:09:00Z"
+              },
+              "$lte": {
+                "$date": "2025-01-14T20:49:00Z"
+              }
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 701,
+          "docs_examined": 1400,
+          "execution_millis": 1,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_hashed_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "order_date": {
+                            "$lte": {
+                              "$date": "2025-01-14T20:49:00Z"
+                            }
+                          }
+                        },
+                        {
+                          "order_date": {
+                            "$gte": {
+                              "$date": "2025-01-05T15:09:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "E0BA25F6",
+                    "planCacheKey": "E0BA25F6",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "order_date": {
+                                "$lte": {
+                                  "$date": "2025-01-14T20:49:00Z"
+                                }
+                              }
+                            },
+                            {
+                              "order_date": {
+                                "$gte": {
+                                  "$date": "2025-01-05T15:09:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_hashed_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "order_date": {
+                            "$lte": {
+                              "$date": "2025-01-14T20:49:00Z"
+                            }
+                          }
+                        },
+                        {
+                          "order_date": {
+                            "$gte": {
+                              "$date": "2025-01-05T15:09:00Z"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "E0BA25F6",
+                    "planCacheKey": "E0BA25F6",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "order_date": {
+                                "$lte": {
+                                  "$date": "2025-01-14T20:49:00Z"
+                                }
+                              }
+                            },
+                            {
+                              "order_date": {
+                                "$gte": {
+                                  "$date": "2025-01-05T15:09:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 701,
+              "executionTimeMillis": 1,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 1400,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 701,
+                "executionTimeMillis": 1,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 1400,
+                "totalChildMillis": 0,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 316,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 630,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 316,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 631,
+                      "advanced": 316,
+                      "needTime": 314,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "order_date": {
+                                "$lte": {
+                                  "$date": "2025-01-14T20:49:00Z"
+                                }
+                              }
+                            },
+                            {
+                              "order_date": {
+                                "$gte": {
+                                  "$date": "2025-01-05T15:09:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 316,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 631,
+                        "advanced": 316,
+                        "needTime": 314,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 630
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 385,
+                    "executionTimeMillis": 0,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 770,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 385,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 771,
+                      "advanced": 385,
+                      "needTime": 385,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "order_date": {
+                                "$lte": {
+                                  "$date": "2025-01-14T20:49:00Z"
+                                }
+                              }
+                            },
+                            {
+                              "order_date": {
+                                "$gte": {
+                                  "$date": "2025-01-05T15:09:00Z"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 385,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 771,
+                        "advanced": 385,
+                        "needTime": 385,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 770
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_hashed_customer_id",
+              "filter": {
+                "order_date": {
+                  "$gte": {
+                    "$date": "2025-01-05T15:09:00Z"
+                  },
+                  "$lte": {
+                    "$date": "2025-01-14T20:49:00Z"
+                  }
+                }
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        },
+        "customer_id_range": {
+          "filter": {
+            "customer_id": {
+              "$gte": "DEMO-CUSTOMER-026",
+              "$lte": "DEMO-CUSTOMER-076"
+            }
+          },
+          "targeted_shards": [
+            "c11-shard1-rs",
+            "c11-shard2-rs"
+          ],
+          "targeted_shards_known": true,
+          "scatter_gather": true,
+          "n_returned": 714,
+          "docs_examined": 1400,
+          "execution_millis": 2,
+          "raw_explain": {
+            "queryPlanner": {
+              "mongosPlannerVersion": 1,
+              "winningPlan": {
+                "stage": "SHARD_MERGE",
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "connectionString": "c11-shard1-rs/c11-shard1:27018",
+                    "serverInfo": {
+                      "host": "c11-shard1",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_hashed_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "customer_id": {
+                            "$lte": "DEMO-CUSTOMER-076"
+                          }
+                        },
+                        {
+                          "customer_id": {
+                            "$gte": "DEMO-CUSTOMER-026"
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "191DD7BA",
+                    "planCacheKey": "A100F1FB",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "customer_id": {
+                                "$lte": "DEMO-CUSTOMER-076"
+                              }
+                            },
+                            {
+                              "customer_id": {
+                                "$gte": "DEMO-CUSTOMER-026"
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "connectionString": "c11-shard2-rs/c11-shard2:27018",
+                    "serverInfo": {
+                      "host": "c11-shard2",
+                      "port": 27018,
+                      "version": "7.0.45",
+                      "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+                    },
+                    "namespace": "chapter11.transactions_by_hashed_customer_id",
+                    "indexFilterSet": false,
+                    "parsedQuery": {
+                      "$and": [
+                        {
+                          "customer_id": {
+                            "$lte": "DEMO-CUSTOMER-076"
+                          }
+                        },
+                        {
+                          "customer_id": {
+                            "$gte": "DEMO-CUSTOMER-026"
+                          }
+                        }
+                      ]
+                    },
+                    "queryHash": "191DD7BA",
+                    "planCacheKey": "A100F1FB",
+                    "optimizationTimeMillis": 0,
+                    "maxIndexedOrSolutionsReached": false,
+                    "maxIndexedAndSolutionsReached": false,
+                    "maxScansToExplodeReached": false,
+                    "winningPlan": {
+                      "stage": "SHARDING_FILTER",
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "customer_id": {
+                                "$lte": "DEMO-CUSTOMER-076"
+                              }
+                            },
+                            {
+                              "customer_id": {
+                                "$gte": "DEMO-CUSTOMER-026"
+                              }
+                            }
+                          ]
+                        },
+                        "direction": "forward"
+                      }
+                    },
+                    "rejectedPlans": []
+                  }
+                ]
+              }
+            },
+            "executionStats": {
+              "nReturned": 714,
+              "executionTimeMillis": 2,
+              "totalKeysExamined": 0,
+              "totalDocsExamined": 1400,
+              "executionStages": {
+                "stage": "SHARD_MERGE",
+                "nReturned": 714,
+                "executionTimeMillis": 2,
+                "totalKeysExamined": 0,
+                "totalDocsExamined": 1400,
+                "totalChildMillis": 2,
+                "shards": [
+                  {
+                    "shardName": "c11-shard1-rs",
+                    "executionSuccess": true,
+                    "nReturned": 308,
+                    "executionTimeMillis": 1,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 630,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 308,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 631,
+                      "advanced": 308,
+                      "needTime": 322,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "customer_id": {
+                                "$lte": "DEMO-CUSTOMER-076"
+                              }
+                            },
+                            {
+                              "customer_id": {
+                                "$gte": "DEMO-CUSTOMER-026"
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 308,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 631,
+                        "advanced": 308,
+                        "needTime": 322,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 630
+                      }
+                    }
+                  },
+                  {
+                    "shardName": "c11-shard2-rs",
+                    "executionSuccess": true,
+                    "nReturned": 406,
+                    "executionTimeMillis": 1,
+                    "totalKeysExamined": 0,
+                    "totalDocsExamined": 770,
+                    "executionStages": {
+                      "stage": "SHARDING_FILTER",
+                      "nReturned": 406,
+                      "executionTimeMillisEstimate": 0,
+                      "works": 771,
+                      "advanced": 406,
+                      "needTime": 364,
+                      "needYield": 0,
+                      "saveState": 0,
+                      "restoreState": 0,
+                      "isEOF": 1,
+                      "chunkSkips": 0,
+                      "inputStage": {
+                        "stage": "COLLSCAN",
+                        "filter": {
+                          "$and": [
+                            {
+                              "customer_id": {
+                                "$lte": "DEMO-CUSTOMER-076"
+                              }
+                            },
+                            {
+                              "customer_id": {
+                                "$gte": "DEMO-CUSTOMER-026"
+                              }
+                            }
+                          ]
+                        },
+                        "nReturned": 406,
+                        "executionTimeMillisEstimate": 0,
+                        "works": 771,
+                        "advanced": 406,
+                        "needTime": 364,
+                        "needYield": 0,
+                        "saveState": 0,
+                        "restoreState": 0,
+                        "isEOF": 1,
+                        "direction": "forward",
+                        "docsExamined": 770
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "serverInfo": {
+              "host": "c11-mongos",
+              "port": 27017,
+              "version": "7.0.45",
+              "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+            },
+            "serverParameters": {
+              "internalQueryFacetBufferSizeBytes": 104857600,
+              "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+              "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+              "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+              "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+              "internalQueryProhibitBlockingMergeOnMongoS": 0,
+              "internalQueryMaxAddToSetBytes": 104857600,
+              "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+              "internalQueryFrameworkControl": "forceClassicEngine"
+            },
+            "command": {
+              "find": "transactions_by_hashed_customer_id",
+              "filter": {
+                "customer_id": {
+                  "$gte": "DEMO-CUSTOMER-026",
+                  "$lte": "DEMO-CUSTOMER-076"
+                }
+              },
+              "lsid": {
+                "id": {
+                  "$binary": {
+                    "base64": "p7hE3wgLSriTEC5ZNvhTvg==",
+                    "subType": "04"
+                  }
+                }
+              },
+              "$clusterTime": {
+                "clusterTime": {
+                  "$timestamp": {
+                    "t": 1793351459,
+                    "i": 2
+                  }
+                },
+                "signature": {
+                  "hash": {
+                    "$binary": {
+                      "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      "subType": "00"
+                    }
+                  },
+                  "keyId": 0
+                }
+              },
+              "$db": "chapter11"
+            },
+            "ok": 1.0,
+            "$clusterTime": {
+              "clusterTime": {
+                "$timestamp": {
+                  "t": 1793351459,
+                  "i": 2
+                }
+              },
+              "signature": {
+                "hash": {
+                  "$binary": {
+                    "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "subType": "00"
+                  }
+                },
+                "keyId": 0
+              }
+            },
+            "operationTime": {
+              "$timestamp": {
+                "t": 1793351455,
+                "i": 1
+              }
+            }
+          }
+        }
+      },
+      "write_elapsed_seconds": 0.0652,
+      "fit": "Can distribute distinct customer keys and targets equality reads, but removes customer/date ordering and scatters range queries."
+    }
+  },
+  "measurement_note": "Dataset cardinality and value frequencies come from the persisted source collection. Placement, storage, write elapsed time, and query plans come from the live Chapter 11 cluster.",
+  "requested_documents_per_collection": 1400,
+  "source": "synthetic-demo-v1",
+  "placement_note": "The range-key collections are split at a value midpoint and the upper range is placed on the second Chapter 11 shard to make routing observable; document placement is then measured, not assumed."
+}

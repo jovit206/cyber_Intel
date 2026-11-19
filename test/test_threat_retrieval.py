@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from backend.services.threat_retrieval import retrieve_structured_threat_evidence
+from backend.services.threat_retrieval import build_source_query, retrieve_structured_threat_evidence
 from backend.services.vector_rag import build_rag_prompt
 
 
@@ -441,3 +441,47 @@ def test_status_filter_uses_chapter18_imported_status_only(monkeypatch):
 
     assert [item["chunk_id"] for item in result["items"]] == ["full_threats:threat-1"]
     assert primary["events"].reads == 0
+
+
+def test_question_function_words_are_not_search_terms():
+    from backend.services.threat_retrieval import _terms
+
+    assert _terms("What is the stock price of Contoso Ltd tomorrow?") == ["stock", "price", "Contoso", "Ltd"]
+    assert _terms("Which ransomware threats are recorded in the platform?") == ["ransomware"]
+    assert _terms("Analyse CVE-2024-8190 in the platform") == ["CVE-2024-8190"]
+
+
+def test_question_with_only_function_words_retrieves_no_evidence(monkeypatch):
+    monkeypatch.setenv("LAB18_MONGO_DATABASE", "not-configured-database")
+    primary, _ = _databases({
+        "events": [{"_id": "e1", "info": "This is the list of threats in the platform"}],
+        "attributes": [], "threats": [], "reports": [], "passages": [],
+    })
+    result = retrieve_structured_threat_evidence(primary, "What is in the platform?", limit=5)
+    assert result["items"] == []
+
+
+def test_feed_qualified_attribute_ids_are_not_qualified_twice(monkeypatch):
+    monkeypatch.setenv("LAB18_MONGO_DATABASE", "not-configured-database")
+    primary, _ = _databases({
+        "events": [],
+        "attributes": [{"_id": "botvrij:abc", "indicator": "CVE-2024-8190",
+            "normalized_indicator": "CVE-2024-8190", "is_current": True, "source_feed_name": "botvrij"}],
+        "threats": [], "reports": [], "passages": [],
+    })
+    result = retrieve_structured_threat_evidence(primary, "CVE-2024-8190", limit=5)
+    assert [item["chunk_id"] for item in result["items"]] == ["attributes:botvrij:abc"]
+
+
+def test_terms_do_not_match_inside_unrelated_tokens(monkeypatch):
+    monkeypatch.setenv("LAB18_MONGO_DATABASE", "not-configured-database")
+    primary, _ = _databases({
+        "events": [],
+        "attributes": [
+            {"_id": "mid", "indicator": "9sltd81l.ace90.games", "is_current": True},
+            {"_id": "part", "indicator": "evil.ltd-example.com", "is_current": True},
+        ],
+        "threats": [], "reports": [], "passages": [],
+    })
+    result = retrieve_structured_threat_evidence(primary, "Contoso Ltd", limit=5)
+    assert [item["chunk_id"] for item in result["items"]] == ["attributes:part"]

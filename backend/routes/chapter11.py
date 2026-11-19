@@ -24,7 +24,7 @@ logger = logging.getLogger("aegis.chapter11")
 router = APIRouter(prefix="/api/chapter11", tags=["Chapter 11 - Sharding"])
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-LAB_ROOT = PROJECT_ROOT / "labs" / "chapter11"
+LAB_ROOT = PROJECT_ROOT / "chapter11"
 REPORTS_DIR = LAB_ROOT / "reports"
 MONGO_URI_ENV = "CHAPTER11_MONGO_URI"
 DEFAULT_MONGO_URI = "mongodb://localhost:37317"

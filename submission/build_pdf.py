@@ -118,7 +118,7 @@ Docker Compose with persistent named volumes.</p>
 
 <h2>Start the complete application</h2>
 <pre>cp .env.example .env
-mkdir -p labs/lab9/results
+mkdir -p lab9/results
 # set APP_IMAGE={e(image)} in .env, then:
 docker compose pull
 docker compose up -d
@@ -129,21 +129,21 @@ application. Data lives in named volumes and survives <code>stop</code>, <code>d
 <h2>Features</h2>
 <ul>
   <li><b>Lab 7</b>: Live Threat Stream, Top Threats, Report Corpus, Search &amp; Enrich (VirusTotal, 24 h cache), Cross-Source Analysis, Working Set Monitor (live WiredTiger cache telemetry).</li>
-  <li><b>Lab 8</b>: three-member replica set, member and primary monitoring, failover observer (<code>labs/lab8</code>).</li>
+  <li><b>Lab 8</b>: three-member replica set, member and primary monitoring, failover observer (<code>lab8</code>).</li>
   <li><b>Lab 9.1</b>: write-concern latency for <code>w:1</code>, <code>w:majority</code>, <code>w:all</code> (numeric <code>w</code> = member count) with <code>j:false</code>/<code>j:true</code>, 1,000 inserts each; JSON/CSV artifacts; historical vs live results separated in the UI.</li>
   <li><b>Lab 9.2</b>: confirmed, reversible network-partition simulation with prechecks, timestamps, honest write outcomes and verified recovery.</li>
 </ul>
 
 <h2>Lab 9.1 experiment (manual)</h2>
-<pre>docker compose exec lab7-backend python labs/lab9/lab_01_write_concern_latency.py
+<pre>docker compose exec lab7-backend python lab9/lab_01_write_concern_latency.py
 # options: --docs 200   --dry-run   --replace-historical</pre>
-<p>Reports are written to <code>labs/lab9/results/lab_01_&lt;timestamp&gt;.json</code> and <code>.csv</code>.
+<p>Reports are written to <code>lab9/results/lab_01_&lt;timestamp&gt;.json</code> and <code>.csv</code>.
 MongoDB has no <code>w: "all"</code>; it is run as <code>w:3</code> and the mapping is printed and saved.</p>
 
 <h2>Lab 9.2 experiment (manual)</h2>
-<pre>python labs/lab9/lab_02_simulate_partition.py --dry-run   # prechecks only
-python labs/lab9/lab_02_simulate_partition.py             # type the confirmation text when asked</pre>
-<p>Report: <code>labs/lab9/results/lab_02_partition_&lt;timestamp&gt;.json</code>. Losing the majority is a separate,
+<pre>python lab9/lab_02_simulate_partition.py --dry-run   # prechecks only
+python lab9/lab_02_simulate_partition.py             # type the confirmation text when asked</pre>
+<p>Report: <code>lab9/results/lab_02_partition_&lt;timestamp&gt;.json</code>. Losing the majority is a separate,
 separately confirmed phase (<code>--phase majority-loss</code>).</p>
 
 <h2>Safety notes</h2>

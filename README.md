@@ -198,7 +198,7 @@ There are two equivalent ways to obtain the image. Both start the same stack.
 
 ```bash
 cp .env.example .env              # optional values: VIRUSTOTAL_API_KEY, APP_IMAGE, APP_PORT
-mkdir -p labs/lab9/results        # experiment reports appear here on the host
+mkdir -p lab9/results        # experiment reports appear here on the host
 ```
 
 **A. Pull the published image from Docker Hub** (after publication):
@@ -264,11 +264,11 @@ The Lab 8 replica set *is* the database the application uses.
 
 - **Members and primary**: sidebar **Network Reliability**, section "Current cluster status" (live from
   `replSetGetStatus`), or `GET http://localhost:8000/api/lab8/status`.
-- **Deployment script (8.1)**, idempotent: `docker compose exec lab7-backend python labs/lab8/lab_8_1_replica_set.py`
+- **Deployment script (8.1)**, idempotent: `docker compose exec lab7-backend python lab8/lab_8_1_replica_set.py`
 - **Failover observer (8.2)**: forces `replSetStepDown`, watches the election and a reader reconnect:
-  `docker compose exec lab7-backend python labs/lab8/lab_8_2_failover_monitor.py`
+  `docker compose exec lab7-backend python lab8/lab_8_2_failover_monitor.py`
   It briefly changes the primary on purpose, so run it only when you intend to demonstrate failover.
-- The standalone Lab 8 stack (`labs/lab8/docker-compose.yml`) uses the same project name, containers and
+- The standalone Lab 8 stack (`lab8/docker-compose.yml`) uses the same project name, containers and
   volumes, so either compose file manages the same cluster.
 
 ## Lab 9.1: write concern latency
@@ -290,14 +290,14 @@ mapping, and stores it in the report; a value larger than the member count is re
 Run it manually (it never starts by itself):
 
 ```bash
-docker compose exec lab7-backend python labs/lab9/lab_01_write_concern_latency.py            # 1,000 docs/config
-docker compose exec lab7-backend python labs/lab9/lab_01_write_concern_latency.py --docs 200 # quicker
-docker compose exec lab7-backend python labs/lab9/lab_01_write_concern_latency.py --dry-run  # validate only
+docker compose exec lab7-backend python lab9/lab_01_write_concern_latency.py            # 1,000 docs/config
+docker compose exec lab7-backend python lab9/lab_01_write_concern_latency.py --docs 200 # quicker
+docker compose exec lab7-backend python lab9/lab_01_write_concern_latency.py --dry-run  # validate only
 ```
 
 - Per configuration it records total elapsed time, average latency per write, P50/P99, and
   acknowledged / timed-out / failed counts; each write has a finite `wtimeout`.
-- **Output:** a comparison table on screen and `labs/lab9/results/lab_01_<timestamp>.json` + `.csv`
+- **Output:** a comparison table on screen and `lab9/results/lab_01_<timestamp>.json` + `.csv`
   (plus `lab_01_latest.json`) on the host.
 - **Storage:** new collections `cap_latency_test.run_<timestamp>_<config>`. Existing historical data is
   not touched unless you pass `--replace-historical`.
@@ -317,9 +317,9 @@ the build, start-up, tests or publication triggers it.
 
 ```bash
 # run from the project root, in a bash shell with the docker CLI
-docker compose cp lab7-backend:/app/labs/lab9/lab_02_simulate_partition.py .   # only if you have no checkout
-python labs/lab9/lab_02_simulate_partition.py --dry-run    # prechecks and plan; changes nothing
-python labs/lab9/lab_02_simulate_partition.py              # asks you to type the confirmation text
+docker compose cp lab7-backend:/app/lab9/lab_02_simulate_partition.py .   # only if you have no checkout
+python lab9/lab_02_simulate_partition.py --dry-run    # prechecks and plan; changes nothing
+python lab9/lab_02_simulate_partition.py              # asks you to type the confirmation text
 ```
 
 1. **Prechecks.** Docker reachable; all three containers running and sharing one network; `rs0` has
@@ -332,7 +332,7 @@ python labs/lab9/lab_02_simulate_partition.py              # asks you to type th
 5. **Recovery.** The member is reconnected (also on error or Ctrl+C) *with its original network
    aliases*; the script waits for three healthy members and compares the document count on the
    returned member with the primary. Recovery is reported as verified only if both checks pass.
-6. **Report.** `labs/lab9/results/lab_02_partition_<timestamp>.json` and `.log`
+6. **Report.** `lab9/results/lab_02_partition_<timestamp>.json` and `.log`
    (plus `lab_02_partition_latest.json`, shown on the Network Reliability page).
 
 What to expect, and what is *not* guaranteed: with three voting members, isolating one secondary leaves
@@ -341,8 +341,8 @@ the primary does not step down. The report states what actually happened. Losing
 members isolated; that is a **separate phase** with a different confirmation text:
 
 ```bash
-python labs/lab9/lab_02_simulate_partition.py --phase majority-loss --dry-run
-python labs/lab9/lab_02_simulate_partition.py --phase majority-loss     # type: ISOLATE BOTH SECONDARIES <a> <b>
+python lab9/lab_02_simulate_partition.py --phase majority-loss --dry-run
+python lab9/lab_02_simulate_partition.py --phase majority-loss     # type: ISOLATE BOTH SECONDARIES <a> <b>
 ```
 
 If a run is ever interrupted so badly that cleanup cannot run, reconnect by hand:
@@ -669,14 +669,14 @@ docker build --file Dockerfile.upgrade --tag aegis-cti-financial:2026-10-29-r4 .
 # Keep the old backend container for rollback; only the backend is stopped.
 docker stop fresh-backend
 docker rename fresh-backend fresh-backend-rollback-20261029-r12
-$results = (Resolve-Path .\labs\lab9\results).Path
+$results = (Resolve-Path .\lab9\results).Path
 docker run --detach --name fresh-backend --network fresh-mongo-net `
   --restart unless-stopped --env-file .env `
   --env MONGO_URI='mongodb://fresh-mongo1:27017,fresh-mongo2:27017,fresh-mongo3:27017/?replicaSet=rs0' `
   --env MONGO_DATABASE=chapter07 --env FRONTEND_ORIGIN=http://localhost:8000 `
   --env FRONTEND_API_URL= `
-  --env LAB9_RESULTS_DIR=/app/labs/lab9/results `
-  --mount "type=bind,source=$results,target=/app/labs/lab9/results" `
+  --env LAB9_RESULTS_DIR=/app/lab9/results `
+  --mount "type=bind,source=$results,target=/app/lab9/results" `
   --publish 8000:8000 --publish 18000:8000 aegis-cti-financial:2026-10-29-r4
 Invoke-RestMethod http://localhost:8000/health
 Start-Process http://localhost:8000/account

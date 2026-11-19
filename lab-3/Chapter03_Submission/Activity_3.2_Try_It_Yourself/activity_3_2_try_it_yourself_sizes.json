@@ -1,0 +1,59 @@
+{
+  "images": [
+    {
+      "post_id": 1,
+      "title": "Harbour at Dusk",
+      "file": "harbour_at_dusk.jpg",
+      "width": 400,
+      "height": 600,
+      "image_bytes": 40286,
+      "thumb_bytes": 799,
+      "embedded_document_bytes": 40454
+    },
+    {
+      "post_id": 2,
+      "title": "Rooftops in the Rain",
+      "file": "rooftops_in_the_rain.jpg",
+      "width": 1000,
+      "height": 1500,
+      "image_bytes": 245901,
+      "thumb_bytes": 854,
+      "embedded_document_bytes": 246079
+    },
+    {
+      "post_id": 3,
+      "title": "Night Market",
+      "file": "night_market.jpg",
+      "width": 2000,
+      "height": 3000,
+      "image_bytes": 1216694,
+      "thumb_bytes": 832,
+      "embedded_document_bytes": 1216856
+    },
+    {
+      "post_id": 4,
+      "title": "Salt Flats",
+      "file": "salt_flats.jpg",
+      "width": 3500,
+      "height": 5250,
+      "image_bytes": 4350453,
+      "thumb_bytes": 819,
+      "embedded_document_bytes": 4350611
+    },
+    {
+      "post_id": 5,
+      "title": "Observatory 6K",
+      "file": "observatory_6k.jpg",
+      "width": 6000,
+      "height": 9000,
+      "image_bytes": 19892259,
+      "thumb_bytes": 802,
+      "embedded_document_bytes": null
+    }
+  ],
+  "image_bytes_total": 25745593,
+  "post_bytes_total": 5233,
+  "gridfs_chunks": 101,
+  "document_limit": 16777216,
+  "rejected_by_limit": 1
+}

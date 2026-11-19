@@ -19,7 +19,7 @@
   {
    "name": "Lab 9.2 real partition experiment",
    "result": "MANUAL",
-   "detail": "not executed in this task by instruction; run python labs/lab9/lab_02_simulate_partition.py"
+   "detail": "not executed in this task by instruction; run python lab9/lab_02_simulate_partition.py"
   },
   {
    "name": "Lab 9.1 benchmark",

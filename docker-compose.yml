@@ -11,7 +11,7 @@
 # Named volumes (mongo1-data ...) are never removed by `up`, `stop`, `down` or an upgrade.
 # `docker compose down -v` is the ONLY command here that deletes data; do not use it unless you mean to.
 #
-# The project name matches labs/lab8/docker-compose.yml, so both files share the same replica-set
+# The project name matches lab8/docker-compose.yml, so both files share the same replica-set
 # containers, network and volumes: Lab 8 and the full application run on one cluster.
 name: mongodb-lab
 
@@ -162,7 +162,7 @@ services:
       OLLAMA_BASE_URL: "${OLLAMA_BASE_URL:-http://ollama:11434}"
       OLLAMA_CHAT_MODEL: "${OLLAMA_CHAT_MODEL:-llama3.2:3b}"
       FRONTEND_ORIGIN: "http://localhost:${APP_PORT:-8000}"
-      LAB9_RESULTS_DIR: /app/labs/lab9/results
+      LAB9_RESULTS_DIR: /app/lab9/results
       CHAPTER14_BACKUP_DIR: /app/chapter-14/backups
     ports:
       - "${APP_PORT:-8000}:8000"
@@ -173,7 +173,7 @@ services:
         condition: service_completed_successfully
     volumes:
       # Lab 9.1 / 9.2 reports appear here on the host.
-      - ./labs/lab9/results:/app/labs/lab9/results
+      - ./lab9/results:/app/lab9/results
       - chapter14-backups:/app/chapter-14/backups
     networks:
       - mongo-net

@@ -32,7 +32,7 @@ def test_new_install_defaults_to_ollama_without_returning_credentials(monkeypatc
     status = provider_configuration()
 
     assert config.provider == "ollama"
-    assert config.model == "llama3.1:8b"
+    assert config.model == "llama3.2:3b"
     assert status["llm_provider"] == "Ollama"
     assert status["llm_configured"] is True
     assert "api_key" not in status

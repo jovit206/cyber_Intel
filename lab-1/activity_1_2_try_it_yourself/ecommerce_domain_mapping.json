@@ -1,0 +1,134 @@
+[
+  {
+    "_id": {
+      "$oid": "6a91a2d97a02dca0dcf219ac"
+    },
+    "app": "ecommerce-marketplace",
+    "domain": "product_catalogue",
+    "family": "Document (MongoDB)",
+    "evidence": {
+      "nested_field_query": {
+        "stage": "FETCH -> IXSCAN",
+        "totalDocsExamined": 34,
+        "totalKeysExamined": 34,
+        "nReturned": 34,
+        "executionTimeMillis": 0
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d97a02dca0dcf219ad"
+    },
+    "app": "ecommerce-marketplace",
+    "domain": "cart_and_session",
+    "family": "Key-Value (production: Redis)",
+    "evidence": {
+      "key_lookup": {
+        "stage": "EXPRESS_IXSCAN",
+        "totalDocsExamined": 1,
+        "totalKeysExamined": 1,
+        "nReturned": 1,
+        "executionTimeMillis": 0
+      },
+      "content_query": {
+        "stage": "COLLSCAN",
+        "totalDocsExamined": 1000,
+        "totalKeysExamined": 0,
+        "nReturned": 5,
+        "executionTimeMillis": 1
+      },
+      "ttl_index": {
+        "v": 2,
+        "key": [
+          [
+            "updated_at",
+            1
+          ]
+        ],
+        "expireAfterSeconds": 1800
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d97a02dca0dcf219ae"
+    },
+    "app": "ecommerce-marketplace",
+    "domain": "order_payment_history",
+    "family": "Document (MongoDB)",
+    "evidence": {
+      "range_query": {
+        "stage": "FETCH -> IXSCAN",
+        "totalDocsExamined": 1,
+        "totalKeysExamined": 1,
+        "nReturned": 1,
+        "executionTimeMillis": 1
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d97a02dca0dcf219af"
+    },
+    "app": "ecommerce-marketplace",
+    "domain": "recommendation_graph",
+    "family": "Graph (production: Neo4j at depth/scale)",
+    "evidence": {
+      "graphlookup": {
+        "stage": "EXPRESS_IXSCAN",
+        "totalDocsExamined": 1,
+        "totalKeysExamined": 1,
+        "nReturned": 1,
+        "executionTimeMillis": 0
+      },
+      "seed": "prod-0010",
+      "recommendations": [
+        "prod-0011",
+        "prod-0012",
+        "prod-0013",
+        "prod-0014"
+      ]
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a91a2d97a02dca0dcf219b0"
+    },
+    "app": "ecommerce-marketplace",
+    "domain": "product_search",
+    "family": "Relevance search - outside the four classical families",
+    "evidence": {
+      "text_search": {
+        "stage": "PROJECTION_DEFAULT -> TEXT_MATCH -> TEXT_OR -> IXSCAN",
+        "totalDocsExamined": 200,
+        "totalKeysExamined": 300,
+        "nReturned": 200,
+        "executionTimeMillis": 2
+      },
+      "query": "gaming device",
+      "top_results": [
+        {
+          "_id": "prod-0000",
+          "score": 1.1666666666666667
+        },
+        {
+          "_id": "prod-0003",
+          "score": 1.1666666666666667
+        },
+        {
+          "_id": "prod-0006",
+          "score": 1.1666666666666667
+        },
+        {
+          "_id": "prod-0009",
+          "score": 1.1666666666666667
+        },
+        {
+          "_id": "prod-0012",
+          "score": 1.1666666666666667
+        }
+      ]
+    }
+  }
+]

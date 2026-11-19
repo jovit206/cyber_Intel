@@ -1,0 +1,581 @@
+{
+  "database": "Chapter05",
+  "collections": {
+    "products": "products",
+    "orders": "product_orders"
+  },
+  "foreign_side_filter": {
+    "status": "completed",
+    "order_date": {
+      "$gte": {
+        "$date": "2024-01-01T00:00:00Z"
+      },
+      "$lt": {
+        "$date": "2024-04-01T00:00:00Z"
+      }
+    },
+    "quantity": {
+      "$gte": 2
+    }
+  },
+  "pipeline_1_subpipeline_join": {
+    "pipeline": [
+      {
+        "$lookup": {
+          "from": "product_orders",
+          "let": {
+            "pid": "$product_id",
+            "price": "$base_price"
+          },
+          "pipeline": [
+            {
+              "$match": {
+                "$expr": {
+                  "$eq": [
+                    "$product_id",
+                    "$$pid"
+                  ]
+                },
+                "status": "completed",
+                "order_date": {
+                  "$gte": {
+                    "$date": "2024-01-01T00:00:00Z"
+                  },
+                  "$lt": {
+                    "$date": "2024-04-01T00:00:00Z"
+                  }
+                },
+                "quantity": {
+                  "$gte": 2
+                }
+              }
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "order_id": 1,
+                "customer": 1,
+                "quantity": 1,
+                "order_date": {
+                  "$dateToString": {
+                    "format": "%Y-%m-%d",
+                    "date": "$order_date"
+                  }
+                },
+                "line_total": {
+                  "$multiply": [
+                    "$quantity",
+                    "$$price"
+                  ]
+                }
+              }
+            },
+            {
+              "$sort": {
+                "order_date": 1
+              }
+            }
+          ],
+          "as": "qualifying_orders"
+        }
+      },
+      {
+        "$match": {
+          "qualifying_orders": {
+            "$ne": []
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "product_id": 1,
+          "name": 1,
+          "category": 1,
+          "base_price": 1,
+          "qualifying_orders": 1,
+          "matched": {
+            "$size": "$qualifying_orders"
+          },
+          "revenue": {
+            "$sum": "$qualifying_orders.line_total"
+          }
+        }
+      },
+      {
+        "$sort": {
+          "revenue": -1
+        }
+      }
+    ],
+    "results": [
+      {
+        "product_id": "P001",
+        "name": "Laptop Pro 14",
+        "category": "Electronics",
+        "base_price": 1200,
+        "qualifying_orders": [
+          {
+            "order_id": "ORD-204",
+            "customer": "Rahul",
+            "quantity": 2,
+            "order_date": "2024-01-23",
+            "line_total": 2400
+          }
+        ],
+        "matched": 1,
+        "revenue": 2400
+      },
+      {
+        "product_id": "P005",
+        "name": "ANC Headphones",
+        "category": "Audio",
+        "base_price": 150,
+        "qualifying_orders": [
+          {
+            "order_id": "ORD-206",
+            "customer": "Arjun",
+            "quantity": 2,
+            "order_date": "2024-02-03",
+            "line_total": 300
+          },
+          {
+            "order_id": "ORD-215",
+            "customer": "Rahul",
+            "quantity": 4,
+            "order_date": "2024-03-19",
+            "line_total": 600
+          }
+        ],
+        "matched": 2,
+        "revenue": 900
+      },
+      {
+        "product_id": "P008",
+        "name": "Ergonomic Chair",
+        "category": "Furniture",
+        "base_price": 260,
+        "qualifying_orders": [
+          {
+            "order_id": "ORD-210",
+            "customer": "Rahul",
+            "quantity": 3,
+            "order_date": "2024-02-21",
+            "line_total": 780
+          }
+        ],
+        "matched": 1,
+        "revenue": 780
+      },
+      {
+        "product_id": "P003",
+        "name": "Mechanical Keyboard",
+        "category": "Accessories",
+        "base_price": 85,
+        "qualifying_orders": [
+          {
+            "order_id": "ORD-203",
+            "customer": "Kavya",
+            "quantity": 3,
+            "order_date": "2024-01-17",
+            "line_total": 255
+          },
+          {
+            "order_id": "ORD-214",
+            "customer": "Sneha",
+            "quantity": 5,
+            "order_date": "2024-03-14",
+            "line_total": 425
+          }
+        ],
+        "matched": 2,
+        "revenue": 680
+      },
+      {
+        "product_id": "P002",
+        "name": "27-inch Monitor",
+        "category": "Electronics",
+        "base_price": 320,
+        "qualifying_orders": [
+          {
+            "order_id": "ORD-202",
+            "customer": "Sneha",
+            "quantity": 2,
+            "order_date": "2024-01-11",
+            "line_total": 640
+          }
+        ],
+        "matched": 1,
+        "revenue": 640
+      },
+      {
+        "product_id": "P006",
+        "name": "Docking Station",
+        "category": "Accessories",
+        "base_price": 210,
+        "qualifying_orders": [
+          {
+            "order_id": "ORD-212",
+            "customer": "Arjun",
+            "quantity": 2,
+            "order_date": "2024-03-04",
+            "line_total": 420
+          }
+        ],
+        "matched": 1,
+        "revenue": 420
+      },
+      {
+        "product_id": "P007",
+        "name": "HD Webcam",
+        "category": "Electronics",
+        "base_price": 95,
+        "qualifying_orders": [
+          {
+            "order_id": "ORD-209",
+            "customer": "Kavya",
+            "quantity": 2,
+            "order_date": "2024-02-16",
+            "line_total": 190
+          }
+        ],
+        "matched": 1,
+        "revenue": 190
+      }
+    ]
+  },
+  "pipeline_2_plain_join_comparison": {
+    "pipeline": [
+      {
+        "$lookup": {
+          "from": "product_orders",
+          "localField": "product_id",
+          "foreignField": "product_id",
+          "as": "all_orders"
+        }
+      },
+      {
+        "$set": {
+          "qualifying_orders": {
+            "$filter": {
+              "input": "$all_orders",
+              "as": "o",
+              "cond": {
+                "$and": [
+                  {
+                    "$eq": [
+                      "$$o.status",
+                      "completed"
+                    ]
+                  },
+                  {
+                    "$gte": [
+                      "$$o.order_date",
+                      {
+                        "$date": "2024-01-01T00:00:00Z"
+                      }
+                    ]
+                  },
+                  {
+                    "$lt": [
+                      "$$o.order_date",
+                      {
+                        "$date": "2024-04-01T00:00:00Z"
+                      }
+                    ]
+                  },
+                  {
+                    "$gte": [
+                      "$$o.quantity",
+                      2
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "product_id": 1,
+          "name": 1,
+          "pulled": {
+            "$size": "$all_orders"
+          },
+          "kept": {
+            "$size": "$qualifying_orders"
+          }
+        }
+      },
+      {
+        "$sort": {
+          "pulled": -1
+        }
+      }
+    ],
+    "results": [
+      {
+        "product_id": "P001",
+        "name": "Laptop Pro 14",
+        "pulled": 5,
+        "kept": 1
+      },
+      {
+        "product_id": "P002",
+        "name": "27-inch Monitor",
+        "pulled": 3,
+        "kept": 1
+      },
+      {
+        "product_id": "P005",
+        "name": "ANC Headphones",
+        "pulled": 3,
+        "kept": 2
+      },
+      {
+        "product_id": "P003",
+        "name": "Mechanical Keyboard",
+        "pulled": 2,
+        "kept": 2
+      },
+      {
+        "product_id": "P004",
+        "name": "Wireless Mouse",
+        "pulled": 2,
+        "kept": 0
+      },
+      {
+        "product_id": "P006",
+        "name": "Docking Station",
+        "pulled": 2,
+        "kept": 1
+      },
+      {
+        "product_id": "P008",
+        "name": "Ergonomic Chair",
+        "pulled": 2,
+        "kept": 1
+      },
+      {
+        "product_id": "P007",
+        "name": "HD Webcam",
+        "pulled": 1,
+        "kept": 1
+      },
+      {
+        "product_id": "P009",
+        "name": "Standing Desk",
+        "pulled": 0,
+        "kept": 0
+      },
+      {
+        "product_id": "P010",
+        "name": "USB-C Hub",
+        "pulled": 0,
+        "kept": 0
+      },
+      {
+        "product_id": "P011",
+        "name": "Studio Microphone",
+        "pulled": 0,
+        "kept": 0
+      },
+      {
+        "product_id": "P012",
+        "name": "Laptop Stand",
+        "pulled": 0,
+        "kept": 0
+      }
+    ],
+    "documents_pulled": 20,
+    "documents_kept": 9,
+    "documents_pulled_by_subpipeline": 9
+  },
+  "pipeline_3_top_n_per_product": {
+    "pipeline": [
+      {
+        "$lookup": {
+          "from": "product_orders",
+          "let": {
+            "pid": "$product_id",
+            "price": "$base_price"
+          },
+          "pipeline": [
+            {
+              "$match": {
+                "$expr": {
+                  "$eq": [
+                    "$product_id",
+                    "$$pid"
+                  ]
+                },
+                "status": "completed"
+              }
+            },
+            {
+              "$sort": {
+                "quantity": -1
+              }
+            },
+            {
+              "$limit": 2
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "order_id": 1,
+                "customer": 1,
+                "quantity": 1,
+                "line_total": {
+                  "$multiply": [
+                    "$quantity",
+                    "$$price"
+                  ]
+                }
+              }
+            }
+          ],
+          "as": "top_orders"
+        }
+      },
+      {
+        "$match": {
+          "top_orders": {
+            "$ne": []
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "product_id": 1,
+          "name": 1,
+          "top_orders": 1
+        }
+      },
+      {
+        "$sort": {
+          "product_id": 1
+        }
+      }
+    ],
+    "results": [
+      {
+        "product_id": "P001",
+        "name": "Laptop Pro 14",
+        "top_orders": [
+          {
+            "order_id": "ORD-204",
+            "customer": "Rahul",
+            "quantity": 2,
+            "line_total": 2400
+          },
+          {
+            "order_id": "ORD-201",
+            "customer": "Arjun",
+            "quantity": 1,
+            "line_total": 1200
+          }
+        ]
+      },
+      {
+        "product_id": "P002",
+        "name": "27-inch Monitor",
+        "top_orders": [
+          {
+            "order_id": "ORD-219",
+            "customer": "Rahul",
+            "quantity": 3,
+            "line_total": 960
+          },
+          {
+            "order_id": "ORD-202",
+            "customer": "Sneha",
+            "quantity": 2,
+            "line_total": 640
+          }
+        ]
+      },
+      {
+        "product_id": "P003",
+        "name": "Mechanical Keyboard",
+        "top_orders": [
+          {
+            "order_id": "ORD-214",
+            "customer": "Sneha",
+            "quantity": 5,
+            "line_total": 425
+          },
+          {
+            "order_id": "ORD-203",
+            "customer": "Kavya",
+            "quantity": 3,
+            "line_total": 255
+          }
+        ]
+      },
+      {
+        "product_id": "P005",
+        "name": "ANC Headphones",
+        "top_orders": [
+          {
+            "order_id": "ORD-215",
+            "customer": "Rahul",
+            "quantity": 4,
+            "line_total": 600
+          },
+          {
+            "order_id": "ORD-206",
+            "customer": "Arjun",
+            "quantity": 2,
+            "line_total": 300
+          }
+        ]
+      },
+      {
+        "product_id": "P006",
+        "name": "Docking Station",
+        "top_orders": [
+          {
+            "order_id": "ORD-212",
+            "customer": "Arjun",
+            "quantity": 2,
+            "line_total": 420
+          }
+        ]
+      },
+      {
+        "product_id": "P007",
+        "name": "HD Webcam",
+        "top_orders": [
+          {
+            "order_id": "ORD-209",
+            "customer": "Kavya",
+            "quantity": 2,
+            "line_total": 190
+          }
+        ]
+      },
+      {
+        "product_id": "P008",
+        "name": "Ergonomic Chair",
+        "top_orders": [
+          {
+            "order_id": "ORD-210",
+            "customer": "Rahul",
+            "quantity": 3,
+            "line_total": 780
+          },
+          {
+            "order_id": "ORD-217",
+            "customer": "Arjun",
+            "quantity": 1,
+            "line_total": 260
+          }
+        ]
+      }
+    ]
+  }
+}

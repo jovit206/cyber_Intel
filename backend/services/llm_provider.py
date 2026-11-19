@@ -8,8 +8,11 @@ provider unless LLM_PROVIDER is explicitly set.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import json
 import os
+import re
 import time
+from typing import Iterator
 from urllib.parse import urlsplit
 
 import httpx
@@ -99,10 +102,14 @@ def get_llm_configuration() -> LLMConfiguration:
     timeout_seconds = _timeout_seconds()
     if provider == "ollama":
         endpoint = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").strip().rstrip("/")
-        model = os.getenv("OLLAMA_CHAT_MODEL", "llama3.1:8b").strip()
+        # Matches .env.example and docker-compose.yml; the platform is provisioned with Llama 3.2 (3B).
+        model = os.getenv("OLLAMA_CHAT_MODEL", "").strip() or "llama3.2:3b"
         ollama_key = os.getenv("OLLAMA_API_KEY", "").strip()
-        secure = _secure_endpoint(endpoint, local_http_hosts={"localhost", "127.0.0.1", "::1", "ollama"})
-        is_local = urlsplit(endpoint).hostname in {"localhost", "127.0.0.1", "::1", "ollama"}
+        # host.docker.internal is Docker Desktop's name for the local host machine, used when the backend
+        # container reaches an Ollama server running on the host.
+        local_hosts = {"localhost", "127.0.0.1", "::1", "ollama", "host.docker.internal"}
+        secure = _secure_endpoint(endpoint, local_http_hosts=local_hosts)
+        is_local = urlsplit(endpoint).hostname in local_hosts
         return LLMConfiguration(
             provider=provider,
             provider_label="Ollama" if is_local else "Ollama Cloud",
@@ -139,6 +146,76 @@ def get_llm_configuration() -> LLMConfiguration:
     )
 
 
+def _keep_alive() -> str:
+    # Keep the model loaded between questions so a reply never pays the model-load cost.
+    value = os.getenv("OLLAMA_KEEP_ALIVE", "30m").strip()
+    return value if re.fullmatch(r"-?\d+[smh]?", value) else "30m"
+
+
+def stream_chat_answer(system_prompt: str, user_prompt: str, *, max_tokens: int | None = None,
+                       history: list[dict] | None = None) -> Iterator[str]:
+    """Yield the answer as it is generated (Ollama streaming); other providers yield one chunk.
+
+    ``history`` is a list of earlier {"role", "content"} messages sent as real chat turns.
+    Raises LLMProviderError before the first chunk if the provider is unavailable or rejects the request.
+    """
+    config = get_llm_configuration()
+    if config.provider != "ollama":
+        answer, _ = generate_chat_answer(system_prompt, user_prompt)
+        yield answer
+        return
+    if not config.endpoint_secure:
+        raise LLMProviderError("llm_endpoint_insecure",
+                               "The LLM endpoint must use HTTPS. HTTP is allowed only for the local Ollama service.", 503)
+    headers = {"Content-Type": "application/json"}
+    if config.api_key:
+        headers["Authorization"] = f"Bearer {config.api_key}"
+    limit = max(32, min(int(max_tokens or _ollama_max_tokens()), 1024))
+    messages = [{"role": "system", "content": system_prompt}]
+    messages += [{"role": m["role"], "content": m["content"]} for m in (history or [])
+                 if m.get("role") in {"user", "assistant"} and m.get("content")]
+    messages.append({"role": "user", "content": user_prompt})
+    payload = {
+        "model": config.model,
+        "stream": True,
+        "keep_alive": _keep_alive(),
+        "options": {"temperature": 0.2, "num_predict": limit, "num_ctx": int(os.getenv("OLLAMA_NUM_CTX", "4096") or 4096)},
+        "messages": messages,
+    }
+    timeout = httpx.Timeout(config.timeout_seconds, connect=min(10, config.timeout_seconds))
+    produced = False
+    try:
+        with httpx.stream("POST", f"{config.endpoint}/api/chat", headers=headers, json=payload, timeout=timeout) as response:
+            if response.status_code == 429:
+                raise LLMProviderError("llm_provider_rate_limited", "The LLM provider rate-limited the request. Wait and retry.", 429)
+            if response.status_code >= 400:
+                raise LLMProviderError(
+                    "llm_provider_rejected",
+                    f"The LLM provider rejected the request with HTTP {response.status_code}. Check model configuration and provider availability.",
+                    502)
+            for line in response.iter_lines():
+                if not line.strip():
+                    continue
+                try:
+                    event = json.loads(line)
+                except ValueError as error:
+                    raise LLMProviderError("invalid_llm_response", "The LLM provider returned an invalid stream.", 502) from error
+                if event.get("error"):
+                    raise LLMProviderError("llm_provider_rejected", "The LLM provider reported an error while generating.", 502)
+                text = (event.get("message") or {}).get("content") or ""
+                if text:
+                    produced = True
+                    yield text
+                if event.get("done"):
+                    break
+    except httpx.TimeoutException as error:
+        raise LLMProviderError("llm_provider_timeout", "The LLM provider did not respond before the request timed out.", 504) from error
+    except httpx.RequestError as error:
+        raise LLMProviderError("llm_provider_unreachable", "The configured LLM provider could not be reached.", 502) from error
+    if not produced:
+        raise LLMProviderError("empty_llm_response", "The LLM provider returned an empty answer.", 502)
+
+
 def generate_chat_answer(system_prompt: str, user_prompt: str) -> tuple[str, float]:
     config = get_llm_configuration()
     if not config.endpoint_secure:
@@ -164,6 +241,7 @@ def generate_chat_answer(system_prompt: str, user_prompt: str) -> tuple[str, flo
         payload = {
             "model": config.model,
             "stream": False,
+            "keep_alive": _keep_alive(),
             "options": {"temperature": 0.1, "num_predict": _ollama_max_tokens()},
             "messages": [
                 {"role": "system", "content": system_prompt},

@@ -1,8 +1,11 @@
 """Faculty URL aliases and report-chunk indexing for the Chapter 17 RAG pipeline."""
 from datetime import datetime, timezone
 import hashlib
+import json
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from pymongo import UpdateOne
 from typing import Literal
@@ -21,6 +24,9 @@ from backend.routes.vector_rag import (
     get_conversation, query_rag,
 )
 
+from backend.services import assistant
+
+logger = logging.getLogger("aegis.assistant")
 router = APIRouter(tags=["Chapter 17 RAG aliases"])
 REPORT_INDEX_COLLECTION = "report_chunks_index"
 
@@ -32,6 +38,8 @@ class AskRequest(BaseModel):
     platform: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)] | None = None
     threat_status: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=64)] | None = None
     client: Literal["ai-threat-assistant"] | None = None
+    # Set after the user approves a confirmation: report the result of that local-agent job.
+    agent_job_id: Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{32}$")] | None = None
 
 
 def _source_chunk(row: dict) -> tuple[str, str, int | None] | None:
@@ -47,20 +55,54 @@ def _source_chunk(row: dict) -> tuple[str, str, int | None] | None:
     return text.strip(), str(source), page
 
 
-@router.post("/api/ask")
-def ask(payload: AskRequest, request: Request, actor: dict = Depends(_session_user)):
+def _assistant_context(payload: AskRequest, request: Request, actor: dict) -> dict:
     if not payload.question.strip():
         raise HTTPException(422, "Question must contain 3 to 500 characters.")
-    legacy = RagQuestion(question=payload.question, conversation_id=payload.conversation_id, top_k=5,
-                         platform=payload.platform, threat_status=payload.threat_status,
-                         client=payload.client)
-    result = query_rag(legacy, request, actor)
     try:
-        active_model = provider_configuration().get("llm_model")
-    except VectorProjectError:
-        active_model = None
-    return {**result, "model": active_model,
-            "mode": "extractive" if result.get("response_mode") == "extractive_fallback" else result.get("response_mode")}
+        return assistant.prepare_request(request.app.state.database, actor, payload.question, payload.conversation_id)
+    except assistant.AssistantRequestError as error:
+        raise HTTPException(error.status_code, error.message) from error
+
+
+def _assistant_events(payload: AskRequest, request: Request, actor: dict, context: dict):
+    return assistant.answer_events(request.app.state.database, request.app, actor, question=payload.question,
+                                   conversation_id=payload.conversation_id, platform=payload.platform,
+                                   threat_status=payload.threat_status, client=payload.client, context=context,
+                                   agent_job_id=payload.agent_job_id)
+
+
+@router.post("/api/ask")
+def ask(payload: AskRequest, request: Request, actor: dict = Depends(_session_user)):
+    """Answer one question with the routed assistant pipeline and return the complete answer."""
+    context = _assistant_context(payload, request, actor)
+    final = None
+    for event in _assistant_events(payload, request, actor, context):
+        if event["type"] == "error":
+            raise HTTPException(event.get("status", 503), {"message": event["message"], "code": event.get("code")})
+        if event["type"] == "final":
+            final = event
+    if final is None:
+        raise HTTPException(503, "The assistant did not produce an answer.")
+    final.pop("type", None)
+    return final
+
+
+@router.post("/api/ask/stream")
+def ask_stream(payload: AskRequest, request: Request, actor: dict = Depends(_session_user)):
+    """Stream the answer as newline-delimited JSON events: meta, token..., then final or error."""
+    context = _assistant_context(payload, request, actor)
+
+    def body():
+        try:
+            for event in _assistant_events(payload, request, actor, context):
+                yield json.dumps(event, ensure_ascii=False, default=str) + "\n"
+        except Exception:  # never leak internals; the conversation is not saved without a final answer
+            logger.exception("Assistant stream failed")
+            yield json.dumps({"type": "error", "status": 500,
+                              "message": "The assistant failed while answering. Please try again."}) + "\n"
+
+    return StreamingResponse(body(), media_type="application/x-ndjson",
+                             headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})
 
 
 @router.get("/api/ask/history")

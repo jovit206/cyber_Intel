@@ -1,5 +1,8 @@
 .labs-operations { --labs-ink:#182332; --labs-muted:#627184; --labs-border:#dce4ec; color:var(--labs-ink); width:100%; min-width:0; max-width:100%; }
 .main-canvas { width:0; min-width:0; }
+/* width:0 only works as a flex-basis trick while .aegis-app is a flex row; on phones it is a block, so the
+   canvas must take the full width instead of collapsing to 0 px. */
+@media (max-width: 720px) { .main-canvas { width:100%; } }
 .content-body { min-width:0; }
 .labs-operations [hidden] { display:none!important; }
 .labs-workspace-head h2 { margin:6px 0 8px; font-size:clamp(1.45rem,2vw,2rem); }

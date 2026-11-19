@@ -39,13 +39,18 @@ RUN if [ "$INSTALL_CHAPTER18_POLYGLOT" = "true" ]; then \
 # No .env, secrets or database files are copied
 COPY backend ./backend
 COPY public ./public
-COPY labs ./labs
+COPY lab8 ./lab8
+COPY lab9 ./lab9
+COPY lab10 ./lab10
+COPY chapter11 ./chapter11
 COPY chapter-13 ./chapter-13
 COPY chapter-14 ./chapter-14
 COPY chapter-15 ./chapter-15
 COPY chapter-16 ./chapter-16
 COPY chapter-17 ./chapter-17
 COPY chapter-18 ./chapter-18
+# Project documentation and deployment files: searched by the AI Threat Assistant's platform knowledge base.
+COPY README.md ADMIN_GUIDE.md BILLING_AND_ENTITLEMENTS.md SECURITY_CENTER.md docker-compose.yml Dockerfile ./
 
 EXPOSE 8000
 

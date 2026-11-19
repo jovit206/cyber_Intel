@@ -571,10 +571,13 @@ def get_conversation(
     )
     if not metadata:
         raise HTTPException(status_code=404, detail="Conversation not found.")
+    # Return the most recent `limit` messages in chronological order; an ascending
+    # sort before the limit would hide the latest turns of a long conversation.
     messages = list(rag[CONVERSATIONS_COLLECTION].find(
         {"conversation_id": conversation_id, "user_id": user_id},
         {"_id": 0, "conversation_id": 0, "user_id": 0, "correlation_id": 0},
-    ).sort("timestamp", 1).limit(limit))
+    ).sort("timestamp", DESCENDING).limit(limit))
+    messages.reverse()
     for message in messages:
         if isinstance(message.get("timestamp"), datetime):
             message["timestamp"] = message["timestamp"].astimezone(timezone.utc).isoformat()

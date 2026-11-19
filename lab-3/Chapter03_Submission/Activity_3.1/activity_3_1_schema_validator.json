@@ -1,0 +1,54 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "required": [
+      "title",
+      "code",
+      "instructor",
+      "schedule"
+    ],
+    "properties": {
+      "title": {
+        "bsonType": "string"
+      },
+      "code": {
+        "bsonType": "string",
+        "pattern": "^[A-Z]{2,4}\\d{3}$"
+      },
+      "instructor": {
+        "bsonType": "string"
+      },
+      "schedule": {
+        "bsonType": "object",
+        "required": [
+          "days",
+          "time",
+          "room"
+        ],
+        "properties": {
+          "days": {
+            "bsonType": "array",
+            "minItems": 1
+          },
+          "time": {
+            "bsonType": "string"
+          },
+          "room": {
+            "bsonType": "string"
+          }
+        }
+      },
+      "enrolled_students": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "object",
+          "required": [
+            "student_id",
+            "name",
+            "email"
+          ]
+        }
+      }
+    }
+  }
+}

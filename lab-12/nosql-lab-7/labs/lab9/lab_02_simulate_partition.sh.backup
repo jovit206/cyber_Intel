@@ -1,0 +1,130 @@
+#!/bin/bash
+# Lab 9.2 - Simulate a Network Partition
+# Uses the MongoDB replica set from Chapter 8.
+set -euo pipefail
+
+NETWORK="mongo-net"
+PRIMARY="mongo1"
+SECONDARY="mongo2"
+
+echo "============================================"
+echo "LAB 9.2: NETWORK PARTITION SIMULATION"
+echo "============================================"
+
+echo
+echo "Step 1: Check MongoDB containers"
+
+for container in mongo1 mongo2 mongo3; do
+    if ! sudo docker inspect "$container" >/dev/null 2>&1; then
+        echo "ERROR: Container $container does not exist."
+        exit 1
+    fi
+
+    running=$(sudo docker inspect -f '{{.State.Running}}' "$container")
+    if [ "$running" != "true" ]; then
+        echo "ERROR: $container is not running."
+        exit 1
+    fi
+
+    echo "  $container: running"
+done
+
+echo
+echo "Step 2: Check replica set status"
+
+sudo docker exec "$PRIMARY" mongosh --quiet --eval '
+rs.status().members.forEach(function(m) {
+    print(m.name + " - " + m.stateStr + " - health: " + m.health);
+});
+'
+
+echo
+echo "Step 3: Measure baseline writes (w:1)"
+
+sudo docker exec "$PRIMARY" mongosh --quiet --eval '
+var c = db.getSiblingDB("lab9_partition").baseline;
+var start = Date.now();
+for (var i = 0; i < 100; i++) {
+    c.insertOne({test: "baseline", x: i, createdAt: new Date()});
+}
+print("Baseline: 100 writes completed in " + (Date.now() - start) + " ms");
+'
+
+echo
+echo "Step 4: Disconnect SECONDARY mongo2 from mongo-net"
+echo "The PRIMARY mongo1 will remain connected."
+
+sudo docker network disconnect "$NETWORK" "$SECONDARY"
+
+restore_network() {
+    if ! sudo docker network inspect "$NETWORK" \
+        --format '{{json .Containers}}' | grep -q "$SECONDARY"; then
+        sudo docker network connect "$NETWORK" "$SECONDARY" 2>/dev/null || true
+    fi
+}
+
+trap restore_network EXIT
+
+echo "  mongo2 disconnected. Waiting 15 seconds..."
+sleep 15
+
+echo
+echo "Step 5: Check replica set state during partition"
+
+sudo docker exec "$PRIMARY" mongosh --quiet --eval '
+rs.status().members.forEach(function(m) {
+    print(m.name + " - " + m.stateStr + " - health: " + m.health);
+});
+'
+
+echo
+echo "Step 6: Test w:1 writes during partition"
+
+sudo docker exec "$PRIMARY" mongosh --quiet --eval '
+var c = db.getSiblingDB("lab9_partition").partition_w1;
+var start = Date.now();
+for (var i = 0; i < 10; i++) {
+    c.insertOne({test: "partition_w1", x: i, createdAt: new Date()},
+                {writeConcern: {w: 1, wtimeout: 5000}});
+}
+print("w:1: 10 writes completed in " + (Date.now() - start) + " ms");
+'
+
+echo
+echo "Step 7: Test w:majority writes during partition"
+
+sudo docker exec "$PRIMARY" mongosh --quiet --eval '
+var c = db.getSiblingDB("lab9_partition").partition_majority;
+try {
+    c.insertOne(
+        {test: "partition_majority", createdAt: new Date()},
+        {writeConcern: {w: "majority", wtimeout: 5000}}
+    );
+    print("w:majority write acknowledged.");
+} catch (e) {
+    print("w:majority write failed or timed out: " + e.message);
+}
+'
+
+echo
+echo "Step 8: Reconnect mongo2"
+
+restore_network
+trap - EXIT
+
+echo "  Network reconnected. Waiting 20 seconds for recovery..."
+sleep 20
+
+echo
+echo "Step 9: Verify replica set recovery"
+
+sudo docker exec "$PRIMARY" mongosh --quiet --eval '
+rs.status().members.forEach(function(m) {
+    print(m.name + " - " + m.stateStr + " - health: " + m.health);
+});
+'
+
+echo
+echo "============================================"
+echo "LAB 9.2 SIMULATION FINISHED"
+echo "============================================"

@@ -20,8 +20,9 @@ from backend.collectors.galaxies import sync_galaxies
 from backend.collectors.misp_feeds import FEEDS, sync_feed
 from backend.collectors.reports import sync_reports
 from backend.config import settings, startup_report
-from backend.services.entitlements import (FEATURE_LABELS, billing_period, describe_entitlements,
-    feature_for_path, release_feature_use, reserve_feature_use)
+from backend.services.entitlements import (FEATURE_LABELS, billing_period, counts_as_feature_use,
+    describe_entitlements, feature_for_path, feature_limit, effective_plan, plan_includes_feature,
+    release_feature_use, reserve_feature_use)
 from backend.database import close_database, connect_database
 from backend.routes.api import router as api_router
 from backend.routes.cross_source import router as cross_source_router
@@ -48,6 +49,7 @@ from backend.routes.course_tour import router as course_tour_router
 from backend.routes.chapter13_ops import router as chapter13_ops_router
 from backend.routes.chapter14_ops import router as chapter14_ops_router
 from backend.routes.chapter15_api import router as chapter15_api_router
+from backend.routes.local_agent import router as local_agent_router
 from backend.services.subscriptions import ensure_indexes as ensure_subscription_indexes
 from backend.services.operations import ensure_indexes as ensure_operations_indexes
 from backend.services.chapter13_ops import ensure_indexes as ensure_chapter13_ops_indexes
@@ -232,6 +234,9 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     application.state.operations_tracking_started_at = datetime.now(timezone.utc)
     application.state.operations_tracking_enabled = True
     logger.info("[MongoDB] Connected to %s", settings.mongo_database)
+    # Build the assistant's platform knowledge index in the background so the first question is not slower.
+    from backend.services.platform_knowledge import warm_platform_knowledge
+    warm_platform_knowledge(application, database)
 
     scheduler = BackgroundScheduler(timezone="UTC")
     application.state.scheduler = scheduler
@@ -381,6 +386,7 @@ app.include_router(course_tour_router)
 app.include_router(chapter13_ops_router)
 app.include_router(chapter14_ops_router)
 app.include_router(chapter15_api_router)
+app.include_router(local_agent_router)
 
 
 @app.middleware("http")
@@ -434,8 +440,14 @@ async def require_platform_session(request: Request, call_next):
     reserved_period = None
     if guarded_api and feature and session_user.get("role") != "admin":
         period = billing_period()
+        metered = counts_as_feature_use(path, request.method)
         try:
-            allowed, limit = reserve_feature_use(request.app.state.database, session_user, feature, period)
+            if metered:
+                allowed, limit = reserve_feature_use(request.app.state.database, session_user, feature, period)
+            else:
+                # Passive dashboard view: require the plan to include the feature, but don't spend allowance.
+                allowed = plan_includes_feature(session_user, feature)
+                limit = feature_limit(effective_plan(session_user), feature)
         except Exception:
             logger.exception("Feature entitlement check failed for %s", feature)
             return JSONResponse(status_code=503, content={"detail": "Feature access could not be verified. Please retry."})
@@ -450,7 +462,7 @@ async def require_platform_session(request: Request, call_next):
                 "period": entitlements["period"], "limit": limit, "reset_period": "monthly",
                 "upgrade_prices": {"plus": 299, "pro": 799},
             }})
-        if limit is not None:
+        if metered and limit is not None:
             reserved_period = period
     try:
         response = await call_next(request)
