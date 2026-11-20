@@ -158,6 +158,21 @@ def redact(text: str) -> str:
     return text
 
 
+def redact_tree(value: Any) -> Any:
+    """Redact every string in a JSON-like result, one value at a time.
+
+    Each regex call holds the GIL until it finishes; short per-value calls keep the agent's HTTP threads responsive
+    even when a result is large. Dictionary keys are left unchanged.
+    """
+    if isinstance(value, str):
+        return redact(value) if len(value) >= 8 else value
+    if isinstance(value, dict):
+        return {key: redact_tree(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [redact_tree(item) for item in value]
+    return value
+
+
 # --------------------------------------------------------------------------- action log
 
 _LOG_LOCK = threading.Lock()

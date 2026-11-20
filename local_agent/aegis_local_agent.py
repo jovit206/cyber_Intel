@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from policy import Policy, PolicyError, load_config, load_token, log_action, redact  # noqa: E402
+from policy import Policy, PolicyError, load_config, load_token, log_action, redact, redact_tree  # noqa: E402
 from tools import TOOLS, Context  # noqa: E402
 
 VERSION = "1.0.0"
@@ -127,7 +127,7 @@ class Agent:
         started = time.perf_counter()
         try:
             result = TOOLS[job["tool"]].func(job["args"], Context(self.policy, job["cancel"], progress))
-            job["result"] = json.loads(redact(json.dumps(result, default=str)))
+            job["result"] = redact_tree(json.loads(json.dumps(result, default=str)))
             job["status"] = "cancelled" if job["cancel"].is_set() else "completed"
         except PolicyError as error:
             job["status"], job["error"] = "rejected", str(error)

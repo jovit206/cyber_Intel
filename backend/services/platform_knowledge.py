@@ -114,8 +114,13 @@ _KIND_HINTS = (
     (r"\b(frontend|front-end|pages?|sidebar|ui|buttons?|views?|screen)\b", "frontend", 1.6),
     (r"\b(docker|containers?|compose|deploy(ment)?|images?|ports?)\b", "configuration", 1.4),
     (r"\b(collections?|schemas?|stored|records?|documents?|current(ly)?|status|connected)\b", "live status", 1.4),
+    (r"\b(how many|number of|count|total|right now|newest|latest)\b", "live status", 1.8),
     (r"\b(source|code|implement(ed|ation)?|functions?|internally|module)\b", "source code", 1.3),
 )
+
+# Broad questions about the whole platform ("what features does it have?", "what can this app do?").
+_OVERVIEW_QUESTION = re.compile(r"\b(features?|capabilit\w*|overview|purpose|modules|what (can|does) (the |this |my |aegis)"
+                                r"|what is (the |this |my )?(platform|app|application|project|aegis)|summar\w*)\b")
 
 
 @dataclass
@@ -359,9 +364,66 @@ def _live_chunks(database) -> list[Chunk]:
     except Exception as error:
         facts.append(f"LLM configuration could not be read ({type(error).__name__}).")
     text = "\n\n".join(facts)
-    return [Chunk(f"kb:live#{i}", "Live deployment status (read from MongoDB and configuration)", window,
-                  "live status", "live")
-            for i, window in enumerate(_windows(text, 1400))]
+    chunks = [Chunk(f"kb:live#{i}", "Live deployment status (read from MongoDB and configuration)", window,
+                    "live status", "live")
+              for i, window in enumerate(_windows(text, 1400))]
+    data = _threat_data_summary(database)
+    if data:
+        chunks.append(Chunk("kb:live:threat-data", "Live threat-intelligence data: how many threat records are stored, "
+                            "by source and type, and the newest records", data, "live status", "live"))
+    return chunks
+
+
+def _threat_data_summary(database) -> str:
+    """Plain-language counts of the stored threat intelligence, so "how many threats are stored?" has a direct answer."""
+    facts: list[str] = []
+    try:
+        events = database["events"]
+        by_source = {row["_id"]: row["count"] for row in events.aggregate(
+            [{"$group": {"_id": "$source", "count": {"$sum": 1}}}], maxTimeMS=3000)}
+        total_events = sum(by_source.values())
+        facts.append(f"The platform currently stores {total_events:,} threat events (threat records) in the events "
+                     "collection: " + ", ".join(f"{count:,} from {source or 'unknown source'}" for source, count in
+                                                sorted(by_source.items(), key=lambda kv: -kv[1])) + ".")
+        feeds = [row for row in events.aggregate(
+            [{"$match": {"source": "misp"}}, {"$group": {"_id": "$source_feed_name", "count": {"$sum": 1}}},
+             {"$sort": {"count": -1}}], maxTimeMS=3000) if row["_id"]]
+        if feeds:
+            facts.append("MISP events by feed: " + ", ".join(f"{row['_id']} {row['count']:,}" for row in feeds) + ".")
+        newest = events.find_one({}, {"info": 1, "indicator": 1, "source": 1, "timestamp": 1}, sort=[("timestamp", -1)])
+        if newest:
+            facts.append(f"The newest stored event is {newest.get('info') or newest.get('indicator')} "
+                         f"(source {newest.get('source')}, {newest.get('timestamp')}). The Top Threats view lists the "
+                         "newest MISP and VirusTotal events.")
+    except Exception as error:
+        facts.append(f"Threat event counts could not be read ({type(error).__name__}).")
+    labels = {"attributes": "indicators (IOCs: IP addresses, domains, URLs, hashes) in the attributes collection",
+              "threats": "threat actors, malware and tools from MISP Galaxies in the threats collection",
+              "reports": "annual security reports in the reports collection",
+              "passages": "report passages used for search in the passages collection"}
+    counts: dict[str, int] = {}
+    for name in ("events", *labels):
+        try:
+            counts[name] = database[name].estimated_document_count()
+        except Exception:
+            continue
+    if counts:
+        names = {"events": "threat events", "attributes": "indicators", "threats": "Galaxy threat entries",
+                 "reports": "reports", "passages": "report passages"}
+        # One leading total, so a "how many" answer names every record type rather than only the first sentence.
+        facts.insert(0, f"In total the platform stores {sum(counts.values()):,} threat-intelligence records: "
+                        + ", ".join(f"{count:,} {names[name]}" for name, count in counts.items()) + ".")
+    for name, label in labels.items():
+        if name in counts:
+            facts.append(f"{counts[name]:,} {label}.")
+    try:
+        lab18 = database.client["threat_intel_lab18"]
+        if "full_threats" in lab18.list_collection_names():
+            facts.append(f"Chapter 18 (multi-database capstone) holds {lab18['full_threats'].estimated_document_count():,} "
+                         "threat records in threat_intel_lab18.full_threats.")
+    except Exception:
+        pass
+    return " ".join(facts)
 
 
 class KnowledgeBase:
@@ -449,10 +511,19 @@ class KnowledgeBase:
                 tf = frequency * (k1 + 1) / (frequency + k1 * (1 - b + b * length / self._avg_len))
                 scores[position] += idf * tf * (1.0 + 0.3 * (query_weight - 1))
         lowered = question.casefold()
-        boosts = {kind: factor for pattern, kind, factor in _KIND_HINTS if re.search(pattern, lowered)}
-        if boosts:
+        boosts: dict[str, float] = {}
+        for pattern, kind, factor in _KIND_HINTS:
+            if re.search(pattern, lowered):
+                boosts[kind] = max(boosts.get(kind, 1.0), factor)
+        overview = bool(_OVERVIEW_QUESTION.search(lowered))
+        if boosts or overview:
             for position in scores:
-                scores[position] *= boosts.get(self._chunks[position].kind, 1.0)
+                chunk = self._chunks[position]
+                scores[position] *= boosts.get(chunk.kind, 1.0)
+                if overview and chunk.path.endswith("PLATFORM_OVERVIEW.md"):
+                    # The curated overview answers broad questions best, above all its "What the platform does"
+                    # section (which lists the features); other sections only mention features in passing.
+                    scores[position] *= 4.0 if chunk.title.endswith("What the platform does") else 1.5
         ranked = sorted(scores.items(), key=lambda item: item[1], reverse=True)
         results, per_file = [], Counter()
         for position, score in ranked:

@@ -20,7 +20,7 @@ import tools  # noqa: E402
 
 SECURITY_TOOLS = {"threat_scan", "defender_status", "defender_quick_scan", "suspicious_files", "suspicious_processes",
                   "persistence_entries", "network_connections", "unwanted_applications", "security_posture",
-                  "powershell_activity", "secret_scan"}
+                  "powershell_activity", "secret_scan", "installed_software", "defender_full_scan", "defender_custom_scan"}
 
 
 @pytest.fixture
@@ -44,8 +44,39 @@ def test_registry_contains_only_security_checks():
     for removed in ("largest_files", "duplicate_files", "system_info", "search_files", "temp_files", "docker_overview",
                     "python_packages", "project_structure", "move_to_recycle_bin", "read_text_file", "run_command"):
         assert removed not in tools.TOOLS
-    # Only the Defender scan is an action, and it needs confirmation; every other tool is read-only.
-    assert {n for n, t in tools.TOOLS.items() if t.requires_confirmation} == {"defender_quick_scan"}
+    # Only Defender scans are actions, and each needs confirmation; every other tool is read-only.
+    assert {n for n, t in tools.TOOLS.items() if t.requires_confirmation} == {
+        "defender_quick_scan", "defender_full_scan", "defender_custom_scan"}
+
+
+def test_custom_defender_scan_only_accepts_an_existing_local_folder(agent):
+    a, tmp = agent
+    ctx = tools.Context(a.policy, threading.Event(), lambda *_: None)
+    for bad in ("", "whoami", r"\\server\share", r"Q:\does-not-exist", "C:\\x & calc"):
+        with pytest.raises(policy.PolicyError):
+            tools.defender_custom_scan({"path": bad}, ctx)
+
+
+def test_redaction_reaches_every_string_in_a_result():
+    secret = "ghp_" + "b" * 36
+    result = policy.redact_tree({"a": [{"cmd": f"git push https://{secret}@x"}], "n": 3, "short": "ok"})
+    assert secret not in repr(result) and result["n"] == 3 and result["short"] == "ok"
+
+
+def test_installed_software_lists_programs_and_flags_adware_like_names(agent, monkeypatch):
+    a, _ = agent
+    monkeypatch.setattr(tools, "_installed_programs", lambda: [
+        {"name": "Steam", "publisher": "Valve Corporation", "version": "2.10", "installed": "2020-01-01", "location": None,
+         "scope": "all users", "kind": "desktop program"},
+        {"name": "Super PC Cleaner", "publisher": None, "version": "1", "installed": None, "location": None,
+         "scope": "current user", "kind": "desktop program"}])
+    monkeypatch.setattr(tools, "_store_apps", lambda: [{"name": "Spotify", "publisher": "Spotify AB", "version": "1",
+                                                         "installed": None, "location": None, "scope": "current user",
+                                                         "kind": "Store app"}])
+    result = tools.installed_software({}, tools.Context(a.policy, threading.Event(), lambda *_: None))
+    assert result["total"] == 3 and result["store_apps"] == 1
+    assert [f["name"] for f in result["flagged"]] == ["Super PC Cleaner"]
+    assert result["flagged"][0]["level"] == "suspicious"
 
 
 def test_general_and_unknown_tools_are_rejected(agent):

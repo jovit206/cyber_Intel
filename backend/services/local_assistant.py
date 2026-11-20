@@ -26,10 +26,16 @@ _MACHINE = re.compile(r"\b(laptop|computer|pc|machine|system|device|windows|my f
 _PLATFORM_MECHANISM = re.compile(r"^\s*(how|why)\s+(does|do|is|are)\s+(the|this|my)\s+(platform|application|app|assistant|"
                                  r"chatbot|backend|agent)\b", re.I)
 _REQUEST = re.compile(r"\b(scan|check|inspect|find|look for|search|detect|identify|analy[sz]e|audit|review|show|list|report|"
-                      r"is there|are there|any|investigate|examine|run|tell me|what)\b", re.I)
+                      r"is there|are there|any|investigate|examine|run|tell me|what|which)\b", re.I)
+
+# "C:\Users\me", "G drive", "drive D". The single letters a and i are excluded from the spoken forms ("a drive").
+_DRIVE_OR_PATH = re.compile(r"\b([a-z]):\\[^\s\"'<>|?*]*|\b([b-hj-z]):?\s+drive\b|\bdrive\s+([b-hj-z])\b", re.I)
 
 # Security checks, most specific first.
 _SECURITY_RULES: list[tuple[re.Pattern, str]] = [(re.compile(p, re.I), tool) for p, tool in [
+    (r"\b(scan|check|read|go through|inspect)\b.*(\b[a-z]:\\|\b[b-hj-z]:?\s+drive\b|\bdrive\s+[b-hj-z]\b)", "defender_custom_scan"),
+    (r"\b(full|complete|deep|entire|whole|thorough)\b.*\b(scan|check)\b|\bdefender full scan\b|"
+     r"\b(scan|check|read|go through|inspect)\b.*\b(all|every|each|entire)\b.*\bfiles?\b", "defender_full_scan"),
     (r"\b(run|start)\b.*\b(defender|quick)\s*scan\b|\bdefender quick scan\b", "defender_quick_scan"),
     (r"\b(api keys?|secrets?|credentials?|passwords?|tokens?|private keys?)\b.*\b(project|code|repo|files?)\b|"
      r"\b(project|code|repo)\b.*\b(api keys?|secrets?|credentials?|passwords?|tokens?)\b", "secret_scan"),
@@ -44,7 +50,38 @@ _SECURITY_RULES: list[tuple[re.Pattern, str]] = [(re.compile(p, re.I), tool) for
     (r"\b(suspicious|malicious|dangerous) (files?|executables?|scripts?|downloads?)\b|\b(executables?|scripts?) .*(suspicious|malicious)\b", "suspicious_files"),
     (r"\b(malware|virus(es)?|trojans?|ransomware|threats?|infect\w*|compromis\w*|hack\w*|rootkits?|backdoors?|keyloggers?|"
      r"spyware|iocs?|indicators? of compromise|security scan|full scan|security check)\b", "threat_scan"),
+    (r"\binstalled\b|\b(software|programs?|applications?|apps)\b.*\b(have|got|on (my|this)|in (my|this))\b|"
+     r"\b(which|what) (software|programs?|applications?|apps)\b|"
+     r"\bdo i have\b|\b(list|show)\b.*\b(software|programs?|applications?|apps)\b", "installed_software"),
 ]]
+# "scan again", "rescan", "run it again" right after a laptop scan.
+_RESCAN = re.compile(r"^\s*(re-?scan|(scan|check|run|do|try)( it| that| the scan)? (again|once more))\b|\bscan again\b", re.I)
+# Questions about the platform's own software (containers, packages) are not about the laptop's installed programs.
+_PLATFORM_SOFTWARE = re.compile(r"\b(platform|docker|containers?|images?|backend|server|python|pip|npm|node|packages?|"
+                                r"dependencies|requirements|libraries)\b", re.I)
+_NOT_A_PROGRAM = {"anything", "something", "software", "programs", "apps", "applications", "malware", "it", "that", "this"}
+
+
+def _program_name(question: str) -> str | None:
+    """The program the user asks about in "is Steam installed?" / "do I have Zoom?", if any."""
+    for pattern in (r"\b(?:is|are)\s+(?:there\s+)?(?:an?\s+|the\s+|any\s+)?(.+?)\s+installed\b",
+                    r"\bdo\s+i\s+have\s+(?:an?\s+|the\s+|any\s+)?(.+?)(?:\s+installed|\s+on\b|\s+in\b|\?|$)",
+                    r"\bhave\s+i\s+installed\s+(?:an?\s+|the\s+)?(.+?)(?:\s+on\b|\s+in\b|\?|$)"):
+        match = re.search(pattern, question.strip(), re.I)
+        if match:
+            name = re.sub(r"\s+(on|in)\s+(my|this)\s+\w+$", "", match.group(1).strip(" ?.!\"'"), flags=re.I)
+            if name and name.casefold() not in _NOT_A_PROGRAM and len(name) <= 60:
+                return name
+    return None
+
+
+def _scan_path(question: str) -> str | None:
+    match = _DRIVE_OR_PATH.search(question)
+    if not match:
+        return None
+    if match.group(1):
+        return match.group(0).rstrip(".,;!?")
+    return f"{(match.group(2) or match.group(3)).upper()}:\\"
 
 # General laptop management: recognised so it can be refused, never executed.
 _GENERAL_RULES = [re.compile(p, re.I) for p in [
@@ -58,23 +95,35 @@ _GENERAL_RULES = [re.compile(p, re.I) for p in [
 ]]
 
 REFUSAL = ("My local agent is restricted to cybersecurity inspection of this laptop, so I can't help with general laptop "
-           "management such as storage, files, performance or software installation. I can scan for malware and suspicious "
-           "files, suspicious processes, startup/persistence entries, unusual network connections, potentially unwanted "
-           "applications, Microsoft Defender status, patch and hardening gaps, suspicious PowerShell activity, exposed "
-           "credentials in your approved project folder, and match what I find against the platform's threat indicators.")
+           "management such as storage, moving or deleting files, performance, or installing and removing software. I can "
+           "list the installed software, run a Microsoft Defender quick or full scan (which reads every file) or scan a "
+           "chosen drive or folder, and check for suspicious files, processes, startup/persistence entries, unusual network "
+           "connections, potentially unwanted applications, Defender status, patch and hardening gaps, suspicious "
+           "PowerShell activity and exposed credentials in your approved project folder, matching what I find against "
+           "the platform's threat indicators.")
 
 
-def classify(question: str) -> tuple[str, Any] | None:
+def classify(question: str, previous_route: str | None = None) -> tuple[str, Any] | None:
     """("security", (tool, args)) | ("refuse", None) | None when the request is not about this laptop."""
     text = question.strip()
     if _PLATFORM_MECHANISM.search(text):
         return None
+    if previous_route == "local" and _RESCAN.search(text):
+        return "security", ("threat_scan", {})
     security = next((tool for pattern, tool in _SECURITY_RULES if pattern.search(text)), None)
+    if security == "installed_software" and _PLATFORM_SOFTWARE.search(text) and not _MACHINE.search(text):
+        security = None  # "which python packages are installed in the backend" is about the platform
+    if security == "defender_custom_scan" and not _scan_path(text):
+        security = "defender_full_scan"
     general = any(pattern.search(text) for pattern in _GENERAL_RULES)
     machine = bool(_MACHINE.search(text))
-    if security and (machine or security in {"secret_scan", "defender_status", "defender_quick_scan"} or
-                     (_REQUEST.search(text) and re.search(r"\b(my|this|our)\b", text, re.I))):
+    if security and (machine or security in {"secret_scan", "defender_status", "defender_quick_scan", "defender_full_scan",
+                                             "defender_custom_scan"} or
+                     (security == "installed_software" and _program_name(text)) or
+                     (_REQUEST.search(text) and re.search(r"\b(my|this|our|i)\b", text, re.I))):
         args = {"path": DEFAULT_PROJECT} if security == "secret_scan" else {}
+        if security == "defender_custom_scan":
+            args = {"path": _scan_path(text)}
         return "security", (security, args)
     if general and (machine or re.search(r"\bmy\b", text, re.I)) and _REQUEST.search(text) or (general and machine):
         return "refuse", None
@@ -124,22 +173,63 @@ def _list(items, fields, limit=12) -> str:
     return "\n".join(lines) + (f"\n- …and {more} more" if more > 0 else "") if lines else "- none"
 
 
-def _render_one(tool: str, r: dict) -> str:
+def _program_line(p: dict) -> str:
+    details = ", ".join(str(x) for x in (p.get("publisher"), f"version {p['version']}" if p.get("version") else None,
+                                         f"installed {p['installed']}" if p.get("installed") else None) if x)
+    return f"- {p['name']}" + (f" ({details})" if details else "")
+
+
+def _render_installed(r: dict, question: str = "", summary: bool = False) -> str:
+    software = r.get("software") or []
+    name = _program_name(question) if question else None
+    if name:
+        # Match at a word start: "steam" finds "Steam" and "Steamworks" but not "MSTeams".
+        wanted = re.compile(r"(?<![a-z0-9])" + re.escape(name), re.I)
+        matches = [p for p in software if wanted.search(str(p.get("name", "")))]
+        if matches:
+            return (f"Yes. {len(matches)} installed program(s) match \"{name}\":\n" + "\n".join(_program_line(p) for p in matches[:15]))
+        return (f"No installed program matching \"{name}\" is registered on this laptop ({r.get('total')} programs and Store apps "
+                "checked). A portable copy that was only unzipped or copied would not be registered, so it would not show here.")
+    flagged = r.get("flagged") or []
+    lines = [f"- {r.get('total', 0)} installed: {r.get('desktop_programs', 0)} desktop programs and {r.get('store_apps', 0)} Store apps; "
+             f"{len(flagged)} flagged for review"]
+    if flagged:
+        lines.append(_list(flagged, ["name", "publisher"], 12))
+    recent = r.get("installed_or_updated_last_14_days") or []
+    if recent:
+        lines.append("- Installed or updated in the last 14 days: " + ", ".join(f"{p['name']} ({p['installed']})" for p in recent[:15]))
+    if not summary:
+        desktop = [p for p in software if p.get("kind") == "desktop program"]
+        apps = [p["name"] for p in software if p.get("kind") != "desktop program"]
+        lines.append("\n**Desktop programs**\n" + "\n".join(_program_line(p) for p in desktop[:250]))
+        if apps:
+            lines.append("\n**Store and app packages**\n" + ", ".join(apps[:250]))
+    return "\n".join(lines)
+
+
+def _render_one(tool: str, r: dict, question: str = "") -> str:
     if not r:
         return "- not available"
     if r.get("unavailable") and len(r) == 1:
         return f"- not available: {'; '.join(r['unavailable'])}"
-    if tool in {"defender_status", "defender_quick_scan"}:
+    if tool == "installed_software":
+        return _render_installed(r, question)
+    if tool in {"defender_status", "defender_quick_scan", "defender_full_scan", "defender_custom_scan"}:
         av = ", ".join(f"{p['product']} ({'real-time on' if p['real_time_on'] else 'off'})" for p in r.get("registered_antivirus_products", []))
         detected = r.get("detected_threats") or []
-        return (f"- Defender mode: {r.get('running_mode')}; registered antivirus: {av or 'unknown'}\n"
+        scan = r.get("scan") or {}
+        scope = (f"- Defender {scan.get('type')} scan of {scan.get('scope')} "
+                 f"{'was cancelled before it finished' if scan.get('cancelled') else 'finished'}; last full scan: {r.get('last_full_scan') or 'never recorded'}\n"
+                 if scan else "")
+        return (scope + f"- Defender mode: {r.get('running_mode')}; registered antivirus: {av or 'unknown'}\n"
                 f"- Defender protections off: {', '.join(r.get('protection_issues') or []) or 'none'}"
                 + (" (expected while another antivirus is active)" if r.get("other_antivirus_active") else "")
                 + f"\n- Confirmed detections: {len(detected)}" + "".join(f"\n  - {d['name']} (severity {d['severity']}, active: {d['active']})" for d in detected[:10])
                 + (f"\n- Recent detection events: {len(r.get('recent_detections') or [])}" if r.get("recent_detections") else ""))
     if tool == "suspicious_files":
-        return (f"- {r.get('total', 0)} executables/scripts in Downloads, Temp, Startup and Public ({r.get('suspicious', 0)} with extra warning signs)\n"
-                + _list(r.get("findings"), ["path", "signature"], 10))
+        return (f"- {r.get('total', 0)} executables/scripts to review in Downloads, Desktop, Documents, Temp, Startup, Public and "
+                f"(unsigned only) AppData/ProgramData; {r.get('suspicious', 0)} with extra warning signs\n"
+                + _list(r.get("findings"), ["path", "signature"], 15))
     if tool == "suspicious_processes":
         return f"- {r.get('process_count')} processes checked, {len(r.get('findings') or [])} flagged\n" + _list(r.get("findings"), ["name", "pid", "path"], 10)
     if tool == "persistence_entries":
@@ -168,15 +258,21 @@ def _render_one(tool: str, r: dict) -> str:
 
 
 TITLES = {"defender_status": "Microsoft Defender", "suspicious_files": "Suspicious files", "suspicious_processes": "Processes",
-          "persistence_entries": "Persistence", "network_connections": "Network", "unwanted_applications": "Potentially unwanted applications",
+          "persistence_entries": "Persistence", "network_connections": "Network", "installed_software": "Installed software",
+          "unwanted_applications": "Potentially unwanted applications",
           "security_posture": "Patch level and hardening", "powershell_activity": "PowerShell activity"}
 
 
-def render(tool: str, result: dict, iocs: dict) -> str:
+def render(tool: str, result: dict, iocs: dict, question: str = "") -> str:
     if tool == "threat_scan":
-        body = "\n\n".join(f"**{TITLES[name]}**\n{_render_one(name, result.get(name) or {})}" for name in TITLES if name in result)
+        body = "\n\n".join(f"**{TITLES[name]}**\n" + (_render_installed(result.get(name) or {}, summary=True)
+                                                       if name == "installed_software" and result.get(name) and "software" in result[name]
+                                                       else _render_one(name, result.get(name) or {}))
+                           for name in TITLES if name in result)
+        body += ("\n\nThis scan checks the places malware usually hides. For Microsoft Defender to read every file on the "
+                 "laptop, ask for a full scan.")
     else:
-        body = _render_one(tool, result)
+        body = _render_one(tool, result, question)
     if iocs.get("checked"):
         if iocs["matches"]:
             body += ("\n\n**IOC matches (platform threat intelligence)**\n" + "\n".join(
@@ -200,8 +296,13 @@ def _explain(question: str, rendered: str) -> Iterator[str]:
 
 # ------------------------------------------------------------------ pipeline
 
-def events(actor: dict, question: str, *, database=None, job_id: str | None = None) -> Iterator[dict]:
-    decision = None if job_id else classify(question)
+DEFENDER_SCANS = {"defender_quick_scan", "defender_full_scan", "defender_custom_scan"}
+MAX_POLL_FAILURES = 4  # consecutive slow/failed polls tolerated while the laptop is busy scanning
+
+
+def events(actor: dict, question: str, *, database=None, job_id: str | None = None,
+           previous_route: str | None = None) -> Iterator[dict]:
+    decision = None if job_id else classify(question, previous_route)
     if decision and decision[0] == "refuse":
         yield {"type": "done", "mode": "local_out_of_scope", "answer": REFUSAL}
         return
@@ -229,17 +330,31 @@ def events(actor: dict, question: str, *, database=None, job_id: str | None = No
                     "Use the confirmation dialog to allow or decline. Nothing has been done yet.")}
                 return
         started = time.monotonic()
+        failures = 0
         while job.get("status") == "running" and time.monotonic() - started < MAX_JOB_SECONDS:
             yield {"type": "agent_progress", "job_id": job["id"], "tool": job["tool"], "message": job.get("progress"),
                    "fraction": job.get("fraction"), "elapsed_seconds": job.get("elapsed_seconds")}
             time.sleep(POLL_SECONDS)
-            job = local_agent.job(actor, job["id"])
+            try:
+                job = local_agent.job(actor, job["id"])
+                failures = 0
+            except local_agent.LocalAgentError as error:
+                # A laptop busy with a scan can answer a status poll late; the scan itself keeps running.
+                failures += 1
+                if failures >= MAX_POLL_FAILURES or error.code not in {"local_agent_timeout", "local_agent_unreachable"}:
+                    raise
+                time.sleep(2)
     except local_agent.LocalAgentError as error:
         yield {"type": "done", "mode": "local_agent_error", "answer": f"The local security agent could not complete this: {error.message}"}
         return
     tool, state = job.get("tool"), job.get("status")
     if state == "running":
-        yield {"type": "done", "mode": "local_timeout", "answer": "The scan is still running after 30 minutes; I stopped waiting. You can cancel it."}
+        if tool in DEFENDER_SCANS:
+            answer = ("Microsoft Defender is still scanning after 30 minutes, which is normal for a full scan. It keeps running "
+                      "in the background. Ask \"show Defender status\" later to see the result and anything it detected.")
+        else:
+            answer = "The scan is still running after 30 minutes; I stopped waiting. You can cancel it."
+        yield {"type": "done", "mode": "local_timeout", "answer": answer}
         return
     if state in {"rejected", "failed"}:
         yield {"type": "done", "mode": f"local_{state}", "answer": f"The {tool.replace('_', ' ')} check was {state}: {job.get('error')}"}
@@ -249,18 +364,26 @@ def events(actor: dict, question: str, *, database=None, job_id: str | None = No
         iocs = match_iocs(database, result)
     except Exception:  # IOC matching is best-effort; the scan result is still reported
         iocs = {"checked": 0, "matches": []}
-    rendered = render(tool, result, iocs)
+    rendered = render(tool, result, iocs, question)
     header = "The scan was cancelled; these are the partial results.\n\n" if state == "cancelled" else ""
     explanation = []
-    try:
-        for chunk in _explain(question, rendered):
-            explanation.append(chunk)
-            yield {"type": "token", "text": chunk}
-    except LLMProviderError:
-        explanation = []
+    # The inventory is already a complete, exact answer; a model summary would only re-list (and possibly misstate) it.
+    if tool != "installed_software":
+        try:
+            for chunk in _explain(question, rendered):
+                explanation.append(chunk)
+                yield {"type": "token", "text": chunk}
+        except LLMProviderError:
+            explanation = []
     intro = "".join(explanation).strip()
-    footer = ("\n\nAll checks were read-only: nothing was deleted, quarantined, stopped or changed. 'Suspicious' and 'review' "
-              "are reasons to look closer, not malware verdicts; only Microsoft Defender detections and IOC matches are confirmed evidence.")
+    if tool == "installed_software":
+        footer = "\n\nRead from the Windows installed-programs list and Store app list; nothing was changed."
+    elif tool in DEFENDER_SCANS:
+        footer = ("\n\nThe agent changed nothing itself. Microsoft Defender handles anything it detects according to your "
+                  "Defender settings (normally quarantine). Only Defender detections and IOC matches are confirmed evidence.")
+    else:
+        footer = ("\n\nAll checks were read-only: nothing was deleted, quarantined, stopped or changed. 'Suspicious' and 'review' "
+                  "are reasons to look closer, not malware verdicts; only Microsoft Defender detections and IOC matches are confirmed evidence.")
     answer = (header + (intro + "\n\n" if intro else "") + rendered + footer).strip()
     yield {"type": "done", "mode": "local_agent" if state == "completed" else "local_cancelled", "answer": answer,
            "job": {"id": job["id"], "tool": tool, "status": state, "elapsed_seconds": job.get("elapsed_seconds")},

@@ -95,7 +95,8 @@ def status(actor: dict) -> dict[str, Any]:
 # the chat model or a client asks for. (The agent's own registry contains only the same tools.)
 SECURITY_TOOLS = frozenset({"threat_scan", "defender_status", "defender_quick_scan", "suspicious_files", "suspicious_processes",
                             "persistence_entries", "network_connections", "unwanted_applications", "security_posture",
-                            "powershell_activity", "secret_scan"})
+                            "powershell_activity", "secret_scan", "installed_software", "defender_full_scan",
+                            "defender_custom_scan"})
 
 
 def start(actor: dict, tool: str, args: dict) -> dict:
@@ -104,8 +105,8 @@ def start(actor: dict, tool: str, args: dict) -> dict:
     return _call("POST", "/jobs", actor, {"tool": tool, "args": args})
 
 
-def job(actor: dict, job_id: str) -> dict:
-    return _call("GET", f"/jobs/{job_id}", actor)
+def job(actor: dict, job_id: str, timeout: float = 30) -> dict:
+    return _call("GET", f"/jobs/{job_id}", actor, timeout=timeout)
 
 
 def cancel(actor: dict, job_id: str) -> dict:

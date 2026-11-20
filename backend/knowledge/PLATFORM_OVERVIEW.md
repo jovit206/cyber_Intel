@@ -13,6 +13,20 @@ design, working sets, replica sets, write concern, network partitions, transacti
 high availability, monitoring and backup, multi-tenancy, polyglot persistence, retrieval-augmented
 generation (RAG) and a comparative multi-database threat-intelligence capstone.
 
+Main features (the dashboard's sidebar views, `public/index.html`):
+
+- Threat intelligence: Live Threat Stream, Top Threats, Report Corpus, Search & Enrich,
+  Cross-Source Analysis, and the AI Threat Assistant (questions about the platform, its threat
+  records and cybersecurity, plus laptop security scans through the local agent).
+- System monitoring: Working Set Monitor.
+- Performance and reliability: Write Concern Latency and Network Reliability (replica set,
+  partition and failover tests).
+- Business operations: Banking Operations (simulated wallet and subscriptions), Reliability &
+  Inventory, Sharding & Horizontal Scalability, and the Admin and Manager dashboards for those roles.
+- Admin-only exercise pages for Chapters 13 to 18.
+
+Accounts sign in at `/account`; plans (Free, Plus, Pro) set monthly per-feature limits.
+
 ## Architecture
 
 - Backend: FastAPI application in `backend/main.py`. It connects to MongoDB at start-up
@@ -190,20 +204,36 @@ Each question is routed by `backend/services/assistant.py`:
 - Specific threat, CVE and IOC questions search the stored MongoDB threat records
   (`backend/services/threat_retrieval.py`) and must cite them; an answer with invalid citations or a
   CVE identifier that is not in the evidence is not shown.
+- "Top", "latest" or "most active" threat questions that name no topic ("What are the top threats?")
+  return the same records as the dashboard's Top Threats view (`GET /api/threats/top`: the newest
+  MISP and VirusTotal events). The answer is built directly from the stored fields (indicator,
+  verdict, severity, detection count, vendor categories, date) without a model call. A singular
+  question ("What is the latest threat?") shows only the newest record; a plural one shows five. If
+  a word in such a question matches no record (often a typo), the answer says so and shows the Top
+  Threats. Adding "in general" or "types of" asks for general knowledge instead.
+- Count questions ("How many threat records are stored?") are answered from a live data summary
+  (events per source and MISP feed, indicators, Galaxy threats, reports, passages, the newest event).
+- A short question continues the previous topic only when it refers back to it ("explain it", "and
+  what about LockBit?"); a complete question of its own is routed on its own words.
 - General cybersecurity questions use the model's general knowledge and are labelled as such.
 - Mitigation questions combine any matching platform evidence with clearly labelled general
   guidance.
 - Unrelated questions receive an explanation of the assistant's purpose.
 
 Local laptop security agent: `local_agent/aegis_local_agent.py` runs on the Windows host (127.0.0.1:8765) and is
-exclusively a read-only cybersecurity scanner. It checks Microsoft Defender status and detections, suspicious executables
-in Downloads/Temp/Startup (signature status and SHA-256), suspicious processes, persistence (run keys, startup folders,
-scheduled tasks, auto-start services), network connections and listening ports, potentially unwanted applications,
-patch level and hardening settings, suspicious PowerShell log entries, and exposed credentials in the approved project
-folder (values redacted). Public IPs and file hashes it finds are matched against the platform's stored indicators.
-General laptop management (storage, files, performance, software installation) is refused, both by the chat routing
-and by a backend allowlist; requests are HMAC-signed, limited to administrators or approved accounts, logged, and
-cancellable. The only action, a Microsoft Defender quick scan, requires the user's confirmation.
+exclusively a cybersecurity scanner. It checks Microsoft Defender status and detections; suspicious executables in
+Downloads, Desktop, Documents (including OneDrive), Temp, Startup and Public, plus unsigned programs in AppData and
+ProgramData (signature status and SHA-256); suspicious processes; persistence (run keys, startup folders, scheduled
+tasks, auto-start services); network connections and listening ports; the complete installed-software inventory
+(every program in Windows' installed-programs list and every Microsoft Store app, with adware-like names and missing
+publishers flagged), so it can answer "is Steam installed?" or "which apps do I have?"; patch level and hardening
+settings; suspicious PowerShell log entries; and exposed credentials in the approved project folder (values
+redacted). Public IPs and file hashes it finds are matched against the platform's stored indicators. To read every
+file on the laptop, it runs a Microsoft Defender full scan, or a Defender scan of one drive or folder ("scan my G
+drive"); each Defender scan requires the user's confirmation, and Defender handles detections according to its
+settings. General laptop management (storage, moving or deleting files, performance, installing or removing
+software) is refused, both by the chat routing and by a backend allowlist; requests are HMAC-signed, limited to
+administrators or approved accounts, logged, and cancellable.
 
 Answers are generated by Ollama (`llama3.2:3b`) and streamed to the browser as they are produced.
 Conversations are stored per user in `rag_demo.conversations` and `rag_demo.conversation_metadata`;

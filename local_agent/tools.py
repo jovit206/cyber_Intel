@@ -1,9 +1,11 @@
 """Security-only inspection tools for the AEGIS local agent.
 
 The agent is exclusively a cybersecurity threat scanner. Every tool here is a fixed, read-only security check that
-uses Windows security interfaces (Microsoft Defender cmdlets, CIM, event logs, the registry, Authenticode). There is no
-general file search, storage analysis, performance monitoring or project inspection, and no tool accepts a command
-line. The only action is a Microsoft Defender quick scan, which requires the user's explicit confirmation.
+uses Windows security interfaces (Microsoft Defender cmdlets, CIM, event logs, the registry, Authenticode). The
+installed-software inventory reads the Windows uninstall registry and Store app list. There is no general file search,
+storage analysis, performance monitoring or project inspection, and no tool accepts a command line. The only actions
+are Microsoft Defender scans (quick, full, or one folder/drive); Defender is what reads every file's contents, and
+each scan requires the user's explicit confirmation.
 
 Findings are labelled carefully: "detected" only when Microsoft Defender reports a threat; everything else is
 "suspicious" or "review", with the evidence that caused it. Absence of findings is never reported as "safe".
@@ -87,9 +89,9 @@ def _user_writable(path: str | None) -> bool:
     return any(lowered.startswith(prefix) for prefix in USER_WRITABLE if prefix)
 
 
-def _signatures(paths: list[str]) -> dict[str, str]:
+def _signatures(paths: list[str], limit: int = 80) -> dict[str, str]:
     """Authenticode status for executables (Valid / NotSigned / HashMismatch / ...)."""
-    unique = [p for p in dict.fromkeys(paths) if p and os.path.isfile(p)][:80]
+    unique = [p for p in dict.fromkeys(paths) if p and os.path.isfile(p)][:limit]
     if not unique:
         return {}
     rows = _ps("$p = $env:AEGIS_PATHS | ConvertFrom-Json; $p | ForEach-Object { $s = Get-AuthenticodeSignature -LiteralPath $_; "
@@ -163,38 +165,117 @@ def defender_quick_scan(args, ctx):
     return result
 
 
+MPCMDRUN = Path(os.environ.get("ProgramFiles", "C:\\Program Files")) / "Windows Defender" / "MpCmdRun.exe"
+
+
+def _defender_scan(ctx, label: str, scan_type: str, path: str | None = None, timeout: int = 6 * 3600) -> None:
+    """Run a Defender scan while reporting elapsed time; a cancel request also cancels the Defender scan."""
+    script = ("Start-MpScan -ScanType CustomScan -ScanPath $env:AEGIS_SCAN_PATH" if path else f"Start-MpScan -ScanType {scan_type}")
+    process = subprocess.Popen(["powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command",
+                                f"$ErrorActionPreference='Stop'; {script}"],
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace",
+                               creationflags=CREATE_NO_WINDOW, env={**os.environ, "AEGIS_SCAN_PATH": path or ""})
+    started = datetime.now()
+    while process.poll() is None:
+        if ctx.cancel.is_set():
+            if MPCMDRUN.exists():
+                subprocess.run([str(MPCMDRUN), "-Scan", "-Cancel"], capture_output=True, timeout=60, creationflags=CREATE_NO_WINDOW)
+            process.kill()
+            return
+        minutes = int((datetime.now() - started).total_seconds() // 60)
+        if minutes * 60 > timeout:
+            process.kill()
+            raise RuntimeError(f"The Defender {label} did not finish within {timeout // 3600} hours.")
+        ctx.progress(f"Microsoft Defender {label} running: {minutes} min so far. Defender reads every file in scope; "
+                     "a full scan can take an hour or more.", None)
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            pass
+    if process.returncode != 0:
+        raise RuntimeError(redact((process.stderr.read() or "Defender scan failed").strip())[:300])
+
+
+def defender_full_scan(args, ctx):
+    """Microsoft Defender full scan: every file on every fixed drive and all running programs."""
+    _defender_scan(ctx, "full scan", "FullScan")
+    result = defender_status(args, ctx)
+    result["scan"] = {"type": "full", "scope": "all files on all fixed drives", "cancelled": ctx.cancel.is_set()}
+    result["note"] = ("Full scan by Microsoft Defender, which read every file on the laptop's drives. Anything it found was "
+                      "handled according to your Defender settings (normally quarantine). " + result["note"])
+    return result
+
+
+def defender_custom_scan(args, ctx):
+    """Microsoft Defender scan of one folder or drive chosen by the user."""
+    path = str(args.get("path") or "").strip().strip('"')
+    if not re.fullmatch(r"[A-Za-z]:\\[^<>|?*\"]*", path) or not os.path.exists(path):
+        raise PolicyError(f"'{path}' is not an existing folder or drive on this laptop.")
+    _defender_scan(ctx, f"scan of {path}", "CustomScan", path)
+    result = defender_status(args, ctx)
+    result["scan"] = {"type": "custom", "scope": path, "cancelled": ctx.cancel.is_set()}
+    result["note"] = (f"Microsoft Defender scanned every file under {path}. Anything it found was handled according to your "
+                      "Defender settings (normally quarantine). " + result["note"])
+    return result
+
+
 # --------------------------------------------------------------------------- 1-2. suspicious files
 
 def suspicious_files(args, ctx):
     """Executables and scripts in common malware drop locations, with signature status and SHA-256 for IOC matching."""
-    roots = [HOME / "Downloads", Path(os.environ.get("TEMP", str(LOCALAPPDATA / "Temp"))),
-             APPDATA / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup", Path("C:\\Users\\Public")]
-    candidates = []
-    for root in roots:
+    temp = Path(os.environ.get("TEMP", str(LOCALAPPDATA / "Temp")))
+    onedrive = Path(os.environ.get("OneDrive", str(HOME / "OneDrive")))
+    # (folder, depth, report only unsigned executables). AppData holds many legitimate per-user programs, so there only
+    # programs without a valid signature are reported; the classic drop locations report every executable.
+    roots = [(HOME / "Downloads", 3, False), (temp, 3, False),
+             (APPDATA / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup", 3, False), (Path("C:\\Users\\Public"), 3, False),
+             (HOME / "Desktop", 3, False), (HOME / "Documents", 3, False), (onedrive / "Desktop", 3, False),
+             (onedrive / "Documents", 3, False), (APPDATA, 2, True), (LOCALAPPDATA, 2, True), (Path("C:\\ProgramData"), 2, True)]
+    # Folders already covered above, and developer toolchains whose launchers are unsigned by design (pip console scripts).
+    skip = {str(p).lower() for p in (LOCALAPPDATA / "Microsoft", LOCALAPPDATA / "Packages", LOCALAPPDATA / "Programs",
+                                     APPDATA / "Microsoft", Path("C:\\ProgramData\\Microsoft"), Path("C:\\ProgramData\\Package Cache"), temp,
+                                     LOCALAPPDATA / "Python", APPDATA / "Python", LOCALAPPDATA / "pip", LOCALAPPDATA / "uv",
+                                     APPDATA / "npm", LOCALAPPDATA / "pypoetry")}
+    candidates, seen = [], set()
+    for root, max_depth, unsigned_only in roots:
         if not root.exists():
             continue
         depth0 = len(root.parts)
         for current, dirs, files in os.walk(root, onerror=lambda _e: None):
             if ctx.cancel.is_set():
                 break
-            if len(Path(current).parts) - depth0 >= 3:
+            if unsigned_only:
+                dirs[:] = [d for d in dirs if os.path.join(current, d).lower() not in skip and not ctx.policy.is_excluded(os.path.join(current, d))]
+            if len(Path(current).parts) - depth0 >= max_depth:
                 dirs[:] = []
             for name in files:
                 lower = name.lower()
                 suffix = Path(lower).suffix
-                if suffix not in EXECUTABLE_EXTENSIONS:
+                path = os.path.join(current, name)
+                if suffix not in EXECUTABLE_EXTENSIONS or path.lower() in seen:
                     continue
+                if unsigned_only and suffix not in {".exe", ".scr", ".vbs", ".hta"}:
+                    continue  # DLLs and .cmd/.ps1/.js shims (npm, Electron apps) are too common in AppData to report
+                seen.add(path.lower())
                 parts = lower.split(".")
-                reasons = [f"{suffix} file in {root.name}"]
+                reasons = [f"{suffix} file in {root.name}" + (" (a common hiding place for malware)" if unsigned_only else "")]
                 if len(parts) > 2 and f".{parts[-2]}" in DOCUMENT_DISGUISES:
                     reasons.append("double extension: a document-like name ending in an executable type")
                 if re.search(r"\s{3,}\.", name) or "\u202e" in name:
                     reasons.append("padded or right-to-left name hiding the real extension")
-                candidates.append({"path": os.path.join(current, name), "reasons": reasons})
+                candidates.append({"path": path, "reasons": reasons, "unsigned_only": unsigned_only})
     ctx.progress(f"Checking signatures of {len(candidates)} files…", 0.5)
-    signed = _try(_signatures, [c["path"] for c in candidates if Path(c["path"]).suffix.lower() in {".exe", ".dll", ".msi", ".scr", ".cpl", ".ps1"}])[0] or {}
+    signable = {".exe", ".dll", ".msi", ".scr", ".cpl", ".ps1"}
+    signed = _try(_signatures, [c["path"] for c in candidates if Path(c["path"]).suffix.lower() in signable], 400)[0] or {}
+    kept = []
+    for item in candidates:
+        signature = signed.get(item["path"])
+        if item["unsigned_only"] and Path(item["path"]).suffix.lower() in signable and (signature is None or signature.startswith("Valid")):
+            continue  # a validly signed program in AppData/ProgramData is normal
+        kept.append(item)
+    candidates = kept
     findings = []
-    for index, item in enumerate(candidates[:150]):
+    for index, item in enumerate(candidates[:250]):
         if ctx.cancel.is_set():
             break
         signature = signed.get(item["path"])
@@ -210,7 +291,7 @@ def suspicious_files(args, ctx):
         if index % 20 == 0:
             ctx.progress(f"Hashed {index + 1} of {len(candidates)} files…", 0.5 + 0.5 * index / max(len(candidates), 1))
     findings.sort(key=lambda f: (f["level"] != "suspicious", f["path"]))
-    return {"locations": [str(r) for r in roots], "findings": findings, "total": len(findings),
+    return {"locations": [str(r) for r, _, _ in roots if r.exists()], "findings": findings, "total": len(findings),
             "suspicious": sum(1 for f in findings if f["level"] == "suspicious"),
             "note": "Files are flagged by location, name tricks and missing/invalid signatures. That is not a malware verdict; "
                     "only Microsoft Defender detections (or an IOC match) are confirmed evidence. File contents were not opened."}
@@ -349,9 +430,10 @@ def network_connections(args, ctx):
 # --------------------------------------------------------------------------- 6 & 8. PUAs, vulnerabilities and posture
 
 def _installed_programs():
+    """Programs registered with Windows (the Apps & features list): machine-wide, 32-bit and per-user entries."""
     import winreg
     programs = {}
-    for hive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
+    for hive, scope in ((winreg.HKEY_LOCAL_MACHINE, "all users"), (winreg.HKEY_CURRENT_USER, "current user")):
         for path in (r"Software\Microsoft\Windows\CurrentVersion\Uninstall", r"Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"):
             try:
                 key = winreg.OpenKey(hive, path)
@@ -361,18 +443,68 @@ def _installed_programs():
                 for index in range(winreg.QueryInfoKey(key)[0]):
                     try:
                         with winreg.OpenKey(key, winreg.EnumKey(key, index)) as sub:
-                            value = lambda n: (lambda: winreg.QueryValueEx(sub, n)[0])
-                            name = value("DisplayName")()
-                            row = {"name": name}
-                            for field, reg in (("publisher", "Publisher"), ("version", "DisplayVersion")):
+                            def value(name):
                                 try:
-                                    row[field] = value(reg)()
+                                    return winreg.QueryValueEx(sub, name)[0]
                                 except OSError:
-                                    row[field] = None
-                            programs[name] = row
+                                    return None
+                            name = value("DisplayName")
+                            if not name or value("SystemComponent") == 1 or value("ParentKeyName"):
+                                continue  # hidden components and updates are not separate programs
+                            date = str(value("InstallDate") or "")
+                            programs[name] = {
+                                "name": name, "publisher": value("Publisher"), "version": value("DisplayVersion"),
+                                "installed": f"{date[:4]}-{date[4:6]}-{date[6:8]}" if re.fullmatch(r"\d{8}", date) else None,
+                                "location": value("InstallLocation") or None, "scope": scope, "kind": "desktop program"}
                     except OSError:
                         continue
     return sorted(programs.values(), key=lambda p: p["name"].lower())
+
+
+def _store_apps():
+    """Microsoft Store (MSIX/Appx) apps of the current user, excluding Windows system and framework packages."""
+    rows = _ps("Get-AppxPackage | Where-Object { -not $_.IsFramework -and $_.SignatureKind -ne 'System' } | "
+               "Select-Object Name,Version,@{n='Publisher';e={($_.Publisher -split ',')[0] -replace '^CN=',''}},"
+               "@{n='Store';e={[string]$_.SignatureKind}}", timeout=120)
+    return [{"name": r.get("Name"), "publisher": r.get("Publisher"), "version": r.get("Version"), "installed": None,
+             "location": None, "scope": "current user", "kind": "Store app" if r.get("Store") == "Store" else "app package"}
+            for r in rows if r.get("Name")]
+
+
+def installed_software(args, ctx):
+    """Complete installed-software inventory with security flags (adware-like names, no publisher, new installs)."""
+    ctx.progress("Reading installed programs from the Windows registry…", 0.2)
+    programs = _installed_programs()
+    ctx.progress("Reading Microsoft Store apps…", 0.6)
+    store, store_error = _try(_store_apps)
+    software = programs + (store or [])
+    recent_cutoff = datetime.now().toordinal() - 14  # installs in the last two weeks are worth a look
+    flagged, recent = [], []
+    for item in software:
+        reasons = []
+        lowered = str(item["name"]).lower()
+        if any(h in lowered for h in PUA_HINTS):
+            reasons.append("name matches a common potentially-unwanted-program pattern")
+        if item["kind"] == "desktop program" and not item.get("publisher"):
+            reasons.append("no publisher recorded")
+        if item.get("location") and _user_writable(item["location"]) and "\\programs\\" not in str(item["location"]).lower():
+            reasons.append("installed in a user-writable folder")
+        try:
+            if item.get("installed") and datetime.strptime(item["installed"], "%Y-%m-%d").toordinal() >= recent_cutoff:
+                # Informational only: Windows also updates this date when a program is upgraded.
+                recent.append({"name": item["name"], "publisher": item.get("publisher"), "installed": item["installed"]})
+        except ValueError:
+            pass
+        if reasons:
+            flagged.append({**item, "reasons": reasons,
+                            "level": "suspicious" if any("unwanted" in r for r in reasons) else "review"})
+    return {"total": len(software), "desktop_programs": len(programs), "store_apps": len(store or []),
+            "software": software, "flagged": flagged,
+            "installed_or_updated_last_14_days": sorted(recent, key=lambda r: r["installed"], reverse=True),
+            "unavailable": [store_error] if store_error else [],
+            "note": "This is the list Windows keeps of installed programs (Apps & features) plus the current user's Store apps. "
+                    "Portable programs that were only unzipped or copied are not registered and do not appear here. "
+                    "Flags are reasons to review, not malware verdicts."}
 
 
 def unwanted_applications(args, ctx):
@@ -483,7 +615,7 @@ def secret_scan(args, ctx):
 def threat_scan(args, ctx):
     steps = [("Microsoft Defender status", defender_status), ("Suspicious files", suspicious_files),
              ("Running processes", suspicious_processes), ("Persistence (startup, tasks, services)", persistence_entries),
-             ("Network connections", network_connections), ("Potentially unwanted applications", unwanted_applications),
+             ("Network connections", network_connections), ("Installed software", installed_software),
              ("Patch level and hardening", security_posture), ("PowerShell activity", powershell_activity)]
     report = {}
     for index, (label, func) in enumerate(steps):
@@ -508,7 +640,10 @@ class Tool:
 
 # The complete registry. Anything not listed here cannot run.
 TOOLS: dict[str, Tool] = {
-    "threat_scan": Tool(threat_scan, "Consolidated security scan: Defender, suspicious files, processes, persistence, network, PUAs, posture, PowerShell logs."),
+    "threat_scan": Tool(threat_scan, "Consolidated security scan: Defender, suspicious files, processes, persistence, network, "
+                                     "installed software, posture, PowerShell logs."),
+    "installed_software": Tool(installed_software, "Every installed program and Store app, with adware-like, unknown-publisher "
+                                                   "and recently installed entries flagged."),
     "defender_status": Tool(defender_status, "Microsoft Defender protection status and detected threats."),
     "suspicious_files": Tool(suspicious_files, "Executables and scripts in common malware locations, with signature status and hashes."),
     "suspicious_processes": Tool(suspicious_processes, "Running processes with security indicators (location, signature, attack command lines)."),
@@ -522,4 +657,12 @@ TOOLS: dict[str, Tool] = {
                                 "Microsoft Defender will scan common malware locations for a few minutes and use noticeable CPU. "
                                 "If it finds a threat, Defender handles it according to your Defender settings (normally quarantine). "
                                 "The agent itself does not delete or change anything."),
+    "defender_full_scan": Tool(defender_full_scan, "Run a Microsoft Defender full scan of every file on the laptop.", (), True,
+                               "Microsoft Defender will read every file on all fixed drives. This usually takes 30 minutes to "
+                               "a few hours and uses noticeable CPU and disk. If it finds a threat, Defender handles it according "
+                               "to your Defender settings (normally quarantine). The agent itself does not delete or change anything."),
+    "defender_custom_scan": Tool(defender_custom_scan, "Run a Microsoft Defender scan of one folder or drive.", ("path",), True,
+                                 "Microsoft Defender will read every file in this folder or drive, which can take a while for "
+                                 "large drives. If it finds a threat, Defender handles it according to your Defender settings "
+                                 "(normally quarantine). The agent itself does not delete or change anything."),
 }

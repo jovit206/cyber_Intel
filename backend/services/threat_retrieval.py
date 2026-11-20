@@ -53,6 +53,22 @@ _QUESTION_STOP_TERMS = frozenset({
 })
 
 
+# Ranking words ("top", "latest") describe which records to return, not what they contain. Searching for them as
+# text matches unrelated values such as ".top" domains, so they are removed from the search terms.
+_RANKING_TERMS = frozenset({
+    "top", "latest", "recent", "newest", "current", "currently", "biggest", "main", "major", "most", "active",
+    "now", "new", "important", "significant", "notable", "key", "seen", "observed", "known", "ingested",
+})
+# The dashboard's Top Threats view (GET /api/threats/top) shows the newest events from these live CTI sources.
+_LIVE_CTI_SOURCES = ("misp", "virustotal")
+# Evidence for those events. VirusTotal events have no "info"; their facts are the indicator, verdict, severity and
+# detection counts. Ordered so the most useful fields survive prompt truncation; missing (None) fields are skipped.
+_LATEST_EVIDENCE_FIELDS = (
+    "info", "indicator", "indicator_type", "verdict", "severity", "threat_level", "malicious_count",
+    "suspicious_count", "reputation", "source", "source_feed_name", "timestamp", "tags", "categories",
+)
+
+
 def _terms(question: str) -> list[str]:
     # Exact vulnerability identifiers are stronger than prose around them. Search
     # only those IDs so generic question words cannot outrank the requested CVE.
@@ -63,8 +79,30 @@ def _terms(question: str) -> list[str]:
     # "is" or "the" would match nearly every record and turn any question (even an
     # unrelated one) into apparent evidence. Search only the discriminating words.
     words = re.findall(r"[\w.-]{2,}", question.strip(), flags=re.UNICODE)
-    terms = [word for word in words if word.casefold() not in _QUESTION_STOP_TERMS]
+    terms = [word for word in words
+             if word.casefold() not in _QUESTION_STOP_TERMS and word.casefold() not in _RANKING_TERMS]
     return list(dict.fromkeys(terms))[:MAX_TERMS]
+
+
+def _asks_for_ranking(question: str) -> bool:
+    """"top/latest threats" or a bare "what are the threats?": a request for the platform's current threats."""
+    return (any(word.casefold() in _RANKING_TERMS for word in re.findall(r"[\w-]+", question))
+            or bool(re.search(r"\b(are|show|list|give)\b(?:\s+me)?(?:\s+all)?(?:\s+the)?\s+threats?\s*[?.!]*\s*$", question, re.I)))
+
+
+def latest_threat_evidence(database: Database, limit: int = 5) -> dict[str, Any]:
+    """The newest live CTI events, ranked exactly like the dashboard's Top Threats view."""
+    name, _, _, id_fields = _SOURCES[0]
+    evidence_fields = _LATEST_EVIDENCE_FIELDS
+    try:
+        rows = database[name].find(
+            {"source": {"$in": list(_LIVE_CTI_SOURCES)}},
+            {field: 1 for field in set(evidence_fields + id_fields + ("source_reference", "source_url", "report_id"))},
+        ).sort([("timestamp", -1), ("first_seen", -1), ("_id", 1)]).max_time_ms(3_000).limit(limit)
+        items = [_as_evidence(name, row, evidence_fields, id_fields) for row in rows]
+    except Exception as error:
+        return {"items": [], "sources": [], "unavailable_sources": [f"{name}:{type(error).__name__}"]}
+    return {"items": items, "sources": [name] if items else [], "unavailable_sources": [], "ranking": True}
 
 
 def _regex_any(fields: tuple[str, ...], value: str) -> dict[str, Any]:
@@ -246,9 +284,12 @@ def retrieve_structured_threat_evidence(
     already exists. No source is initialized or mutated here.
     """
     terms = _terms(question)
-    if not terms and not _IOC_INTENT.search(question):
-        return {"items": [], "sources": [], "unavailable_sources": []}
     limit = min(max(int(limit), 1), 10)
+    if not terms and not _IOC_INTENT.search(question):
+        if _asks_for_ranking(question) and not platform and not threat_status:
+            # "What are the top/latest threats?" names no topic: answer with the dashboard's Top Threats records.
+            return latest_threat_evidence(database, limit)
+        return {"items": [], "sources": [], "unavailable_sources": []}
     is_ioc_query = bool(_IOC_INTENT.search(question))
     ioc_context_terms = [term for term in terms if term.casefold() not in _IOC_STOP_TERMS] if is_ioc_query else []
     selected_sources = _SOURCES
@@ -309,4 +350,10 @@ def retrieve_structured_threat_evidence(
             unique.append(item)
         if len(unique) >= limit:
             break
+    if not unique and not is_ioc_query and _asks_for_ranking(question) and not platform and not threat_status:
+        # "wahat is the top threat": the leftover word (often a typo) matched nothing. Show the current Top Threats and
+        # report the unmatched words, so a real topic with no records is never presented as matching.
+        latest = latest_threat_evidence(database, limit)
+        if latest["items"]:
+            return {**latest, "unmatched_terms": terms}
     return {"items": unique, "sources": sources, "unavailable_sources": unavailable}
