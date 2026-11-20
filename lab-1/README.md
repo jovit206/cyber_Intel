@@ -1,7 +1,6 @@
 # NoSQL Chapter 01 Activities
 
 **Course:** 23CSE528 - NoSQL Databases using MongoDB
-**Student:** Kamlesh Choudhary, B.Tech AI & ML, Jain University, Bengaluru
 
 ## What this is
 
